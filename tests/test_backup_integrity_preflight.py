@@ -127,6 +127,8 @@ class BackupIntegrityTests(unittest.TestCase):
                 os.link(original, copied)
             except (OSError, NotImplementedError):
                 self.skipTest("Filesystem does not support hardlinks here")
+            if original.stat().st_ino == 0 or original.stat().st_ino != copied.stat().st_ino:
+                self.skipTest("Filesystem does not report stable hardlink file identity")
             result, diffs = self.inspect(src, dst, verify=True)
             self.assertEqual(result["same_file_identity_count"], 1)
             self.assertEqual(result["status"], "NOT_INDEPENDENT_FILE_COPY")
