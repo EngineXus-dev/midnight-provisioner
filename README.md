@@ -1,5 +1,7 @@
 # NIGHTGLASS
 
+> Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
+
 **Local-first, Qubes-inspired workspace controller for Fedora KDE.**
 
 > Status: **v0.1 foundation / preview**. Real libvirt inspection, guarded VM start/shutdown/managed-save, trusted Distrobox creation and entry, host diagnostics, and editable VM binding. **NOT a Qubes OS equivalent, installer, penetration-testing tool, malware containment certification, backup system, or disk partitioner.**
@@ -455,6 +457,28 @@ The connected GitHub integration does not currently expose *repository creation*
 ```
 
 The script creates a fresh `nightglass-workspaces` **private** repository through `gh repo create`, initializes only this project directory if needed, refuses existing `origin` remotes and dirty existing Git checkouts, and **never force-pushes or pulls existing work**. You may rename the repo using `-RepoName custom-name`.
+
+## Optional Windows 11 upgrade first (NO automatic OS changes)
+
+The host read-only review identified Windows 10 Home on a UEFI/GPT
+Windows Disk 0 (measured system-disk capacity) and a separate measured backup-disk capacity GPT Disk 1 whose
+contents remain unknown. Nightglass cannot assume Disk 1 is empty or
+available. The Windows 10 boot, encrypted recovery, Fast Startup,
+second-disk and upgrade prerequisites require human confirmation.
+
+If Windows 11 is chosen, **complete it and revalidate Windows first**.
+The read-only native Windows reviewer now includes non-secret TPM
+presence/readiness/version and additional-disk bus/partition
+observations. Microsoft PC Health Check, separate backup, Windows
+recovery, successful post-upgrade startup and a new disk/EFI inventory
+are required before *any* Fedora graphical installation is considered.
+The reported target CPU (verify compatibility) is a supported Windows 11 processor, but
+the whole device's eligibility remains unverified.
+
+See [Windows 11-first route](docs/WINDOWS11_UPGRADE_FIRST.md).
+No Windows/Fedora installer, partition tool or compatibility bypass
+is automatically run. All changes are on draft stacked branches,
+with `main` and original local files untouched.
 
 ## Windows-to-Fedora dual-boot preparation (NO installation)
 
