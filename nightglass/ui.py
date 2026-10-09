@@ -1076,7 +1076,7 @@ class MainWindow(QMainWindow):
             self.resource_status.setText("Resource status: UNKNOWN")
             self.resource_details.setPlainText(
                 "READ-ONLY INSPECTION UNAVAILABLE: " + message +
-                "\\nDo not assume that launching another VM is safe."
+                "\nDo not assume that launching another VM is safe."
             )
         self.work(
             lambda: collect_resources(workspaces=tuple(self.spaces)),
