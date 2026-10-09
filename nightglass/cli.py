@@ -24,6 +24,7 @@ from .kali_drift import compare_version_lock_files, save_drift_review
 from .kali_preflight import KaliPreflight
 from .kali_registration import KaliRegistrationInspector, save_registration_report
 from .kali_cold_baseline import KaliColdBaselineInspector, save_cold_baseline_report
+from .kali_recovery_link import KaliRecoveryLink, save_kali_recovery_link
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -113,6 +114,16 @@ def main(argv: list[str] | None = None) -> int:
                                    help="Existing Nightglass cold backup directory")
     template_baseline.add_argument("--report", type=Path,
                                    help="Optional NEW private metadata report, never overwritten")
+    template_recovery = template_commands.add_parser(
+        "recovery-link", help="Read-only match of original Kali cold backup to its independent offline recovery copy"
+    )
+    template_recovery.add_argument("plan", type=Path, help="Existing curated Kali guest setup plan")
+    template_recovery.add_argument("--backup", type=Path, required=True,
+                                   help="Original verified cold backup folder")
+    template_recovery.add_argument("--staged", type=Path, required=True,
+                                   help="Existing separately staged NEW recovered guest folder")
+    template_recovery.add_argument("--report", type=Path,
+                                   help="Optional NEW private metadata evidence file")
     wizard = sub.add_parser("provision", help="Read-only VM ISO integrity and guest XML preflight")
     wizard.add_argument("kind", choices=("pentest", "analysis"))
     wizard.add_argument("--iso", required=True)
@@ -162,6 +173,12 @@ def main(argv: list[str] | None = None) -> int:
     cmd = args.command or "gui"
     try:
         if cmd == "templates":
+            if args.template_action == "recovery-link":
+                report = KaliRecoveryLink().inspect(args.plan, args.backup, args.staged)
+                print(report.describe())
+                if args.report:
+                    print("Private Kali recovery linkage evidence:", save_kali_recovery_link(report, args.report))
+                return 0 if report.ok else 2
             if args.template_action == "baseline":
                 report = KaliColdBaselineInspector().inspect(args.plan, args.disk, args.backup)
                 print(report.describe())
@@ -221,7 +238,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 print("PLANS ONLY: each template uses a separate, disconnected Kali VM.")
                 return 0
-            parser.error("Choose templates list, show, export, verify, compare, lock, drift, preflight, registered, baseline or guest-help")
+            parser.error("Choose templates list, show, export, verify, compare, lock, drift, preflight, registered, baseline, recovery-link or guest-help")
         if cmd == "runtime-label":
             report = RuntimeLabelInspector().inspect(args.guest, args.policy)
             print(report.describe())
