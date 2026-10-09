@@ -1,7 +1,8 @@
 name: Verify source
+# CI is deliberately manual while GitHub Actions minutes are exhausted.
+# No push or pull_request runs. Re-enable only after explicit approval.
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
