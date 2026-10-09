@@ -11,23 +11,23 @@ virtualization packages. Use a normal desktop user (not root), with legitimate
 libvirt/polkit permissions. Copy an already checked, staged recovery folder
 onto access-controlled encrypted storage, and run:
 
-\`\`\`bash
+```bash
 nightglass doctor
 nightglass recover verify /path/to/recovered-new-guest
 nightglass recover preflight /path/to/recovered-new-guest
 
 # Or run the combined non-root, read-only script from the project root:
 bash scripts/fedora-recovery-smoke.sh /path/to/recovered-new-guest
-\`\`\`
+```
 
 The last check uses installed **virt-xml-validate** and **qemu-img info** to
 verify libvirt schema validity and disk metadata, as well as the already
 implemented staged-file hashes and offline-device audit. It checks that
-\`/dev/kvm\` is accessible, the new domain identifier is unused, and the
+`/dev/kvm` is accessible, the new domain identifier is unused, and the
 proposed RAM fits this machine's Nightglass profile. If the check fails,
 nothing is imported or fixed automatically.
 
-**Never substitute \`virsh define --validate\` for a read-only schema check.**
+**Never substitute `virsh define --validate` for a read-only schema check.**
 That command validates *and registers* a guest definition.
 
 References:
@@ -39,7 +39,7 @@ References:
 
 | Check | Expected observation |
 |---|---|
-| Host distro, virtualization support, polkit | Fedora KDE and working non-root \`qemu:///system\` access |
+| Host distro, virtualization support, polkit | Fedora KDE and working non-root `qemu:///system` access |
 | Preflight on 8 GiB device | One VM at a time, guest memory within conservative host limit |
 | Check recovered image, XML and UEFI metadata | Integrity matches; actual firmware and paths reviewed |
 | Guest identity | New guest name/UUID, original VM remains unchanged |
@@ -51,7 +51,7 @@ References:
 | Negative cases | Changed image hash, malicious disk path, network interface and name collision all fail |
 
 Before any manual registration of a staged guest, review the **exact**
-\`domain.xml\`, the proposed storage location, ownership/permissions, SELinux
+`domain.xml`, the proposed storage location, ownership/permissions, SELinux
 file contexts and guest firmware loader. Only register a **NEW** domain on a
 **disposable test host**. Never import a sample VM or suspicious images into a
 personal-use desktop without a dedicated risk assessment. Do not use live
