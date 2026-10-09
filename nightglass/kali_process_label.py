@@ -246,7 +246,6 @@ class KaliProcessLabelInspector:
             pid_dir, started, label = candidates[0]
             try:
                 if (_start_time(pid_dir) != started or
-                        _arguments(pid_dir) is None or
                         not _matches_qemu(_arguments(pid_dir), guest, domain_uuid) or
                         _read_proc(pid_dir / "attr" / "current").decode("utf-8").strip() != label):
                     errors.append("QEMU process identity or effective SELinux label changed during inspection")
