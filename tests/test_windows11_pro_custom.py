@@ -52,6 +52,21 @@ class Windows11ProCustomContract(unittest.TestCase):
         self.assertIn("ApplyCore never performs app uninstall", source)
         self.assertIn("prohibited", self.catalog)
 
+    def test_activation_later_default_and_during_setup_remain_keyless(self):
+        activation = self.catalog["target"]["activation"]
+        self.assertEqual(activation["default"], "activate_later")
+        self.assertEqual(activation["options"],
+                         ["activate_during_setup", "activate_later"])
+        self.assertEqual(activation["status"], "PLAN_ONLY_NOT_INSTALLED")
+        self.assertIn("[string]$ActivationTiming = 'ActivateLater'", self.script)
+        self.assertIn("ValidateSet('ActivateLater','DuringSetup')", self.script)
+        self.assertIn("activationTiming = $ActivationTiming", self.script)
+        self.assertIn("productKey = 'NOT_STORED'", self.script)
+        self.assertIn("I don't have a product key", self.script)
+        self.assertIn("Settings > System > Activation > Change product key", self.script)
+        self.assertNotIn("slmgr.vbs", self.script)
+        self.assertNotIn("Set-WindowsProductKey", self.script)
+
     def test_default_preview_and_explicit_future_apply_requirements(self):
         source = self.script
         self.assertIn("[string]$Mode = 'Preview'", source)
