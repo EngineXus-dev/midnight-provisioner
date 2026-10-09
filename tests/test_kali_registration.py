@@ -111,7 +111,7 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
         self.assertEqual(result.virtual_disk_gib, 32)
         self.assertEqual(result.inspected_definitions, ("Current definition", "Inactive definition"))
         self.assertIn("PASS (CONFIGURATION ONLY)", result.describe())
-        self.assertIn("NOT ruled out", result.describe())
+        self.assertIn("remain UNVERIFIED", result.describe())
         self.assertEqual(len(self.runner.calls), 1)
         self.assertEqual(self.runner.calls[0][:3], ("qemu-img", "info", "--output=json"))
         self.assertEqual(self.runner.calls[0][-1], str(self.disk))
