@@ -141,3 +141,32 @@ documented above. Do not claim Linux suite, GUI, host SELinux/sVirt, live
 guest isolation or physical Fedora/KVM acceptance passed on the basis of the
 first Docker execution. Do not merge draft PRs until the remaining failures
 and later hardware acceptance gates have been addressed.
+
+## 2026-10-09: second Docker run, GUI SIGSEGV isolated
+
+The follow-up Docker Desktop run of commit `6a3cc5f` was materially better:
+- Python source syntax: **62 files PASS**
+- Bash syntax: **PASS** after new LF checkout rules
+- Full Fedora/Linux unittest discovery: **379 tests, OK (skipped=22)**
+- Native libvirt/QEMU fixture suite: **6/6 PASS**
+- Real Qt offscreen GUI smoke: **FAIL — SIGSEGV**, exit `-11`
+
+Python faulthandler identified the first crash site at
+`nightglass/ui.py:383`: `posture_button.clicked.connect(self.check_host_security)`.
+The C backtrace entered PySide6 6.10 `qobjectConnectCallback` /
+`MetaObjectBuilder` on Fedora Python 3.14. This is consistent with a
+PySide signal-registration interoperability issue; **the exact
+upstream cause is not independently established**.
+
+The integration branch now routes MainWindow's direct Python-bound
+signal connections through small callable adapters instead of asking
+PySide to register those methods dynamically as slots. A static
+guardrail test prevents reintroducing direct bound connections, and
+an opt-in real Qt GUI test checks that two read-only diagnostics
+buttons still dispatch to their handlers with host actions mocked.
+
+**Unverified after the patch:** actual Qt offscreen smoke success, real
+Fedora SELinux/sVirt and KVM host isolation, guest boot/rollback, and
+Python 3.11–3.13 matrix. Continue to treat the overall gate as
+**INTEGRATION HOLD** until the new GUI container log succeeds and later
+physical Fedora checks are performed.
