@@ -11,7 +11,7 @@ from nightglass.settings import load_workspaces, save_workspaces
 
 
 def domain(*inside: str) -> str:
-    return '<domain type="kvm"><name>nightglass-malware</name><memory unit="MiB">3072</memory><devices>' + ''.join(inside) + '</devices></domain>'
+    return '<domain type="kvm"><name>safevm</name><memory unit="MiB">3072</memory><devices>' + ''.join(inside) + '</devices></domain>'
 
 
 LOOPBACK_VNC = '<graphics type="vnc" listen="127.0.0.1"/>'
@@ -28,6 +28,8 @@ class FakeRunner:
         self.calls.append((argv, timeout))
         key = tuple(argv)
         value = self.values.get(key)
+        if value is None and len(key) == 6 and key[:4] == virsh('dumpxml') and key[4] == '--inactive':
+            value = self.values.get(virsh('dumpxml', key[5]))
         if isinstance(value, Exception):
             raise value
         if value is None:
@@ -127,7 +129,7 @@ class LifecycleTest(unittest.TestCase):
         runner = FakeRunner({
             virsh('list', '--all', '--name'): 'unsafevm\n',
             virsh('dominfo', 'unsafevm'): 'Managed save: no\n',
-            virsh('dumpxml', 'unsafevm'): domain('<interface type="bridge"/>'),
+            virsh('dumpxml', 'unsafevm'): domain('<interface type="bridge"/>').replace('<name>safevm</name>', '<name>unsafevm</name>'),
         })
         with self.assertRaises(ToolError):
             Hypervisor(runner).start('unsafevm', 'isolated')
@@ -212,7 +214,7 @@ class MemoryGuardTest(unittest.TestCase):
         runner = FakeRunner({
             virsh('list', '--all', '--name'): 'safevm\n',
             virsh('dominfo', 'safevm'): 'Managed save: no\n',
-            virsh('dumpxml', 'safevm'): '<domain><memory unit="GiB">5</memory><devices>' + LOOPBACK_VNC + '</devices></domain>',
+            virsh('dumpxml', 'safevm'): '<domain><name>safevm</name><memory unit="GiB">5</memory><devices>' + LOOPBACK_VNC + '</devices></domain>',
         })
         with patch('nightglass.hypervisor.total_ram_gib', return_value=7.7):
             with self.assertRaisesRegex(ToolError, 'Low-memory guard: VM declares up to'):
