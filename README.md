@@ -460,6 +460,29 @@ The script creates a fresh `nightglass-workspaces` **private** repository throug
 
 See [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md), [docs/INSTALL_PLAN.md](docs/INSTALL_PLAN.md), and [docs/ROADMAP.md](docs/ROADMAP.md).
 
+## Verification while GitHub Actions minutes are exhausted
+
+The stacked Nightglass pull requests are still **draft and unmerged**.
+The integration branch makes `.github/workflows/verify.yml` manual-only
+and provides a local Python test runner that does not launch VMs, use
+sudo, download dependencies, or spend GitHub Actions minutes:
+
+```bash
+python3 -B scripts/verify_local.py
+python3 -B scripts/verify_local.py --focused
+python3 -B scripts/verify_local.py --gui       # only with PySide6 installed
+python3 -B scripts/verify_local.py --native    # only with native tools installed
+```
+
+This workflow change does **not** globally disable existing automatic
+workflows in other PR branches. A repository owner can disable the
+**Verify source** workflow in GitHub's Actions UI while minutes are
+exhausted. No merges or changes to `main` have been performed.
+
+See [offline verification and stacked-PR integration](docs/INTEGRATION_CHECKLIST.md).
+A local test result is not recorded as a GitHub check and cannot replace
+real Fedora/KVM hardware safety acceptance.
+
 ## Development / verification
 
 ```bash
