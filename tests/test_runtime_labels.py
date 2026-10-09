@@ -197,8 +197,9 @@ class RuntimeLabelTests(unittest.TestCase):
 
     def test_runtime_state_change_during_inspection_blocks_pass(self):
         self.hv.end_state = "shut off"
-        self.assertFalse(self.inspect().ok)
-        self.assertIn("state changed", self.inspect().describe())
+        result = self.inspect()
+        self.assertFalse(result.ok)
+        self.assertIn("state changed", result.describe())
 
     def test_evidence_omits_mcs_values_and_host_paths(self):
         report = self.inspect()
