@@ -43,7 +43,7 @@ class PythonMatrixRunnerTests(unittest.TestCase):
         # The application intentionally reserves 256 MiB beyond the real
         # backup/recovery fixture payload; a 256m tmpfs is insufficient.
         runner = RUNNER.read_text(encoding="utf-8")
-        found = re.search(r'--tmpfs", "/tmp:rw,nosuid,nodev,size=(\\d+)m"', runner)
+        found = re.search(r'--tmpfs", "/tmp:rw,nosuid,nodev,size=(\d+)m"', runner)
         self.assertIsNotNone(found)
         capacity_mib = int(found.group(1))
         self.assertGreater(capacity_mib, 256)
