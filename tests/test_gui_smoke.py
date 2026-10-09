@@ -242,6 +242,50 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.window.show_guest_inventory_instructions()
         self.assertIn("benign pentest VMs only", self.window.provision_result.toPlainText())
 
+    def test_kali_version_drift_three_local_files_and_cancel_no_vm_io(self):
+        from types import SimpleNamespace
+        from PySide6.QtWidgets import QPushButton
+        self.window.prepare_space("pentest")
+        controls = {
+            button.text()
+            for button in self.window.stack.currentWidget().findChildren(QPushButton)
+        }
+        self.assertIn("Review package version drift", controls)
+        names = (
+            "/tmp/plan-v1.json", "/tmp/baseline-lock.json", "/tmp/current-report.json"
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName",
+            side_effect=[(name, "JSON") for name in names],
+        ) as picker, patch.object(self.window, "work") as worker:
+            self.window.review_kali_version_drift()
+            self.assertEqual(picker.call_count, 3)
+            worker.assert_called_once()
+            task, success, failure = worker.call_args.args
+            self.assertIn("compare_version_lock_files", task.__code__.co_names)
+            result = SimpleNamespace(
+                unchanged=False,
+                describe=lambda: (
+                    "KALI GUEST PACKAGE DRIFT: DRIFT / UNVERIFIED — REVIEW REQUIRED"
+                ),
+            )
+            success(result)
+            self.assertIn("REVIEW REQUIRED", self.window.provision_result.toPlainText())
+            failure("unrecognized inventory")
+            self.assertIn("UNVERIFIED", self.window.provision_result.toPlainText())
+            self.assertIn("No guest", self.window.provision_result.toPlainText())
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName",
+            side_effect=[(names[0], "JSON"), ("", "")],
+        ), patch.object(self.window, "work") as worker:
+            self.window.review_kali_version_drift()
+            worker.assert_not_called()
+        self.window.prepare_space("analysis")
+        with patch.object(self.ui.QFileDialog, "getOpenFileName") as picker:
+            self.window.review_kali_version_drift()
+            picker.assert_not_called()
+        self.assertIn("benign Kali VMs", self.window.provision_result.toPlainText())
+
     def test_analysis_profile_cannot_save_running_memory(self):
         with patch.object(self.window, "error") as error, \
              patch.object(self.window, "work") as background:
