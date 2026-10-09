@@ -90,6 +90,12 @@ For libvirt access errors, use Fedora's documented polkit/virtualization configu
 
 `nightglass inspect pentest` and `nightglass inspect analysis` show read-only VM-policy findings in the terminal. `nightglass doctor` does not modify system state.
 
+## Offline guest preparation
+
+Nightglass now has a **Prepare VM** wizard for Kali/pentesting and malware-analysis workspaces. It validates a **local ISO against the SHA-256 digest you obtained from its publisher**, generates an offline virt-install blueprint sized to this machine, and verifies both install and post-install libvirt XML using `--dry-run --print-xml`.
+
+**It does not yet create or start a VM.** Actual VM installation remains under your control through virt-manager; then bind the new guest in Nightglass and run its launch audit. See [VM preparation guide](docs/VM_PREPARATION.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
