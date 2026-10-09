@@ -56,7 +56,7 @@ into an automatic "just do everything" pass.
 
 | # | Requested change | Proposed phase | Important behavior or limitation |
 |---:|---|---|---|
-| 1 | Reduce optional telemetry, history, app launch tracking, ad targeting | Manual verification | Required Windows Pro diagnostics cannot be fully eliminated; activity tracking, advertising ID and consent settings must be verified individually. |
+| 1 | Reduce optional telemetry, history, app launch tracking, ad targeting | Core optional telemetry; limits manual | Reviewed DisableTelemetry switch can reduce optional data/ads; required Windows Pro diagnostics cannot be eliminated. DisableSearchHistory was removed from recent upstream releases and is manual-only. Verify activity history and app launch settings individually. |
 | 2 | Disable lock-screen and Edge suggestions, tips and advertising | Core candidate | Edge browser version/policy support varies. |
 | 3 | Disable location services, app access and Find My Device tracking | Core + privacy review | Disables location-dependent features and device-finding. |
 | 4 | Hide Microsoft 365 ads in Settings Home (do not remove entire Home default) | Core candidate | Hide the entire Home page only as a separately selected preference. |
@@ -76,9 +76,9 @@ into an automatic "just do everything" pass.
 | 18 | Enable dark mode for apps and system | Core candidate | — |
 | 19 | Disable transparency, animations and unnecessary effects | Core candidate | Some visual effects and accessibility/animation controls require manual verification. |
 | 20 | Disable desktop/lock screen Spotlight background | Core candidate | Desktop and lock screen settings can be independent. |
-| 21 | Clear pinned Start apps, hide recommendations, review All Apps layout | Separate layout approval | ClearStart changes custom pins; explicit optional opt-in only; UI may vary by Windows 26H2. |
+| 21 | Clear pinned Start apps, hide recommendations, review All Apps layout | Core recommendations; layout separate | DisableStartRecommended is reviewed core; ClearStart and All Apps presentation can change existing pins/layout, so they require separate explicit review. |
 | 22 | Disable Start menu Phone Link integration | Core candidate | Separate uninstall of Phone Link app optional. |
-| 23 | Disable Bing web/Copilot search and Store recommendations | Core candidate | Avoid filesystem-permission hacks on Store databases. |
+| 23 | Disable Bing web/Copilot search and Store recommendations | Core Bing; Store search separate | DisableBing is reviewed core; current upstream Store search suppression can manipulate file permissions/ACLs, so Store recommendations are deferred pending specific safety review. |
 | 24 | Enable End Task on taskbar right-click | Core candidate | Can force-close unsaved apps. |
 | 25 | Show extensions for known file types | Core candidate | Security-positive. |
 | 26 | Show hidden files/folders/drives | Core candidate | Do not disable hiding protected OS files by default. |
@@ -94,6 +94,12 @@ into an automatic "just do everything" pass.
 
 ### Additional guardrails and unsupported absolutes
 
+- **Win11Debloat release drift:** the current upstream removed the
+  former DisableSearchHistory switch in May 2026. The user's Get.ps1
+  launcher still advertises it; it is excluded from core. The upstream
+  Store-search suppression routine can modify Store database permissions;
+  defer DisableStoreSearchSuggestions until ACL changes and rollback
+  are reviewed independently.
 - **Telemetry cannot be zero guaranteed** on ordinary Windows 11 Pro.
   Minimize optional diagnostic/ads, disable activity collection and
   search personalization where supported; allow required diagnostics,
@@ -184,7 +190,7 @@ anything other than an installed Windows 11 Pro machine; requires
 separate administrator launch, a verified backup flag, exact literal
 consent, a locally reviewed and SHA256-matched
 `Win11Debloat.ps1`, and PS AST validation of every selected flag.
-It passes only the hardcoded core allowlist (not all JSON switches)
+It passes only the hardcoded 39-switch core allowlist (not all JSON switches)
 with Win11Debloat's restore point request. Do not assume third-party
 uninstall actions are fully reversible, or that a restore point
 replaces a full backup. **Run first on disposable Windows 11 Pro VM
