@@ -199,3 +199,5 @@ This is a conservative precaution against silent redirection;
 the validation is **not a race-free sandbox** on actively changing
 or untrusted filesystems. More in
 [backup boundary hardening](BACKUP_PATH_BOUNDARY_HARDENING.md).
+
+Phase 13 extends alias detection across **all selected source groups**. The tool first inventories every source folder, then refuses a file in any backup that shares a known nonzero device/inode with any of those originals—even an original in a different manifest group. This is a conservative metadata safeguard, not a substitute for a restore test or independent physical-media verification. See [cross-root hardlink identity](BACKUP_CROSS_ROOT_IDENTITY.md).
