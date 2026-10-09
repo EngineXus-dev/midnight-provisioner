@@ -19,7 +19,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 SKIP_DIRS = {".git", ".venv", "venv", "build", "dist", "__pycache__", ".tox"}
-SUBPROCESS_ENV = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"}
+SUBPROCESS_ENV = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1", "PYTHONFAULTHANDLER": "1"}
 
 # Allowlisted synthetic suites whose behavior is independent of Windows
 # filesystem mode bits, Windows symlink privileges and POSIX OS APIs.
@@ -99,6 +99,14 @@ def run_command(title: str, argv: list[str], *, extra_env=None, dry_run=False) -
     except OSError as exc:
         print(f"[FAIL] {title}: {exc}", file=sys.stderr)
         return 1
+    if result.returncode != 0:
+        print(f"[DIAGNOSTIC] {title}: subprocess exit code {result.returncode}", flush=True)
+        if result.returncode < 0 and sys.platform.startswith("linux"):
+            import signal
+            try:
+                print(f"[DIAGNOSTIC] Terminated by {signal.Signals(-result.returncode).name}", flush=True)
+            except ValueError:
+                print("[DIAGNOSTIC] Terminated by unknown signal", flush=True)
     print(("[PASS] " if result.returncode == 0 else "[FAIL] ") + title, flush=True)
     return 0 if result.returncode == 0 else 1
 
