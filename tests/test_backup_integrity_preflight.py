@@ -10,6 +10,7 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -19,6 +20,9 @@ TOOL = ROOT / "scripts" / "Inspect-Nightglass-Backup.py"
 spec = importlib.util.spec_from_file_location("nightglass_backup_inspector", TOOL)
 backup = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
+# dataclasses with postponed annotations resolve their declaring module
+# through sys.modules: register this private synthetic import first.
+sys.modules[spec.name] = backup
 spec.loader.exec_module(backup)
 
 
