@@ -349,6 +349,22 @@ outside that folder, bind mounts and privileged state changes may still
 escape static review; Kali package installation and runtime isolation
 remain unverified. See [registered Kali VM audit](docs/KALI_REGISTERED_TEMPLATES.md).
 
+## Verify a separate Kali VM's cold backup baseline
+
+Nightglass can tie each curated Kali profile to an existing **checksum-verified
+cold backup**, its original disk path, guest UUID and optional UEFI/NVRAM copy:
+
+```bash
+nightglass templates baseline ./kali-plan.json \
+  --disk /absolute/path/to/kali-guest.qcow2 \
+  --backup /path/to/existing-cold-backup
+```
+
+Or use **Prepare VM → Verify Kali cold backup**. The operation is read-only
+and warns about backups on the same storage device as the live VM.
+A passing hash/definition comparison is **not proof that the backup will
+restore or boot**. See [Kali cold baseline workflow](docs/KALI_COLD_BASELINES.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
