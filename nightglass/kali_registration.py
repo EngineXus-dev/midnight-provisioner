@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import os
 import stat
+import posixpath
 from xml.etree import ElementTree as ET
 
 from .acceptance import RegisteredGuestAuditor, save_acceptance
@@ -47,7 +48,47 @@ def _safe_disk(path: Path) -> Path:
         raise ToolError("Expected independent Kali VM disk cannot be inspected") from exc
     if not stat.S_ISREG(details.st_mode) or details.st_size <= 0:
         raise ToolError("Expected independent Kali VM disk must be a nonempty regular file")
+    # st_nlink is a kernel inode attribute, unlike a VM's declared disk
+    # filename. Refuse a disk that could be written through another hardlink,
+    # including one outside the folder or referenced by an unregistered VM.
+    if details.st_nlink != 1:
+        raise ToolError("Selected Kali disk has multiple hardlinks; independent VM storage cannot be asserted")
     return resolved
+
+
+def _other_disk_alias(source: str | None, disk: Path) -> str | None:
+    """Inspect other VM XML path strings; lstat ONLY within chosen disk folder.
+
+    Never resolve/open a foreign VM's path and never follow a symlink in
+    another guest's disk definition. Outside-folder symlinks and other
+    storage technologies remain unverified and are disclosed in reports.
+    """
+    if not source:
+        return None
+    if not posixpath.isabs(source):
+        return "Other registered VM has a relative disk path; independence cannot be verified"
+    normalized = posixpath.normpath(source)
+    if normalized == str(disk):
+        return "Another registered VM references the same disk image (including a lexical path alias)"
+    candidate = Path(normalized)
+    if candidate.parent != disk.parent:
+        return None
+    # Stay within the explicitly selected local VM-disk directory. The
+    # selected parent was already verified symlink-free by _safe_disk().
+    try:
+        details = candidate.lstat()
+    except FileNotFoundError:
+        return None
+    except OSError:
+        return "Cannot inspect a disk alias in the selected Kali storage directory"
+    if stat.S_ISLNK(details.st_mode):
+        return "Another registered VM uses a symlinked disk path in the selected directory"
+    # st_nlink == 1 on the selected disk should prevent same-inode hardlinks,
+    # but compare inode identity again in case of a concurrent filesystem race.
+    selected = disk.stat()
+    if (details.st_dev, details.st_ino) == (selected.st_dev, selected.st_ino):
+        return "Another registered VM disk source resolves to the selected disk inode"
+    return None
 
 
 def _disks(root: ET.Element, *, label: str, errors: list[str]) -> list[str]:
@@ -120,8 +161,9 @@ class KaliRegistrationReport:
             *(f"BLOCK {entry}" for entry in self.issues),
             *(f"CAUTION {entry}" for entry in self.cautions),
             "READ-ONLY — no VM created/changed/started, disk mounted/modified or packages installed.",
-            "No shared disk was identified by EXACT registered path equality. Aliases,",
-            "hardlinks, unregistered guests and other hypervisors are NOT ruled out.",
+            "Selected disk has exactly one hardlink; normalized XML aliases and same-folder",
+            "symlink paths are checked. Outside-folder symlink aliases, non-file",
+            "storage, unregistered guests and other hypervisors remain UNVERIFIED.",
             "This check cannot establish guest boot, signed Kali packages, network",
             "packet denial, sVirt enforcement, disk-content trust or rollback readiness.",
         ))
@@ -140,7 +182,7 @@ class KaliRegistrationReport:
             "cautions": list(self.cautions),
             "observations_not_performed": [
                 "guest-boot", "disk-image-signature-and-publisher",
-                "same-inode-hardlink-or-alias-check",
+                "outside-folder-symlink-and-other-hypervisor-alias-check",
                 "unregistered-or-other-hypervisor-disk-shares",
                 "packet-level-network-denial", "SELinux-runtime-enforcement",
                 "Kali-package-installation", "cold-snapshot-rollback",
@@ -247,15 +289,17 @@ class KaliRegistrationInspector:
                 if other_xml is None:
                     continue
                 for source in other_xml.findall("./devices/disk/source"):
-                    if source.get("file") == str(disk):
-                        issues.append("Another registered VM references the same disk image")
+                    finding = _other_disk_alias(source.get("file"), disk)
+                    if finding:
+                        issues.append(finding)
             try:
                 saved = hv._managed_save_xml(other)
                 if saved is not None:
                     saved_root = ET.fromstring(saved)
                     for source in saved_root.findall("./devices/disk/source"):
-                        if source.get("file") == str(disk):
-                            issues.append("Another registered VM saved session references the same disk image")
+                        finding = _other_disk_alias(source.get("file"), disk)
+                        if finding:
+                            issues.append("Managed-save disk collision: " + finding)
             except (ToolError, ET.ParseError):
                 issues.append("Cannot verify another VM's managed-save disk sources")
         if not issues:
