@@ -6,7 +6,7 @@
 No software automatically fills this in or approves a partition/OS change.
 Store any completed record locally outside the source repository.
 
-## Optional Windows 11-first decision
+## Windows 11 Pro clean-install decision
 
 - [x] User preference recorded (2026-10-09): clean-install Windows 11 LATER
       (not in-place upgrade, not currently authorized)
@@ -108,3 +108,19 @@ See ONE_USB_MULTIBOOT_PLAN.md.
 - [ ] No installation or USB formatting until the user finishes other work
 
 See WINDOWS11_CLEAN_INSTALL_STAGED.md.
+
+## Pro licensing and customizations (not yet active)
+
+- [x] User reports possessing Windows Pro activation key; key itself
+      has NOT been collected and MUST NOT be saved in GitHub/ISO
+- [ ] Validate legitimate Windows 11 Pro activation/edition on the
+      clean installation, preserving Windows recovery/driver options
+- [ ] Review 35-item configuration and the separate high-risk phases
+- [ ] Verify backup, Windows 11 Pro, local script SHA256 and restore point
+      before applying reviewed core personalization settings
+- [ ] Remove OneDrive, Xbox/promotional apps only after checking cloud
+      sync, file backups and independent recovery options
+- [ ] Independently approve optional device-encryption default change,
+      Sandbox and WSL2 feature enabling if still wanted
+
+See WINDOWS11_PRO_32_POINT_PROFILE.md.
