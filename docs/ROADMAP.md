@@ -25,6 +25,14 @@
 - [ ] Live Fedora/KDE setup, GUI and VM-limit smoke tests on 8, 16 and 32 GB systems
 - [ ] Signature-verified release bundles and automatic dependency rollback before unattended installs
 
+## v0.2 — offline provisioning preparation (draft)
+- [x] GUI workflow for local ISO selection, independent VM identity and machine-aware guest defaults
+- [x] Verify installer ISO against SHA-256 digest from the publisher
+- [x] Fail-closed virt-install stage 1 AND stage 2 XML audits using --dry-run (no storage created)
+- [x] Show reviewed settings and open virt-manager for intentional guest creation
+- [ ] Full automatic guest creation **only** after Fedora live validation and verified offline hardening
+- [ ] Real Kali and analysis guest install/boot/rollback tests on low-memory hardware
+
 ## v0.2 — workspace provisioning
 - [ ] Installer-assisted Kali and disposable analysis VM templates from verified checksummed images
 - [ ] Dynamic RAM-pressure and swap indicator, VM runtime resource controls and external launch detection
