@@ -82,7 +82,7 @@ class WindowsDualBootReviewSafety(unittest.TestCase):
         self.assertEqual(self.source.count(marker), 1)
         self.assertEqual(self.source.rstrip().splitlines()[-1], marker)
         self.assertEqual(self.source.count("$osPartition = $null"), 1)
-        self.assertEqual(self.source.count("if ($null -ne $osPartition) {"), 1)
+        self.assertEqual(self.source.count("if ($null -ne $osPartition) {"), 2)
         self.assertEqual(self.source.count("NO INSTALL/SHRINK/FORMAT/EFI/BOOTLOADER CHANGES AUTHORIZED."), 1)
 
     @unittest.skipUnless(platform.system() == "Windows",
@@ -138,7 +138,7 @@ class WindowsDualBootReviewSafety(unittest.TestCase):
     def test_extra_disks_are_not_assumed_available_for_fedora(self):
         self.assertIn("No partitions reported (NOT proof of an unused disk)", self.source)
         self.assertIn("do not format based on size or bus type", self.source)
-        self.assertIn("DiskNumber -eq $osPartition.DiskNumber", self.source)
+        self.assertIn("if ($disk.Number -eq $osPartition.DiskNumber) { continue }", self.source)
         self.assertIn("OS volume encryption state", self.source)
 
     def test_no_automatic_install_approval_or_disk_selection(self):
