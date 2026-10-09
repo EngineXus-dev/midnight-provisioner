@@ -16,7 +16,7 @@ import stat
 import sys
 
 SCHEMA = "nightglass-offline-rc-gate-v2"
-BRANCH = "verification/rc-evidence-and-stack-audit"
+BRANCH = "verification/stack-integration-readiness"
 CHECKS = (
     "windows_powershell_ast", "python_source_ast",
     "python_311", "python_312", "python_313", "fedora_43",
