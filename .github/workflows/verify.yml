@@ -57,6 +57,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install runtime libraries for real Qt widgets
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libegl1 libgl1 libopengl0 libxkbcommon0 libxcb-cursor0
       - name: Install Nightglass and Qt into isolated runner
         run: python -m pip install --disable-pip-version-check -e .
       - name: Verify real PySide6 widgets and save mock UI screenshot
