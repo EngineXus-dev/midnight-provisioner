@@ -174,6 +174,7 @@ def main(argv=None) -> int:
         scripts = [
             str(ROOT / "scripts" / "setup-nightglass.sh"),
             str(ROOT / "scripts" / "fedora-recovery-smoke.sh"),
+            str(ROOT / "scripts" / "fedora-host-acceptance.sh"),
         ]
         if bash and all(Path(script).is_file() for script in scripts):
             failed |= bool(run_command(
