@@ -65,8 +65,8 @@ Neither disk is authorized for repartition. C: has measured filesystem free spac
 On this detected RAM capacity usable-RAM laptop, Nightglass still recommends one
 small VM at a time.
 
-If Windows 11 may be installed before Fedora, **finish and validate
-Windows 11 first**. The revised reviewer has read-only TPM presence,
+If Windows 11 is **clean-installed later** (the user's selected option),
+**finish and validate Windows 11 before Fedora**. The revised reviewer has read-only TPM presence,
 readiness and version observations plus limited Disk 1 partition and
 bus metadata; it never certifies eligibility, prints TPM ownership
 details or modifies any state. Use Microsoft PC Health Check and
@@ -74,12 +74,12 @@ Windows Update, and separately verify Windows encryption/recovery.
 Secure Boot and encryption were UNKNOWN in the initial non-admin
 readout, and Fast Startup was ENABLED.
 
-Before any Windows 11 upgrade, verify external bootable recovery media,
+Before any Windows 11 clean installation, verify external bootable recovery media,
 offline encryption recovery keys if applicable, image backups, and
 supported device eligibility. Following the upgrade, rerun the
 read-only review on Windows 11 and independently confirm disk layout,
 boot/recovery, drivers and data before attempting Fedora live USB
-testing. Neither Windows 11 upgrade nor Fedora installation is
+testing. Neither Windows 11 clean installation nor Fedora installation is
 automatic.
 
 See the full [optional Windows 11-first plan](WINDOWS11_UPGRADE_FIRST.md)
@@ -211,3 +211,17 @@ of the reviewer output.
 **One USB, separate installers:** see [multiboot media plan](ONE_USB_MULTIBOOT_PLAN.md).
 Use a third, deliberately blank USB for Ventoy or independent official media.
 Creating a USB bootloader may erase the chosen USB. Never select portable Disk 1.
+
+## Current user-selected timing and media constraints
+
+The user **does not intend to install soon**, prefers a **clean Windows 11
+installation** (not an in-place upgrade), will back up selected files to
+the **example backup-drive capacity portable Disk 1**, and has a separate **16 GB USB**.
+That USB is a plausible two-ISO multiboot device, provided its real
+capacity and the actual current Windows 11/Fedora ISO sizes fit.
+No device may be formatted now. Backed-up files must be checked for
+recoverability, including ignored/untracked local project files and
+secrets retained securely. Disconnect the portable backup drive before
+any future Windows installer session.
+
+Read [deferred Windows 11 clean install](WINDOWS11_CLEAN_INSTALL_STAGED.md).
