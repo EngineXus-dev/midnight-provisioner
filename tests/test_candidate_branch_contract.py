@@ -45,18 +45,22 @@ def pr_chain_is_linear(manifest: dict) -> bool:
     ids = [i for i in range(1, 30)] + [
         i for i in range(31, 31 + (len(items) - 29))
     ]
-    if [x.get("pr") for x in items] != ids:
+    if (any(not isinstance(x, dict) for x in items)
+            or [x.get("pr") for x in items] != ids
+            or any(type(x["pr"]) is not int for x in items)):
         return False
     prior = "main"
-    known = set()
+    known = {"main"}
     for item in items:
-        if (item.get("base") != prior
-                or not isinstance(item.get("head"), str)
-                or item["head"] in known):
+        head = item.get("head")
+        if (item.get("base") != prior or
+                not isinstance(head, str) or not head or
+                head in known):
             return False
-        known.add(item["head"])
-        prior = item["head"]
-    return manifest.get("candidate_branch") not in known
+        known.add(head)
+        prior = head
+    candidate = manifest.get("candidate_branch")
+    return isinstance(candidate, str) and bool(candidate) and candidate not in known
 
 
 class CandidateBranchContractTests(unittest.TestCase):
@@ -106,6 +110,19 @@ class CandidateBranchContractTests(unittest.TestCase):
         for filename, key in SOURCES:
             value = constant_string(ROOT / filename, key)
             self.assertNotEqual(value, "main")
+
+    def test_corrupted_manifest_graph_returns_false_not_exception(self):
+        for mutation in (
+            lambda m: m["pull_requests"].__setitem__(3, False),
+            lambda m: m["pull_requests"][4].update({"pr": True}),
+            lambda m: m["pull_requests"][2].update({"head": "main"}),
+            lambda m: m.update({"candidate_branch": False}),
+            lambda m: m["pull_requests"][3].update({"base": "main"}),
+        ):
+            with self.subTest(mutation=mutation):
+                sample = json.loads(json.dumps(self.manifest))
+                mutation(sample)
+                self.assertFalse(pr_chain_is_linear(sample))
 
     def test_every_ancestor_pr_number_is_unique_and_strict_integer(self):
         values = [x["pr"] for x in self.manifest["pull_requests"]]
