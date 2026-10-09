@@ -201,6 +201,33 @@ partition/USB writing functions. Actual native PowerShell parsing,
 application and undo remain UNVERIFIED until user-run tests. Do not
 run during current Windows 10 work.
 
+The optional script is intended ONLY for a later **already-installed,
+licensed and verified Windows 11 system**, after source review and a
+restore backup. It must pass a native PowerShell AST parser check and
+a disposable Windows 11 VM Apply/Undo test before being trusted.
+
+Example after those gates pass, in a local checkout:
+
+    powershell.exe -NoProfile -File scripts/Set-Nightglass-Windows11-Preferences.ps1 -Mode Preview
+
+To apply **only** the eight user preference DWORDs, the owner may
+later explicitly approve:
+
+    powershell.exe -NoProfile -File scripts/Set-Nightglass-Windows11-Preferences.ps1 -Mode Apply -Consent "APPLY NIGHTGLASS USER PREFERENCES"
+
+A new snapshot path is displayed before changes. Keep that private
+file, which is necessary for Undo:
+
+    powershell.exe -NoProfile -File scripts/Set-Nightglass-Windows11-Preferences.ps1 -Mode Undo -SnapshotPath "C:\path\to\prior-snapshot.json" -Consent "UNDO NIGHTGLASS USER PREFERENCES"
+
+Undo checks that the preferences still equal the values the helper
+applied and **skips** any settings subsequently changed by the user.
+Neither applying nor undoing these registry preferences reinstalls
+apps/components. Snapshot remains on disk for manual audit. These
+commands are documentation for **future verification**, not an
+instruction to execute on the present Windows 10 host.
+
+
 ## Deployment holds
 
 The user explicitly said no install soon. Do not build or write USB
