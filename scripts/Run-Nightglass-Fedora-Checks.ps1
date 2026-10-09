@@ -112,8 +112,13 @@ try {
     $imageTag = "nightglass-fedora-verifier:43-" + $sha.Substring(0, 12)
     Write-Host ""
     Write-Host "[3/6] Checking cached Fedora test image $imageTag" -ForegroundColor Yellow
-    & docker image inspect $imageTag --format '{{.Id}}' 1>$null 2>$null
-    $cached = ($LASTEXITCODE -eq 0)
+    # A fresh workstation normally has no cached image. In Windows PowerShell
+    # 5.1, docker image inspect's expected "No such image" stderr can become a
+    # terminating error with ErrorActionPreference=Stop, before $LASTEXITCODE
+    # can be inspected. Listing by exact tag succeeds with an empty result.
+    $imageList = @(& docker image ls --format '{{.Repository}}:{{.Tag}}' --filter ("reference=" + $imageTag))
+    Assert-ExitCode -Operation "Docker image cache lookup"
+    $cached = @($imageList | Where-Object { $_.Trim() -eq $imageTag }).Count -gt 0
     if ($ForceImageBuild -or -not $cached) {
         Write-Host "Building an isolated image from Fedora 43. First build downloads Fedora RPMs."
         $buildDir = Join-Path ([IO.Path]::GetTempPath()) ("Nightglass-Fedora-Build-" + [guid]::NewGuid().ToString("N"))
