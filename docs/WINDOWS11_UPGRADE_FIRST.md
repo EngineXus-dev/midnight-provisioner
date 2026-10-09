@@ -19,9 +19,9 @@ output reported:
 - Windows OS volume C: measured system-disk capacity, measured filesystem free space free **inside the volume**
 - Disk 0 partition types: System (ESP), Reserved (MSR), Basic (C:),
   Recovery; preserve all in their intended roles
-- **Disk 1: measured backup-disk capacity, GPT**, but partition details, bus type and current
-  contents **were not reported**. It is NOT a verified empty, internal,
-  available, backed-up or suitable Fedora target
+- **Disk 1: measured backup-disk capacity, GPT**, **user-confirmed PORTABLE DRIVE**.
+  Its existing contents/backup role have not been inventoried. It is
+  **EXCLUDED** from Fedora target selection and from boot-USB formatting
 - RAM detected RAM capacity usable, the detected logical CPU count; one small Nightglass VM at a time
 - Firmware virtualization reported enabled; VMMonitorModeExtensions and
   SecondLevelAddressTranslationExtensions flags reported False. These
@@ -114,10 +114,9 @@ After successfully reaching the Windows 11 desktop:
       entry, Secure Boot/TPM and Fast Startup state
 - [ ] Rerun the **read-only** Nightglass Windows 10/11 reviewer to
       capture a **NEW** disk/partition/firmware baseline
-- [ ] Independently verify Disk 1 contents, bus type (USB/SATA/NVMe is
-      only a hint), whether internal/external and whether its data
-      requires preservation. Never select it as Fedora media based
-      on its measured backup-disk capacity size alone
+- [ ] Preserve user-confirmed portable Disk 1 exactly as-is. Verify
+      that the future Fedora target is NOT this drive or a partition
+      on it, regardless of how Windows numbers USB disks after reboot
 - [ ] Confirm Windows 11 restarts repeatedly and Windows recovery is
       still available. Let Windows updates settle before adding Fedora
 
@@ -132,8 +131,9 @@ security gates are still separate and outstanding.
   and Recovery partitions. Do not format or delete them.
 - measured filesystem free space free *inside* C: is NOT unallocated space and is NOT an
   automatic Linux partition allocation or shrink recommendation.
-- Disk 1 may be an external backup drive or contain unrelated data;
-  a future live inventory and human confirmation are mandatory.
+- Disk 1 is user-confirmed PORTABLE. Its contents are not inventoried;
+  never use it as Fedora storage or overwrite it when creating USB media.
+  A separate blank USB stick is required for a multiboot installer.
 - Windows Fast Startup is currently enabled. Do not mount an NTFS
   volume read-write in Fedora while Windows is hibernated. Any change
   to Fast Startup should be a later separately approved Windows task.
@@ -146,3 +146,6 @@ freshly fetched test-script copy, or GitHub PR merge.**
 
 See DEPLOYMENT_SAFETY_GATES.md and DEPLOYMENT_DECISION_TEMPLATE.md for
 the mandatory two-OS rollback/acceptance record.
+
+For one dedicated installer USB with Windows 11 and Fedora Live ISOs,
+see [Nightglass multi-ISO USB plan](ONE_USB_MULTIBOOT_PLAN.md).
