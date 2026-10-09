@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -10,6 +11,24 @@ from unittest.mock import patch
 from nightglass.acceptance import RegisteredGuestAuditor, save_acceptance
 from nightglass.portability import budget_for
 from nightglass.runner import ToolError
+
+
+# Windows lacks POSIX fchmod; mock only while running synthetic tests.
+_fixture_mode_patch = None
+
+
+def setUpModule():
+    global _fixture_mode_patch
+    if os.name == "nt":
+        _fixture_mode_patch = patch("nightglass.acceptance.os.fchmod", create=True)
+        _fixture_mode_patch.start()
+
+
+def tearDownModule():
+    global _fixture_mode_patch
+    if _fixture_mode_patch is not None:
+        _fixture_mode_patch.stop()
+        _fixture_mode_patch = None
 
 
 VNC = '<graphics type="vnc" listen="127.0.0.1"/>'
@@ -158,7 +177,8 @@ class RegisteredAcceptanceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             destination = Path(folder) / "acceptance.json"
             self.assertEqual(save_acceptance(report, destination), destination)
-            self.assertEqual(destination.stat().st_mode & 0o777, 0o600)
+            if os.name != "nt":
+                self.assertEqual(destination.stat().st_mode & 0o777, 0o600)
             obj = json.loads(destination.read_text(encoding="utf-8"))
             self.assertEqual(obj["guest"], "restored-safe")
             self.assertTrue(obj["xml_policy_passed"])
@@ -174,7 +194,10 @@ class RegisteredAcceptanceTests(unittest.TestCase):
             original = Path(folder) / "important"
             original.write_text("cannot overwrite")
             alias = Path(folder) / "acceptance.json"
-            alias.symlink_to(original)
+            try:
+                alias.symlink_to(original)
+            except (OSError, NotImplementedError):
+                self.skipTest("OS denies synthetic symlink creation")
             with self.assertRaisesRegex(ToolError, "already exists"):
                 save_acceptance(report, alias)
             self.assertEqual(original.read_text(), "cannot overwrite")
