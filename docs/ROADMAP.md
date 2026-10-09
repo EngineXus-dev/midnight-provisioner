@@ -66,6 +66,15 @@
 - [ ] Real Fedora/KVM smoke results and supervised guest boot/network acceptance evidence
 - [ ] Automatic NEW-VM import remains disabled until actual host acceptance
 
+## v0.2.4 — registered guest acceptance evidence (draft)
+- [x] Read-only current/live, inactive, and managed-save libvirt XML inspection
+- [x] Fail if any registered definition contains prohibited devices or networking
+- [x] Check inspected VM identity, machine RAM budget, and non-forwarding lab network definition
+- [x] GUI and CLI audit with local JSON export that never overwrites existing reports
+- [x] Tests against simulated libvirt responses and explicit unverified runtime observations
+- [ ] Fedora/KVM physical-host audit and observed guest boot/network-denial test results
+- [ ] Controlled automatic import remains disabled until those results exist
+
 ## v0.3 — defense in depth
 - [ ] Polkit actions and minimal privileged policy service, no trusted XML audit from user-editable settings
 - [ ] SELinux device/volume access review; stronger VM security architecture tests
