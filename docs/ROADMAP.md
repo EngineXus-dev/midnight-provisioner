@@ -292,14 +292,15 @@
 - [ ] Real Fedora KVM/SELinux/sVirt/live guest/restore gates remain separate and unverified
 
 ## v0.3s — optional Windows 11 upgrade-first planning (draft)
-- [x] Record 2026-10-09 read-only Windows 10 Home baseline: UEFI, Windows GPT Disk 0, distinct GPT Disk 1 with unknown contents, RAM and firmware status
+- [x] Record 2026-10-09 read-only Windows 10 Home baseline: UEFI, Windows GPT Disk 0, distinct GPT Disk 1 subsequently user-confirmed portable, RAM and firmware status
 - [x] Revise native Windows reviewer to display read-only TPM presence/readiness/version and second-disk bus/partition metadata without extracting TPM keys or selecting storage
 - [x] Preserve manufacturer firmware, TPM, encryption and Windows recovery protections; no BitLocker suspension or unsupported Windows 11 bypass
 - [x] Add optional Windows 11-first route and separate post-upgrade re-baseline before Fedora installation
 - [x] Extend static safety regression checks; maintain a clear manual hold on OS upgrade/partitioning/EFI changes
 - [ ] Run updated read-only Windows 10/11 reviewer and real PowerShell AST parser on target Windows computer
 - [ ] Review official PC Health Check Windows 11 eligibility, TPM 2.0/Secure Boot capability, encryption status and Windows recovery keys privately
-- [ ] Independently verify exact disk 1 bus/media/data role and whether a safe separate Fedora storage option exists
+- [x] Confirm Disk 1 is the user's PORTABLE drive; permanently exclude it from proposed Fedora and multiboot-USB formatting targets
+- [ ] Investigate a safe Fedora storage layout on the actual Windows internal disk after Windows recovery is proven; portable Disk 1 remains off-limits
 - [ ] If Windows 11 chosen: test Windows upgrade and full recovery independently before starting Fedora live-USB validation
 - [ ] Fedora KDE host/KVM/sVirt isolation/benign guest recovery acceptance remains unverified; never auto-install or merge drafts without owner approval
 
@@ -308,3 +309,12 @@
 - [ ] Reproducible installation artifact and hardware-specific verification on test machines
 - [ ] Audited, tested isolation rules; no unsupported security guarantees
 - [ ] Clearly documented Windows 10 coexistence and rollback procedures
+
+## v0.3t — dedicated multi-ISO deployment USB (draft plan)
+- [x] Design one USB with unmodified official Windows 11 x64 and Fedora KDE Plasma 44 Live ISOs and independent boot-menu choices
+- [x] Require THIRD dedicated expendable USB stick; user-confirmed portable Disk 1 MUST be excluded from USB writer and OS installer targets
+- [x] Document Ventoy Secure Boot compatibility and policy risks; permit fallback to separate official USB installers
+- [x] Distinguish Windows 11 supported in-place upgrade initiated inside Windows from data-erasing clean install by booted ISO
+- [ ] Obtain and verify signed Fedora checksum and official Windows ISO, test UEFI boot menus without starting any installation
+- [ ] Validate dedicated USB target and its explicitly approved destructive formatting; no automatic Ventoy/partition execution
+- [ ] Windows 11 eligible/backup-protected upgrade and re-baseline before any Fedora install, then physical Fedora security acceptance
