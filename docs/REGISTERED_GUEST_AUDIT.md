@@ -9,7 +9,7 @@ been imported.
 
 Run on Fedora KDE as your usual desktop user:
 
-\`\`\`bash
+```bash
 # Check an actual libvirt VM against the strict offline analysis policy:
 nightglass accept new-recovered-vm --policy isolated
 
@@ -18,19 +18,19 @@ nightglass accept nightglass-kali --policy lab
 
 # Save local, private evidence to a file that does NOT already exist:
 nightglass accept new-recovered-vm --policy isolated --report ~/vm-audit-01.json
-\`\`\`
+```
 
 Or use **Nightglass → Backup & verify → Audit registered VM**. The companion
 **Save local audit report** button writes JSON in a new location, with user-only
 file permissions. Nothing is uploaded to GitHub or any cloud service.
 
-The auditor reads from \`qemu:///system\` and compares the **current
+The auditor reads from `qemu:///system` and compares the **current
 definition** (usually the live XML for running guests), the **inactive
 definition** (the next-boot configuration), and any **managed-save XML**. All
 present definitions must pass the selected policy. An offline profile must
 have **no guest NICs**, host filesystem pass-through, unsafe guest channels,
 SPICE sharing or unapproved devices. For lab networking, Nightglass also
-checks the \`nightglass-lab\` libvirt network configuration, including absence
+checks the `nightglass-lab` libvirt network configuration, including absence
 of forwarding.
 
 The report stores the domain name, policy, state, checked definition classes,
@@ -57,11 +57,11 @@ hypervisor-escape resistance and rollback success.
 
 ## Manual acceptance procedure on a dedicated test host
 
-1. First complete \`nightglass recover preflight\` against the staged image.
+1. First complete `nightglass recover preflight` against the staged image.
 2. With separate authorization, manually register the restored guest as a
    **new** libvirt VM on a disposable or dedicated Fedora test computer.
    Confirm the original guest/disk/backup remain unchanged.
-3. Run \`nightglass accept NEW-NAME --policy isolated --report /local/path/new.json\`
+3. Run `nightglass accept NEW-NAME --policy isolated --report /local/path/new.json`
    and ensure all current, inactive and saved-session XML definitions pass.
 4. Separately inspect the live libvirt interfaces, host-side firewall routes,
    SELinux labels, VNC exposure, and QEMU service permissions. If a guest must
