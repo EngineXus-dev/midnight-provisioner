@@ -15,7 +15,7 @@ import shutil
 import stat
 from xml.etree import ElementTree as ET
 
-from .backups import CHUNK_BYTES, MAX_DISKS, verify_backup
+from .backups import CHUNK_BYTES, MAX_DISKS, REL_PATH_RE, verify_backup
 from .hypervisor import Hypervisor, assess_domain
 from .models import safe_name
 from .runner import ToolError
@@ -61,6 +61,10 @@ def _recovery_xml(
         raise ToolError("Backup XML guest identity differs from the manifest")
     # Accept the original lab's named, non-forwarding virtual link only as
     # untrusted metadata. The staging XML always has *zero* NICs.
+    # An archived XML definition must never be allowed to reference the
+    # original host's direct-boot kernel/initrd or external disk layers.
+    if any(root.find(f"./os/{tag}") is not None for tag in ("kernel", "initrd", "dtb")):
+        raise ToolError("Backup includes external direct-boot files; manual recovery only")
     if policy == "isolated" and root.findall("./devices/interface"):
         raise ToolError("Offline analysis backup unexpectedly contains an interface")
     if policy == "lab":
@@ -90,6 +94,8 @@ def _recovery_xml(
         raise ToolError("Backup manifest contains duplicate original disk sources")
     observed: set[str] = set()
     for disk in devices.findall("disk"):
+        if disk.find("backingStore") is not None:
+            raise ToolError("Recovery refuses layered disk XML and external backing stores")
         if disk.get("device", "disk") == "cdrom":
             if disk.find("source") is not None:
                 raise ToolError("Backup XML still references external installer media")
@@ -276,6 +282,10 @@ def verify_staging(directory: Path, *, allow_incomplete: bool = False) -> list[s
     directory = Path(directory).expanduser()
     if directory.is_symlink() or not directory.is_dir():
         raise ToolError("Staging source must be a real directory")
+    try:
+        directory = directory.resolve(strict=True)
+    except OSError as exc:
+        raise ToolError(f"Cannot resolve staged recovery: {exc}") from exc
     if (directory / "INCOMPLETE").exists() and not allow_incomplete:
         raise ToolError("Recovery staging is INCOMPLETE and must not be imported")
     file = directory / "recovery-manifest.json"
@@ -303,11 +313,7 @@ def verify_staging(directory: Path, *, allow_incomplete: bool = False) -> list[s
             raise ToolError("Invalid staging manifest row")
         name = row.get("path")
         kind = row.get("kind")
-        if (not isinstance(name, str) or name not in
-                ("domain.xml", "firmware/nvram.bin") and not
-                (name.startswith("disks/disk-") and len(name.split("/")) == 2 and
-                 name.rsplit(".", 1)[-1] in ("raw", "qcow2") and
-                 len(name.split("/")[-1].split(".", 1)[0]) == 7)):
+        if not isinstance(name, str) or not REL_PATH_RE.fullmatch(name):
             raise ToolError("Unsafe path in staging manifest")
         if name in seen or kind not in ("disk", "nvram", "xml"):
             raise ToolError("Duplicate or invalid staging asset")
@@ -365,6 +371,8 @@ def verify_staging(directory: Path, *, allow_incomplete: bool = False) -> list[s
         actual.append(src.get("file"))
     if len(actual) != len(images) or set(actual) != images:
         raise ToolError("Recovered guest disk paths differ from the staged manifest")
+    if any(disk.find("backingStore") is not None for disk in root.findall("./devices/disk")):
+        raise ToolError("Recovered guest XML has a prohibited backing chain")
     nvram_rows = [row for row in rows if row["kind"] == "nvram"]
     nvram = root.find("./os/nvram")
     if nvram_rows:
