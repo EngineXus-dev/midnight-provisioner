@@ -244,6 +244,22 @@ approval and independent backups/recovery readiness.
 
 See ONE_USB_MULTIBOOT_PLAN.md and WINDOWS11_CLEAN_INSTALL_STAGED.md.
 
+## Activation during setup or later (owner choice)
+
+The user has a Pro key but may select **Activate later**, the default,
+and choose **I don't have a product key** in official Microsoft Setup
+if that page appears. **Verify Windows 11 Pro** edition explicitly:
+the current device's previous Windows installation was Home and OEM
+firmware may auto-select Home. A separately verified Pro-only NTLite
+image can make edition selection more deterministic, but this does not
+grant activation or authorize wiping a disk.
+
+Alternatively enter the key privately into Microsoft Setup. Later
+activation uses Settings > System > Activation > Change product key;
+the key MUST NOT be saved in an ISO, NTLite unattended answer file,
+the repository or any emitted logs.
+See [Pro activate-later guide](WINDOWS11_PRO_ACTIVATE_LATER.md).
+
 ## Selected Pro customization profile
 
 The user provided 32 detailed post-install preferences plus OneDrive,
