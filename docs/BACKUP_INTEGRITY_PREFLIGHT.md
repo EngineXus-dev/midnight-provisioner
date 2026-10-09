@@ -83,7 +83,8 @@ not paths. Use a **new, nonexisting** path outside both trees with
 `--report "C:\path\to\new-summary.json"` if a private status record
 is desired; existing reports cannot be overwritten.
 
-The default audit reads at most 50,000 files and 250 GiB per tree.
+The default audit reads at most 50,000 filesystem entries (including
+empty directories) and 250 GiB of regular files per tree.
 It fails closed if exceeded. The owner can consciously expand the
 budget with `--max-files` and `--max-bytes`. A failing or
 incomplete scan never proves a complete backup.
