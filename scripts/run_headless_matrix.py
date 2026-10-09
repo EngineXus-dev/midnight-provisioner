@@ -25,8 +25,11 @@ def run_matrix() -> int:
     # Python invoked via 'scripts/run_headless_matrix.py' otherwise
     # has scripts/ and tests/ but NOT the checkout root on sys.path.
     # The synthetic modules legitimately import nightglass.
-    if str(ROOT) not in sys.path:
-        sys.path.insert(0, str(ROOT))
+    # Place the pinned checkout first, even when an inherited PYTHONPATH
+    # already lists it after another potentially conflicting package root.
+    if str(ROOT) in sys.path:
+        sys.path.remove(str(ROOT))
+    sys.path.insert(0, str(ROOT))
     loader = unittest.TestLoader()
     suite = loader.discover(str(source), pattern="test*.py")
     collected = suite.countTestCases()
