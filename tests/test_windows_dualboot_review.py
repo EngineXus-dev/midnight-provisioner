@@ -7,7 +7,9 @@ Windows before treating this as a validated native hardware report.
 from __future__ import annotations
 
 from pathlib import Path
+import platform
 import re
+import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -72,6 +74,36 @@ class WindowsDualBootReviewSafety(unittest.TestCase):
                                 r"(?i)\." + re.escape(key) + r"\b")
         self.assertIn("Never enumerate", self.source)
         self.assertIn("Do NOT paste a BitLocker recovery key", self.source)
+
+    def test_review_script_has_exactly_one_terminal_summary(self):
+        # Protect against the duplicate trailing block that produced
+        # the real PowerShell UnexpectedToken ') {' / 'else' failures.
+        marker = "Write-Host 'The script made no intentional system changes and created no report files.' -ForegroundColor Green"
+        self.assertEqual(self.source.count(marker), 1)
+        self.assertEqual(self.source.rstrip().splitlines()[-1], marker)
+        self.assertEqual(self.source.count("$osPartition = $null"), 1)
+        self.assertEqual(self.source.count("if ($null -ne $osPartition) {"), 1)
+        self.assertEqual(self.source.count("NO INSTALL/SHRINK/FORMAT/EFI/BOOTLOADER CHANGES AUTHORIZED."), 1)
+
+    @unittest.skipUnless(platform.system() == "Windows",
+                         "Windows PowerShell 5.1 AST parser requires native Windows")
+    def test_real_windows_powershell_parser_accepts_entire_file(self):
+        # Parse only. This must never execute the reviewer's Win32 queries.
+        escaped_path = str(REVIEW).replace("'", "''")
+        command = (
+            "$tokens=$null; $errors=$null; "
+            "[System.Management.Automation.Language.Parser]::ParseFile("
+            f"'{escaped_path}', [ref]$tokens, [ref]$errors) | Out-Null; "
+            "if ($errors.Count -ne 0) { "
+            "$errors | ForEach-Object { [Console]::Error.WriteLine($_.Message) }; exit 1 }; "
+            "exit 0"
+        )
+        result = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-NonInteractive",
+             "-ExecutionPolicy", "Bypass", "-Command", command],
+            capture_output=True, text=True, timeout=20, check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_no_automatic_install_approval_or_disk_selection(self):
         self.assertIn("NO INSTALL/SHRINK/FORMAT/EFI/BOOTLOADER CHANGES AUTHORIZED.", self.source)
