@@ -59,7 +59,7 @@ function Assert-Windows11 {
 }
 
 $items = @(Preferences)
-Write-Host 'Nightglass Windows 11 preference helper — optional / no external tools'
+Write-Host 'Nightglass Windows 11 preference helper  -  optional / no external tools'
 if ($Mode -eq 'Preview') {
     Write-Host 'PREVIEW ONLY: no file or registry writes.'
     if ([System.Environment]::OSVersion.Platform -ne [System.PlatformID]::Win32NT) {
