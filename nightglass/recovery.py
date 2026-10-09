@@ -368,7 +368,16 @@ def verify_staging(directory: Path, *, allow_incomplete: bool = False) -> list[s
         src = disk.find("source")
         if disk.get("type") != "file" or src is None or not src.get("file"):
             raise ToolError("Recovered XML contains an unsupported disk")
-        actual.append(src.get("file"))
+        declared_path = src.get("file")
+        # An XML driver is just as important as the QEMU image header:
+        # incorrectly interpreting QCOW2 bytes as raw can be dangerous.
+        driver = disk.find("driver")
+        expected_format = declared_path.rsplit(".", 1)[-1]
+        if (expected_format not in {"qcow2", "raw"} or driver is None or
+                driver.get("name") != "qemu" or
+                driver.get("type") != expected_format):
+            raise ToolError("Staged XML disk driver format differs from its image extension")
+        actual.append(declared_path)
     if len(actual) != len(images) or set(actual) != images:
         raise ToolError("Recovered guest disk paths differ from the staged manifest")
     if any(disk.find("backingStore") is not None for disk in root.findall("./devices/disk")):
