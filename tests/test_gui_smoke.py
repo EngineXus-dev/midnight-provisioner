@@ -157,6 +157,40 @@ class OffscreenMainWindowTests(unittest.TestCase):
             "Save local audit report",
         }.issubset(labels))
 
+    def test_resource_monitor_starts_only_after_user_request(self):
+        from types import SimpleNamespace
+        with patch.object(self.window, "check_host"):
+            self.window.goto(2)
+        self.assertFalse(self.window._resource_monitor_enabled)
+        self.assertFalse(self.window._resource_monitor_busy)
+        self.assertEqual(self.window.resource_timer.interval(), 20000)
+        with patch.object(self.window, "work") as background:
+            self.window.refresh_resources()
+            background.assert_not_called()
+            self.window.refresh_resources(activate=True)
+            background.assert_called_once()
+            self.assertTrue(self.window._resource_monitor_busy)
+            # User clicks a second time before completion: no overlapping worker.
+            self.window.refresh_resources(activate=True)
+            background.assert_called_once()
+            task, success, failure = background.call_args.args
+            snap = SimpleNamespace(
+                level="CAUTION", active_vms=("external-guest",),
+                describe=lambda: "Externally launched VM: external-guest"
+            )
+            success(snap)
+        self.assertFalse(self.window._resource_monitor_busy)
+        self.assertIn("CAUTION", self.window.resource_status.text())
+        self.assertIn("external-guest", self.window.resource_details.toPlainText())
+        with patch.object(self.window, "work") as background:
+            self.window.refresh_resources()
+            background.assert_called_once()
+            _task, _success, failure = background.call_args.args
+            failure("Permission denied by libvirt")
+        self.assertFalse(self.window._resource_monitor_busy)
+        self.assertIn("UNKNOWN", self.window.resource_status.text())
+        self.assertIn("Permission denied", self.window.resource_details.toPlainText())
+
     def test_actual_offscreen_ui_renders_without_real_display(self):
         self.window.resize(1150, 760)
         self.window.show()
