@@ -35,16 +35,16 @@ class StackAuditTests(unittest.TestCase):
         cls.chain = audit.validate_manifest(cls.snapshot)
 
     def test_exact_observed_39_pr_chain_and_missing_30(self):
-        self.assertEqual(len(self.chain), 39)
+        self.assertEqual(len(self.chain), 40)
         self.assertEqual(self.chain[0], {
             "pr": 1, "base": "main", "head": "feat/nightglass-phase-01"
         })
-        self.assertEqual(self.chain[-1]["pr"], 40)
+        self.assertEqual(self.chain[-1]["pr"], 41)
         self.assertEqual(self.chain[-1]["head"],
-                         "verification/rc-evidence-and-stack-audit")
+                         "verification/stack-integration-readiness")
         self.assertNotIn(30, [p["pr"] for p in self.chain])
         self.assertEqual(self.snapshot["candidate_branch"],
-                         "verification/stack-integration-readiness")
+                         "verification/remote-ref-stack-audit")
 
     def test_non_linear_duplicate_wrong_repo_and_made_up_pr_rejected(self):
         mutations = (
@@ -65,14 +65,14 @@ class StackAuditTests(unittest.TestCase):
                     audit.validate_manifest(model)
 
     def test_snapshot_rejects_duplicate_keys_and_bool_pr_ids(self):
-        with tempfile.TemporaryDirectory() as folder:
-            bad = Path(folder) / "config"
-            bad.mkdir()
-            path = bad / "nightglass-pr-stack-snapshot.json"
-            path.write_text('{"schema": "one", "schema": "two"}',
-                            encoding="utf-8")
-            with self.assertRaises(audit.StackError):
-                audit.read_manifest(Path(folder))
+        with self.assertRaises(audit.StackError):
+            audit.parse_manifest_bytes(b'{"schema": "one", "schema": "two"}')
+        with self.assertRaises(audit.StackError):
+            audit.parse_manifest_bytes(b'{"bad": NaN}')
+        with self.assertRaises(audit.StackError):
+            audit.parse_manifest_bytes(b"")
+        with self.assertRaises(audit.StackError):
+            audit.parse_manifest_bytes(b"x" * (audit.MAX_MANIFEST_BYTES + 1))
         modified = copy.deepcopy(self.snapshot)
         modified["pull_requests"][0]["pr"] = True
         with self.assertRaises(audit.StackError):
@@ -88,10 +88,10 @@ class StackAuditTests(unittest.TestCase):
                      "prefix/../other", "-feature", "ends/"):
             with self.subTest(name=name):
                 self.assertFalse(audit.valid_branch(name))
-        self.assertTrue(audit.valid_branch("verification/rc-evidence-and-stack-audit"))
+        self.assertTrue(audit.valid_branch("verification/stack-integration-readiness"))
 
     def test_preview_reads_nothing_or_runs_no_git(self):
-        with patch.object(audit, "read_manifest",
+        with patch.object(audit, "read_manifest_at_ref",
                           side_effect=AssertionError("Unexpected manifest read")), \
              patch.object(audit, "verify",
                           side_effect=AssertionError("Unexpected Git inspection")):
@@ -99,6 +99,22 @@ class StackAuditTests(unittest.TestCase):
                 self.assertEqual(audit.main([]), 0)
         self.assertIn("PLAN ONLY", output.getvalue())
         self.assertIn("NEVER authorizes", output.getvalue())
+
+    def test_manifest_is_read_from_candidate_git_blob_not_main_worktree(self):
+        raw = MANIFEST.read_bytes()
+        with patch.object(audit, "git", return_value=raw) as local_git:
+            entries = audit.read_manifest_at_ref(ROOT, candidate_sha=CANDIDATE_SHA)
+        self.assertEqual(len(entries), 40)
+        local_git.assert_called_once_with(
+            ["show", CANDIDATE_SHA + ":" + audit.MANIFEST_PATH],
+            root=ROOT, raw=True)
+        self.assertEqual(audit.MANIFEST_PATH,
+                         "config/nightglass-pr-stack-snapshot.json")
+        with self.assertRaises(audit.StackError):
+            audit.read_manifest_at_ref(ROOT, candidate_sha="INVALID")
+        with patch.object(audit, "git", return_value=b""):
+            with self.assertRaises(audit.StackError):
+                audit.read_manifest_at_ref(ROOT, candidate_sha=CANDIDATE_SHA)
 
     def test_sensitive_diff_file_classification(self):
         examples = (
@@ -160,6 +176,7 @@ class StackAuditTests(unittest.TestCase):
         self.assertFalse(result["deployment_approved"])
         self.assertFalse(result["cumulative_tests_verified"])
         self.assertFalse(result["github_live_pr_status_verified"])
+        self.assertEqual(result["manifest_source"], "PINNED_CANDIDATE_GIT_BLOB_NOT_WORKTREE")
         self.assertEqual(result["candidate_sha"], CANDIDATE_SHA)
         self.assertEqual(result["changed_path_count"], 2)
         self.assertIn("GITHUB_WORKFLOW_REVIEW",
