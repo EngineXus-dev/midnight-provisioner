@@ -116,19 +116,31 @@ def read_manifest(path: Path, module) -> list[tuple[str, Path, Path]]:
 def evaluate(entries, module, *, mode: str, max_files: int, max_bytes: int):
     reports = []
     roots = []
+    inventories = []
+    all_source_ids: set[tuple[int, int]] = set()
+
+    # Inventory ALL source roots before comparing ANY backup files.
+    # This catches a backup file hardlinked to a different group's
+    # source, not merely to the corresponding same-name source file.
     for label, source, backup in entries:
         roots.extend((source, backup))
         a = module.inventory(source, max_files=max_files, max_bytes=max_bytes)
         b = module.inventory(backup, max_files=max_files, max_bytes=max_bytes)
-        # Empty source directories cannot establish that a useful
-        # project/data backup exists. Block instead of vacuous PASS.
         if not a.files:
             raise SetError("A selected source contains no regular files; review backup scope")
+        all_source_ids.update(
+            (file.device, file.inode)
+            for file in a.files.values() if file.inode != 0
+        )
+        inventories.append((label, source, backup, a, b))
+
+    for label, source, backup, a, b in inventories:
         source_device = source.stat().st_dev
         backup_device = backup.stat().st_dev
         result, _ = module.compare(
             a, b, verify=(mode == "Verify"),
             source_device=source_device, backup_device=backup_device,
+            forbidden_source_ids=all_source_ids,
         )
         reports.append({"id": label, **result})
     all_content = mode == "Verify" and all(
@@ -149,6 +161,7 @@ def evaluate(entries, module, *, mode: str, max_files: int, max_bytes: int):
         "entry_count": len(reports),
         "entries": reports,
         "all_selected_content_matched": bool(all_content),
+        "source_identity_scope": "ALL_SELECTED_SOURCE_ROOTS",
         "additional_backup_files_to_review": total_extra,
         "full_machine_backup_completeness_proven": False,
         "physical_external_media_verified": False,
