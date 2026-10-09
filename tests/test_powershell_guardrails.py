@@ -48,7 +48,7 @@ class PowerShellGuardrailTests(unittest.TestCase):
             with self.subTest(script=str(script.relative_to(ROOT))):
                 raw = script.read_bytes()
                 self.assertTrue(
-                    raw.isascii() or raw.startswith(b"\\xef\\xbb\\xbf"),
+                    raw.isascii() or raw.startswith(bytes.fromhex("efbbbf")),
                     f"BOM-less non-ASCII script may fail Windows PowerShell 5.1 parse: {script}",
                 )
 
