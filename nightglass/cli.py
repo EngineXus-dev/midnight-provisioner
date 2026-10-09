@@ -19,6 +19,7 @@ from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
 from .acceptance import RegisteredGuestAuditor, save_acceptance
+from .resources import collect_resources
 import os
 
 
@@ -26,6 +27,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="nightglass", description="Nightglass secure-workspace controller")
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("doctor", help="Read-only host readiness checks")
+    sub.add_parser("resources", help="Inspect live host RAM pressure and active system libvirt VMs (read-only)")
     sub.add_parser("list", help="List configured workspaces (read-only)")
     sub.add_parser("gui", help="Launch workspace manager graphical interface")
     info = sub.add_parser("inspect", help="Read-only policy audit of a configured VM")
@@ -84,6 +86,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     cmd = args.command or "gui"
     try:
+        if cmd == "resources":
+            snapshot = collect_resources(workspaces=load_workspaces())
+            print(snapshot.describe())
+            return 0 if snapshot.level == "NORMAL" else 2
         if cmd == "accept":
             audit = RegisteredGuestAuditor().inspect(args.guest, args.policy)
             print(audit.describe())
