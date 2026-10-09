@@ -34,6 +34,7 @@ from .handoff import RecoveryHandoff
 from .theme import apply_theme, COLORS
 from .resources import collect_resources
 from .host_posture import inspect_host_posture
+from .runtime_labels import RuntimeLabelInspector
 
 class NoWheelComboBox(QComboBox):
     """Prevent incidental wheel scrolling from changing a saved profile."""
@@ -366,6 +367,17 @@ class MainWindow(QMainWindow):
         )
         posture_button.clicked.connect(self.check_host_security)
         posture_layout.addWidget(posture_button)
+        observe = QPushButton("Observe running VM sVirt labels")
+        observe.setToolTip(
+            "Observe SELinux and libvirt label metadata of an ALREADY-running, "
+            "registered restricted VM. Never starts the guest or verifies actual process confinement."
+        )
+        observe.clicked.connect(self.observe_guest_runtime_labels)
+        posture_layout.addWidget(observe)
+        save_observation = QPushButton("Save local runtime observation")
+        save_observation.setToolTip("Save the last metadata report privately without overwriting files.")
+        save_observation.clicked.connect(self.export_acceptance_report)
+        posture_layout.addWidget(save_observation)
         layout.addWidget(posture_panel)
         self.diagnostics = QPlainTextEdit()
         self.diagnostics.setReadOnly(True)
@@ -1138,6 +1150,41 @@ class MainWindow(QMainWindow):
         self.work(
             lambda: collect_resources(workspaces=tuple(self.spaces)),
             received, failed,
+        )
+
+    def observe_guest_runtime_labels(self):
+        guest, ok = QInputDialog.getText(
+            self, "Read-only runtime sVirt observation",
+            "Name of an ALREADY-running benign registered VM:"
+        )
+        if not ok:
+            return
+        try:
+            guest = safe_name(guest.strip())
+        except WorkspaceError as exc:
+            self.error(str(exc))
+            return
+        policy, policy_ok = QInputDialog.getItem(
+            self, "Restricted VM policy", "Observe guest as:",
+            ["isolated", "lab"], 0, False
+        )
+        if not policy_ok:
+            return
+        self.last_acceptance = None
+        self.diagnostics.setPlainText("Observing registered libvirt and host SELinux metadata (read-only) …")
+        def received(report):
+            self.last_acceptance = report
+            self.diagnostics.setPlainText(
+                report.describe() + "\n\nUse Save local runtime observation for a "
+                "NEW private JSON record. Effective process labels and guest traffic remain untested."
+            )
+        self.work(
+            lambda: RuntimeLabelInspector().inspect(guest, policy),
+            received,
+            lambda message: self.diagnostics.setPlainText(
+                "RUNTIME LABEL OBSERVATION UNAVAILABLE: " + message +
+                "\nNo VM was started or changed."
+            ),
         )
 
     def check_host_security(self):
