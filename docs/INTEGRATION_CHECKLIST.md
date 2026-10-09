@@ -302,3 +302,25 @@ or partition operation has been performed by this phase.**
 No prior script should be interpreted as consent to install or wipe
 the Windows internal disk. See
 [clean Windows 11 staged plan](WINDOWS11_CLEAN_INSTALL_STAGED.md).
+
+## Optional Windows 11 Lite profile — development draft, NOT installed
+
+A new stacked draft branch documents the NTLite Free conservative
+two-stage process for the **currently official Windows 11 26H2 ISO**
+and removes the community post's outdated default to 25H2.
+**Windows 10 Home licence** must be respected; a trimmed Pro-only
+ISO is inappropriate without independent Pro activation rights.
+
+A preview-first, local HKCU-only PowerShell preference helper and
+static safety tests are added. Its Apply/Undo functionality is NOT
+yet verified by native Windows 11 PowerShell/VM testing. No Windows
+components, drivers, Defender, updates, servicing or disk partitions
+are removed; no external debloat scripts are automatically downloaded.
+Avoid chaining WinUtil, Win11Debloat and RemoveWindowsAI because
+their changes may overlap or harm servicing.
+
+The main purpose of the proposed one-USB stick remains official,
+independently verifiable Windows/Fedora ISOs. The optional Lite image
+is not needed merely to fit the user's separate 16 GB USB. All
+Windows clean install and hardware integration gates remain ON HOLD.
+See [Lite build profile](WINDOWS11_LITE_IMAGE_PROFILE.md).
