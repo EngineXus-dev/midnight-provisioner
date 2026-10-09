@@ -751,3 +751,13 @@ All Nightglass PRs remain draft and unmerged; Windows/Fedora
 installation and media writes remain deferred.
 
 The [Phase 14 verification record](docs/PHASE14_RELEASE_GATE_REPAIR.md) separates the locally executed 8-test positive/negative synthetic fixture from the still-pending complete Windows/Docker release gate.
+
+### Phase 15: Windows-portable test execution guard
+
+[Windows test completeness](docs/PHASE15_PORTABLE_TEST_COMPLETENESS.md)
+corrects a false-pass gap: per-file unittest discovery can exit
+successfully with zero executed tests. The Windows-portable
+verification loop now requires actual executed passing tests
+for every allowlisted suite, and explicitly reports skipped
+platform-only cases. Seven synthetic local regression tests passed;
+the actual Windows and cumulative Fedora/Docker suite remain pending.
