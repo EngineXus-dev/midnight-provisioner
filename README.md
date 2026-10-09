@@ -400,6 +400,25 @@ references, enabled/unknown libvirt autostart and a running recovered guest.
 It does **not** import, start or prove a guest can boot or restore. See
 [registered Kali recovery handoff](docs/KALI_REGISTERED_RECOVERY.md).
 
+## Supervised metadata observation of a running Kali recovery VM
+
+After an operator has **manually started a BENIGN recovered Kali VM**,
+Nightglass can observe libvirt running state, host SELinux/sVirt metadata,
+declared offline networking, distinct disk/UUID identity and autostart:
+
+```bash
+nightglass templates observe-running ./original-kali-plan.json \
+  --backup /path/to/existing-cold-backup \
+  --guest new-recovery-guest \
+  --disk /absolute/path/to/live-recovery.qcow2
+```
+
+The GUI offers **Prepare VM → Observe running Kali recovery**. It never
+starts a VM, executes guest commands or hashes a writable live qcow2.
+**LIBVIRT/SELINUX METADATA ONLY** is not verified Kali OS boot, restore,
+process-context confinement or packet-level isolation. See
+[supervised Kali runtime observation](docs/KALI_RUNNING_OBSERVATION.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
