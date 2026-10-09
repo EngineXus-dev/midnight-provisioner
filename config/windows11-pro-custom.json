@@ -23,12 +23,12 @@
     {
       "id": 1,
       "title": "Reduce optional telemetry, history, app launch tracking, ad targeting",
-      "mode": "custom_review",
+      "mode": "privacy_reviewed",
       "switches": [
         "DisableTelemetry",
         "DisableSearchHistory"
       ],
-      "note": "Required Windows Pro diagnostics cannot be fully eliminated; activity tracking, advertising ID and consent settings must be verified individually."
+      "note": "Reviewed DisableTelemetry switch can reduce optional data/ads; required Windows Pro diagnostics cannot be eliminated. DisableSearchHistory was removed from recent upstream releases and is manual-only. Verify activity history and app launch settings individually."
     },
     {
       "id": 2,
@@ -217,7 +217,7 @@
         "DisableStartRecommended",
         "StartAllAppsList"
       ],
-      "note": "ClearStart changes custom pins; explicit optional opt-in only; UI may vary by Windows 26H2."
+      "note": "DisableStartRecommended is reviewed core; ClearStart and All Apps presentation can change existing pins/layout, so they require separate explicit review."
     },
     {
       "id": 22,
@@ -236,7 +236,7 @@
         "DisableBing",
         "DisableStoreSearchSuggestions"
       ],
-      "note": "Avoid filesystem-permission hacks on Store databases."
+      "note": "DisableBing is reviewed core; current upstream Store search suppression can manipulate file permissions/ACLs, so Store recommendations are deferred pending specific safety review."
     },
     {
       "id": 24,
