@@ -21,7 +21,9 @@ class OffscreenMainWindowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         from PySide6.QtWidgets import QApplication
+        from nightglass.theme import apply_theme
         cls.app = QApplication.instance() or QApplication([])
+        apply_theme(cls.app)
 
     def setUp(self):
         import nightglass.ui as ui
@@ -45,6 +47,23 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.window = ui.MainWindow()
         self.addCleanup(self.window.close)
         self.assertFalse(self.window._busy)
+
+    def test_casual_dark_palette_and_active_navigation(self):
+        from PySide6.QtGui import QPalette
+        from nightglass.theme import COLORS, THEME_NAME
+        self.assertIn("Dark", THEME_NAME)
+        self.assertEqual(
+            self.app.palette().color(QPalette.ColorRole.Window).name(),
+            COLORS["window"],
+        )
+        self.assertIn("QFrame#Sidebar QPushButton:checked", self.app.styleSheet())
+        self.assertEqual(len(self.window.nav_buttons), 6)
+        self.assertTrue(self.window.nav_buttons[0].isChecked())
+        self.window.goto(3)
+        self.assertTrue(self.window.nav_buttons[3].isChecked())
+        self.assertFalse(self.window.nav_buttons[0].isChecked())
+        self.window.goto(5)
+        self.assertTrue(self.window.nav_buttons[5].isChecked())
 
     def test_real_qt_pages_and_workspace_cards_construct(self):
         self.assertEqual(self.window.stack.count(), 6)
@@ -128,12 +147,26 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.assertFalse(shot.isNull())
         self.assertGreaterEqual(shot.width(), 880)
         self.assertGreaterEqual(shot.height(), 610)
+        # Verify theme is dark at window edges; this catches accidental
+        # inheritance of Qt's bright native palette or a lost stylesheet.
+        image = shot.toImage()
+        for x, y in ((0, 0), (shot.width() - 2, 2), (2, shot.height() - 2)):
+            rgb = image.pixelColor(x, y)
+            self.assertLess(max(rgb.red(), rgb.green(), rgb.blue()), 90)
         path = os.environ.get("NIGHTGLASS_GUI_PREVIEW")
         if path:
             target = Path(path)
             target.parent.mkdir(parents=True, exist_ok=True)
             self.assertTrue(shot.save(str(target), "PNG"), "Qt offscreen screenshot failed")
             self.assertGreater(target.stat().st_size, 2048)
+            # Inspect three materially different views, without loading guest
+            # images, accessing libvirt, or touching the developer's settings.
+            for page, suffix in ((3, "machine"), (5, "recovery")):
+                self.window.goto(page)
+                self.app.processEvents()
+                other = target.with_name(target.stem + "-" + suffix + ".png")
+                self.assertTrue(self.window.grab().save(str(other), "PNG"))
+                self.assertGreater(other.stat().st_size, 2048)
 
 
 if __name__ == "__main__":
