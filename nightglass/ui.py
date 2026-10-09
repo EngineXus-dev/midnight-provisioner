@@ -30,6 +30,7 @@ from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
 from .acceptance import RegisteredGuestAuditor, save_acceptance
+from .handoff import RecoveryHandoff
 from .theme import apply_theme, COLORS
 from .resources import collect_resources
 from .host_posture import inspect_host_posture
@@ -713,6 +714,14 @@ class MainWindow(QMainWindow):
         inspect = QPushButton("Audit registered VM")
         inspect.clicked.connect(self.inspect_registered_guest)
         acceptance_row.addWidget(inspect)
+        handoff = QPushButton("Verify registered handoff")
+        handoff.setToolTip(
+            "Read-only check of a registered powered-off VM against the disk and "
+            "NVRAM paths, identity and disk formats in a verified recovery folder. "
+            "Does not start, register or change the VM."
+        )
+        handoff.clicked.connect(self.verify_registered_handoff)
+        acceptance_row.addWidget(handoff)
         export = QPushButton("Save local audit report")
         export.clicked.connect(self.export_acceptance_report)
         acceptance_row.addWidget(export)
@@ -896,6 +905,33 @@ class MainWindow(QMainWindow):
             lambda message: self.recovery_log.setPlainText(
                 "VM AUDIT UNAVAILABLE: " + message +
                 "\nNo VM was started or modified."
+            ),
+        )
+
+    def verify_registered_handoff(self):
+        folder = QFileDialog.getExistingDirectory(
+            self, "Choose verified recovery staging directory for read-only registered VM comparison"
+        )
+        if not folder:
+            return
+        self.last_acceptance = None
+        self.recovery_log.setPlainText(
+            "Verifying staged file hashes, registered VM disk paths, driver formats, "
+            "UUIDs and offline policy. No guest will be started or modified …"
+        )
+        def received(report):
+            self.last_acceptance = report
+            self.recovery_log.setPlainText(
+                report.describe() +
+                "\n\nLocal audit evidence can be saved as a NEW private JSON file. "
+                "A passing metadata handoff is not a Fedora/KVM runtime isolation test."
+            )
+        self.work(
+            lambda: RecoveryHandoff().inspect(Path(folder)),
+            received,
+            lambda message: self.recovery_log.setPlainText(
+                "REGISTERED HANDOFF UNAVAILABLE: " + message +
+                "\nNo guest or staged file was modified."
             ),
         )
 
