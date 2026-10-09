@@ -388,3 +388,16 @@
 - [ ] Independently audit the freshly produced v2 summary and log against the tested SHA
 - [ ] Review stacked PRs explicitly; do NOT merge or deploy based solely on synthetic tests
 - [ ] Real Fedora KVM/SELinux/sVirt/offline-guest/cold-recovery acceptance stays pending
+
+## v0.4a — comprehensive draft PR stack readiness (current draft)
+- [x] Independently inspect actual GitHub PRs #1–40: 39 open drafts unmerged; PR #30 does not exist
+- [x] Confirm GitHub dependency shape is one linear stack from main, not 39 independent merges
+- [x] Compare final prior PR #40 head with main: 454 commits ahead, 0 behind and 136 changed paths in the 2026-10-09 snapshot
+- [x] Flag .github/workflows/verify.yml for manual workflow safety review before any eventual integration
+- [x] Commit a versioned explicit 39-PR base/head snapshot with no fabricated PR #30
+- [x] Implement opt-in no-fetch local Git ancestry checker, HEAD/remote origin guards, path-only diff risk labels and exclusive new JSON
+- [x] Add synthetic contract tests for duplicate JSON, broken PR graph, changed main, diff-sensitive path review and no merge/deployment permission
+- [ ] Fetch latest origin refs on the user's Windows clone, then execute local graph audit and cumulative test runner on exact branch SHA
+- [ ] Independently refresh GitHub PR draft/review/merge status before any merge; offline Git cannot do this
+- [ ] Review complete cumulative source and workflow diff, test evidence and Fedora hardware acceptance separately
+- [ ] DO NOT integrate/merge/change Windows/USB/Fedora without specific user authorization
