@@ -316,6 +316,19 @@ host/guest file transfers. The input reports are **untrusted metadata**,
 not cryptographic proof of a clean VM or signed packages. See the
 [version drift review guide](docs/KALI_VERSION_DRIFT.md).
 
+## Per-template Kali VM readiness (local read-only)
+
+After saving a curated Kali setup plan with a locally obtained publisher
+ISO checksum, use `nightglass templates preflight PLAN.json --iso
+LOCAL.iso --storage-dir EXISTING_DIRECTORY` or **Prepare VM → Check Kali
+VM readiness**. The check validates the actual ISO SHA-256, both
+`virt-install --dry-run` XML phases, available host RAM, already-running
+system-libvirt guests and free storage for an independent disk.
+
+This is **not** VM creation, a reservation, package installation or isolation
+certification. Missing/unsafe readings block approval; a passing dry-run
+only permits **manual review**. See [Kali template readiness](docs/KALI_TEMPLATE_PREFLIGHT.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
