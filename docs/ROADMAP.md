@@ -110,6 +110,16 @@
 - [ ] Snapshot lifecycle with qcow2, NVRAM/UEFI safety and comprehensive restore tests
 - [ ] Autostart off by default, deny-by-default isolated environment actions
 
+## v0.3b — guarded VM start audit parity (draft)
+- [x] Audit libvirt current/live AND persistent/next-boot XML before restricted guest starts
+- [x] Audit managed-save XML as a third independent configuration
+- [x] Reject next-boot network/device/sVirt-label drift even if current XML is acceptable
+- [x] Reject mismatched VM name or conflicting UUID among inspected definitions
+- [x] Apply declared maximum RAM limits to persistent and saved definitions, not only live XML
+- [x] Synthetic tests verify that drift blocks before any `virsh start` or VM mutation
+- [ ] Independently confirm managed-save resume and persistent definition behavior on Fedora/KVM
+- [ ] Reduce possible races with other privileged libvirt clients; XML snapshots are point-in-time only
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
