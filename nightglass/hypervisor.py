@@ -5,12 +5,14 @@ privileged user or another program can change libvirt definitions independently.
 """
 from __future__ import annotations
 from dataclasses import dataclass
+import os
 import re
 from threading import Lock
 from xml.etree import ElementTree as ET
 from .models import safe_name
 from .runner import Runner, ToolError
 from .diagnostics import total_ram_gib
+from .portability import budget_for, load_machine_preferences
 
 LIBVIRT_URI = "qemu:///system"
 ISOLATED_NETWORK = "nightglass-lab"
@@ -217,24 +219,47 @@ class Hypervisor:
         if not check.ok:
             raise ToolError("Blocked by workspace policy: " + "; ".join(check.warnings))
         ram = total_ram_gib()
-        if ram is not None and ram < 11:
-            for other in self.list_domains():
-                if other == domain:
-                    continue
-                if self.state(other).lower().startswith(("running", "paused", "idle")):
-                    raise ToolError("Low-memory guard: another VM is already active. Stop or save it before starting a second VM.")
+        budget = budget_for(ram, os.cpu_count(), load_machine_preferences())
+        active = []
+        for other in self.list_domains():
+            if other == domain:
+                continue
+            if self.state(other).lower().startswith(("running", "paused", "idle")):
+                active.append(other)
+        if len(active) >= budget.active_vm_cap:
+            raise ToolError(
+                "Low-memory guard: another VM is already active. "
+                f"Machine profile allows at most {budget.active_vm_cap} active VM(s)."
+            )
+        try:
+            # Include a libvirt saved session's own declared maximum RAM.
+            xml_docs = [self._virsh("dumpxml", domain)]
+            if policy in {"lab", "isolated"}:
+                saved = self._managed_save_xml(domain)
+                if saved is not None:
+                    xml_docs.append(saved)
+            vm_gib = max(declared_guest_memory_gib(xml) for xml in xml_docs)
+        except (ET.ParseError, ValueError, TypeError) as exc:
+            raise ToolError(f"Low-memory guard: cannot verify VM RAM size ({exc})") from exc
+        if vm_gib > budget.guest_ram_cap_gib:
+            raise ToolError(
+                f"Low-memory guard: VM declares up to {vm_gib:.1f} GiB; "
+                f"machine profile permits {budget.guest_ram_cap_gib:.1f} GiB per guest."
+            )
+        if active:
+            # On larger machines also account for VMs started by other tools.
+            # In particular, an external oversized VM should consume the
+            # budget instead of giving Nightglass permission to oversubscribe.
             try:
-                # Saved-state XML may declare more RAM than the inactive VM.
-                xml_docs = [self._virsh("dumpxml", domain)]
-                if policy in {"lab", "isolated"}:
-                    saved = self._managed_save_xml(domain)
-                    if saved is not None:
-                        xml_docs.append(saved)
-                vm_gib = max(declared_guest_memory_gib(xml) for xml in xml_docs)
+                active_memory = sum(
+                    declared_guest_memory_gib(self._virsh("dumpxml", other))
+                    for other in active
+                )
             except (ET.ParseError, ValueError, TypeError) as exc:
-                raise ToolError(f"Low-memory guard: cannot verify VM RAM size ({exc})") from exc
-            if vm_gib > 3.5:
-                raise ToolError(f"Low-memory guard: VM declares up to {vm_gib:.1f} GiB; limit this 8-GB-class host to <=3.5 GiB per guest.")
+                raise ToolError(f"Cannot verify active VM memory: {exc}") from exc
+            host_reserve = 6.0 if ram is not None and ram < 20 else 8.0
+            if ram is None or active_memory + vm_gib > max(1.0, ram - host_reserve):
+                raise ToolError("VM memory exceeds host reserve after existing guests")
         return self._virsh("start", domain, timeout=120).strip() or "VM started"
 
     def shutdown(self, domain: str) -> str:
