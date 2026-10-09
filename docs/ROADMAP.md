@@ -412,3 +412,14 @@
 - [ ] Run new Python unit/PowerShell syntax checks on Windows/Docker; current branch remains untested on actual workstation
 - [ ] Independently inspect action mutable tags, workflow job contents and exact SHA references before ever enabling GitHub Actions
 - [ ] Latest cumulative Docker/Fedora acceptance, all PR diff review, native Fedora KVM/sVirt and OS deployment remain HOLD
+
+## v0.4c — single-entry Windows offline verification (draft)
+- [x] Add PowerShell 5.1 launcher with PLAN ONLY default and explicit -FetchRefs, -AuditStack, -RunDockerGate modes
+- [x] Require literal confirmation for Docker execution; image pulls and Fedora image builds remain separate opt-ins
+- [x] Read audited scripts from an exact fetched Git object into an entirely new TEMP directory; no main checkout or ignored-file overwrite
+- [x] Pin cumulative Docker test branch SHA and fail before worktree creation if ref changes; recheck SHA before tests
+- [x] Extend PR ancestry snapshot through 42 existing drafts (41 predecessors, PR #30 absent) and point offline evidence auditor at latest candidate
+- [x] Add preview/no-Git/no-write, consent, SHA pin and native PowerShell AST test contracts
+- [ ] Run Windows PowerShell AST and cumulative Python/Fedora Docker tests for the newest candidate, using the user's 8GB host only with explicit approval
+- [ ] Independently audit exact-SHA local test logs and verify current GitHub PR status before any user-approved integration
+- [ ] Real Fedora SELinux/sVirt, guest isolation, backup restore and Windows 11 Pro installation remain separately held
