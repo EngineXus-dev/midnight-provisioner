@@ -31,6 +31,7 @@ from .kali_setup import build_setup_plan, save_setup_plan, load_setup_plan, comp
 from .kali_preflight import KaliPreflight
 from .kali_registration import KaliRegistrationInspector
 from .kali_cold_baseline import KaliColdBaselineInspector
+from .kali_recovery_link import KaliRecoveryLink
 from .kali_drift import compare_version_lock_files
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
@@ -718,6 +719,14 @@ class MainWindow(QMainWindow):
         )
         baseline.clicked.connect(self.verify_kali_cold_baseline)
         controls.addWidget(baseline)
+        link_button = QPushButton("Verify Kali recovery copy")
+        link_button.setToolTip(
+            "Read-only: compare a separate NEW offline recovery staging folder "
+            "against the original Kali cold backup and saved template. "
+            "Does not restore, define, import or boot any guest."
+        )
+        link_button.clicked.connect(self.check_kali_recovery_link)
+        controls.addWidget(link_button)
         vm_manager = QPushButton("Open virt-manager")
         vm_manager.clicked.connect(lambda: self.open_program(["virt-manager", "--connect", "qemu:///system"]))
         controls.addWidget(vm_manager)
@@ -1005,6 +1014,50 @@ class MainWindow(QMainWindow):
             lambda message: self.provision_result.setPlainText(
                 "KALI COLD BASELINE: BLOCKED / UNVERIFIED\n" + message +
                 "\nNo backup or VM was created, restored, or modified."
+            ),
+        )
+
+    def check_kali_recovery_link(self):
+        if self.provision_kind.currentData() != "pentest":
+            self.provision_result.setPlainText(
+                "Kali recovery comparison is for separate benign Kali VM templates only."
+            )
+            return
+        template_id = self.provision_template.currentData()
+        if not template_id:
+            self.provision_result.setPlainText("Choose a curated Kali toolkit first.")
+            return
+        plan, _ = QFileDialog.getOpenFileName(
+            self, "Choose saved original Kali template setup plan", "",
+            "JSON files (*.json)"
+        )
+        if not plan:
+            return
+        original = QFileDialog.getExistingDirectory(
+            self, "Choose ORIGINAL verified Kali cold backup folder"
+        )
+        if not original:
+            return
+        staged = QFileDialog.getExistingDirectory(
+            self, "Choose NEW already staged offline recovery folder"
+        )
+        if not staged:
+            return
+        guest = self.provision_name.text().strip()
+        self.provision_result.setPlainText(
+            "Verifying original and staged hashes and exact offline XML transformation …"
+        )
+        def check():
+            data = load_setup_plan(Path(plan))
+            if data["guest"] != guest or data["template_id"] != template_id:
+                raise ToolError("Recovery source plan differs from selected Kali guest and profile")
+            return KaliRecoveryLink().inspect(Path(plan), Path(original), Path(staged))
+        self.work(
+            check,
+            lambda report: self.provision_result.setPlainText(report.describe()),
+            lambda message: self.provision_result.setPlainText(
+                "KALI RECOVERY LINK: BLOCKED / UNVERIFIED\n" + message +
+                "\nNo VM, disk, backup or network was modified."
             ),
         )
 
