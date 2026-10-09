@@ -2,6 +2,20 @@
 
 **Do not run disk-partitioning automation.** A UEFI/ESP modification could make the existing Windows installation unbootable if performed incorrectly. This phase is only a plan and read-only diagnostic tooling.
 
+## Pre-install safety hold (new planning gate)
+
+Nightglass installation is **NOT authorized** by software readiness checks.
+A native Windows, read-only review script and detailed dual-boot/rollback
+decision gates are available in [Deployment safety gates](DEPLOYMENT_SAFETY_GATES.md).
+Run `scripts/Review-Windows-DualBoot.ps1` only from a separately fetched
+temporary copy while your local checkout remains on `main`; it never
+edits partitions, firmware/boot configuration or BitLocker protection.
+
+Before any OS install, verify a restorable Windows disk image and recovery
+USB, the offline encryption recovery key, exact target disk/ESP/Recovery
+layout, Fedora live USB hardware compatibility, and an independent
+rollback plan. If any is missing, **stop before the installer**.
+
 ### Stage A — on Windows
 
 - Verify laptop manufacturer/model and whether memory/second internal NVMe can be upgraded. With 8 GB RAM, budget ~3 GB for one Kali VM and stop other VMs before launching it.
