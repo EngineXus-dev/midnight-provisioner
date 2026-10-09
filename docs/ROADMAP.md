@@ -48,6 +48,15 @@
 - [ ] Fedora/KVM live backup/boot/restore drills, firmware handling and SELinux review
 - [ ] Dedicated rollback workflow only after reproducible end-to-end restore tests
 
+## v0.2.2 — verified offline recovery staging (draft)
+- [x] Accept only verified cold backup manifests with disk/XML path consistency
+- [x] Stage files into an exclusively new directory and recalculate SHA-256 digests
+- [x] Generate a fresh VM name, remove prior identifiers, and rewrite new disk/NVRAM paths
+- [x] Force restored guest XML offline, re-audit the staged definition and reject incomplete copies
+- [x] GUI and CLI plan/stage/verify without automatic libvirt import or boot
+- [ ] Fedora/KVM boot and recovery drill, SELinux/firmware validation and permission review
+- [ ] Future automatic NEW-VM definition only after disposable isolated restore tests
+
 ## v0.3 — defense in depth
 - [ ] Polkit actions and minimal privileged policy service, no trusted XML audit from user-editable settings
 - [ ] SELinux device/volume access review; stronger VM security architecture tests
