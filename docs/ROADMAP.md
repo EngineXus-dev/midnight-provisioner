@@ -433,3 +433,15 @@
 - [x] Extend PR snapshot through #43 with #30 accurately absent
 - [ ] Run real Windows PowerShell AST and cumulative Docker suites for the newest exact SHA
 - [ ] Audit resulting private v2 logs and examine workflow actions before any separately approved merge
+
+## v0.4e — deferred OS migration backup integrity verification (draft)
+- [x] Add Python-standard-library Preview/Inspect/Verify tool requiring independently selected source and backup folder paths
+- [x] Include hidden Git metadata, .env and .venv files rather than assuming GitHub reconstructs personal working state
+- [x] Stream SHA-256 file contents on both sides, with per-file stability checks, bounded scans, missing/extra file accounting and no password/key collection
+- [x] Refuse symlinks/Windows reparse points, nested roots, nonregular entries and unsafe/overwriting report destinations
+- [x] Clearly distinguish metadata inspection, byte equality and a real restore test (not performed)
+- [x] Include synthetic temp-tree regressions covering modified same-size files, missing/extra data, symlinks and preview-only
+- [x] Track 43 predecessor PRs through #44, retain missing PR #30 and preserve all unmerged draft status
+- [ ] Run latest branch portable Windows and Fedora Docker tests, including backup integrity suite, before relying on the new tool
+- [ ] After user-created backup: independently test a harmless restore and verify all user-selected personal sources and recovery material
+- [ ] Windows 11 Pro clean installation, 16GB USB formatting, portable-drive writing and Fedora deployment remain deferred and require separate permission
