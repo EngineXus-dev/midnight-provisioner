@@ -32,7 +32,7 @@ class FedoraDockerRunnerContractTests(unittest.TestCase):
         for path in ("setup-nightglass.sh", "fedora-recovery-smoke.sh"):
             with self.subTest(script=path):
                 source = (ROOT / "scripts" / path).read_bytes()
-                self.assertNotIn(b"\\r\\n", source)
+                self.assertNotIn(b"\r\n", source)
 
     def test_runtime_is_rootless_no_network_no_vm_devices_and_read_only(self):
         text = RUNNER.read_text(encoding="utf-8")
