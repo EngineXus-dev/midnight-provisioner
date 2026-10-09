@@ -353,3 +353,16 @@
 - [ ] Parse new PowerShell with native Windows 11 Pro; run unit tests and disposable VM Apply/Undo before user use
 - [ ] Independently verify vendor script hash/flags/rollback semantics and each requested setting on 26H2
 - [ ] No installed Windows, ISO/USB, backups, Fedora disk layout or PR merges altered as part of planning
+
+## v0.3x — cumulative release candidate offline integration gate (draft)
+- [x] Implement an opt-in one-branch, new-detached-worktree verification runner to avoid all GitHub Actions usage
+- [x] Default PLAN ONLY; no implicit fetch, Docker image acquisition, OS or filesystem mutation
+- [x] Parse all fetched PowerShell and Python source on Windows WITHOUT running fetched code on the host
+- [x] Run full Linux synthetic Python 3.11/3.12/3.13 matrix and Fedora 43 Qt/native fixture suites inside sequential rootless offline Docker containers
+- [x] Refuse to claim green if any test is failed, missing, blocked or skipped as a mandatory verification stage
+- [x] Write new exclusive-create local log and minimal check summary tied to the exact detached Git SHA, retaining clear physical Fedora hardware HOLD
+- [x] Reconcile stale old-Home assertions with the reported Pro key, without storing that key or running Windows installation
+- [ ] Have user run latest Windows parse-only and Docker test gate against exact current cumulative branch; review log and adjust actual failures
+- [ ] Review draft branch ancestry and each diff before any explicit owner-approved PR merge (no automatic merge)
+- [ ] Independently verify real Fedora SELinux/sVirt, KVM, guest networking and recovery before security acceptance
+- [ ] Windows 11 Pro clean install/USB media/BitLocker decisions remain deferred by user; no automatic OS preparation or deployment
