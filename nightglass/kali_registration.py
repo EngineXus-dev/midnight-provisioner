@@ -40,6 +40,9 @@ def _safe_disk(path: Path) -> Path:
                 raise ToolError("Expected independent disk path includes a symlink")
         resolved = path.resolve(strict=True)
         details = resolved.stat()
+    except ToolError:
+        # Preserve the meaningful security finding; ToolError is a RuntimeError.
+        raise
     except (OSError, RuntimeError, ValueError) as exc:
         raise ToolError("Expected independent Kali VM disk cannot be inspected") from exc
     if not stat.S_ISREG(details.st_mode) or details.st_size <= 0:
