@@ -174,6 +174,17 @@
 - [ ] Implement/test a separately approved quarantined host↔guest transfer channel (NOT enabled here)
 - [ ] Independently verify signed Kali package provenance, dependency closure and rollback before tool installation automation
 
+## v0.3h — Kali template package lock drift review (draft)
+- [x] Compare previous private version lock and newer manually supplied Kali package inventory for the SAME curated guest
+- [x] Verify original template catalog fingerprint, guest identity, Kali release and installer ISO claim before comparing
+- [x] Report missing/uninstalled packages, observed version changes, unavailable candidates and non-clean/unknown dpkg audit
+- [x] Distinguish version change from upgrade/downgrade; do not invent Debian version ordering from string comparison
+- [x] Reject locks falsely claiming signed provenance, dependency closure or tested rollback
+- [x] Provide read-only CLI and GUI three-file workflow plus optional NEW private local JSON evidence
+- [x] Unit and Qt GUI tests for wrong guest, modified provenance, version drift, invalid metadata, no overwrite and cancellation
+- [ ] Real Fedora/Kali inventory/lock drift acceptance, reproducible signed dependencies and cold restore validation
+- [ ] Authenticated guest state evidence and independently reviewed transfer remain unavailable
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
