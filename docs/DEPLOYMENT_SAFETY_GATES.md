@@ -57,7 +57,9 @@ paths, disk IDs, and all recovery keys.
 
 The Windows 10 Home baseline on 2026-10-09 reports UEFI, a
 **measured system-disk capacity GPT Windows Disk 0** with C: and system/recovery partitions,
-and a separate **measured backup-disk capacity GPT Disk 1 with unknown contents/bus type**.
+and a separate **measured backup-disk capacity GPT Disk 1 confirmed as a PORTABLE DRIVE**.
+Disk 1 is neither a Fedora installation target nor a boot-media formatting
+candidate; its existing contents remain protected.
 Neither disk is authorized for repartition. C: has measured filesystem free space free
 *inside its existing Windows volume*, not free unallocated disk space.
 On this detected RAM capacity usable-RAM laptop, Nightglass still recommends one
@@ -205,3 +207,7 @@ fetch the updated branch and use the parser as a hard execution gate.
 Do not execute the file at all if any parser error is returned.
 Installation and disk-write permission remain **ON HOLD** regardless
 of the reviewer output.
+
+**One USB, separate installers:** see [multiboot media plan](ONE_USB_MULTIBOOT_PLAN.md).
+Use a third, deliberately blank USB for Ventoy or independent official media.
+Creating a USB bootloader may erase the chosen USB. Never select portable Disk 1.
