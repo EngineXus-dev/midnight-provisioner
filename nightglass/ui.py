@@ -4,6 +4,8 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+from pathlib import Path
+from datetime import datetime
 from dataclasses import replace
 from functools import partial
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Qt, QTimer, Signal
@@ -24,6 +26,7 @@ from .portability import (
 )
 from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
+from .backups import ColdBackup, verify_backup
 
 STYLE = """
 QWidget { background: #0b0e13; color: #dce5e9; font-family: 'Noto Sans', 'DejaVu Sans', sans-serif; font-size: 12px; }
@@ -133,9 +136,13 @@ class SpaceCard(QFrame):
             self.save.clicked.connect(lambda: parent.save_space(space.key))
             self.save.setEnabled(False)
             more.addWidget(self.save)
+            self.backup = QPushButton("Cold backup")
+            self.backup.clicked.connect(lambda: parent.backup_space(space.key))
+            self.backup.setEnabled(False)
+            more.addWidget(self.backup)
             outer.addLayout(more)
         else:
-            self.save = self.viewer = None
+            self.save = self.viewer = self.backup = None
 
     def update_status(self, status: str, explanation: str, can_start: bool, running: bool):
         self.state.setText("● " + status)
@@ -148,6 +155,8 @@ class SpaceCard(QFrame):
             self.viewer.setEnabled(running)
         if self.save:
             self.save.setEnabled(running and self.space.policy != "isolated")
+        if self.backup:
+            self.backup.setEnabled(not running and can_start)
 
 
 class MainWindow(QMainWindow):
@@ -213,7 +222,7 @@ class MainWindow(QMainWindow):
         side.addWidget(slogan)
         side.addSpacing(26)
         self.stack = QStackedWidget()
-        nav = [("▦  Workspaces", 0), ("◇  Security model", 1), ("✦  Diagnostics", 2), ("⚙  Machine settings", 3), ("⬡  Prepare VM", 4)]
+        nav = [("▦  Workspaces", 0), ("◇  Security model", 1), ("✦  Diagnostics", 2), ("⚙  Machine settings", 3), ("⬡  Prepare VM", 4), ("↺  Backup & verify", 5)]
         for label, index in nav:
             button = QPushButton(label)
             button.setMinimumHeight(43)
@@ -250,6 +259,7 @@ class MainWindow(QMainWindow):
         self._build_diagnostics()
         self._build_machine()
         self._build_provisioning()
+        self._build_recovery()
 
     def _build_workspaces(self):
         viewport = QScrollArea()
@@ -625,9 +635,106 @@ class MainWindow(QMainWindow):
             )
         self.work(lambda: OfflineProvisioner().preview(plan), completed, failed)
 
+    def _build_recovery(self):
+        area = QWidget()
+        layout = QVBoxLayout(area)
+        title = QLabel(
+            "Cold backups require a powered-off guest, no saved memory, "
+            "file-backed non-layered disks and a passing workspace audit. "
+            "A backup is NOT a snapshot or automatic rollback: restoration requires manual verification."
+        )
+        title.setObjectName("SubTitle")
+        title.setWordWrap(True)
+        layout.addWidget(title)
+        self.recovery_log = QPlainTextEdit()
+        self.recovery_log.setReadOnly(True)
+        self.recovery_log.setPlaceholderText(
+            "Select Cold backup from a VM card, or verify a previously exported backup folder."
+        )
+        layout.addWidget(self.recovery_log)
+        row = QHBoxLayout()
+        verify = QPushButton("Verify saved backup")
+        verify.clicked.connect(self.verify_backup_folder)
+        row.addWidget(verify)
+        row.addStretch()
+        layout.addLayout(row)
+        self.stack.addWidget(area)
+
+    def backup_space(self, key: str):
+        space = self.get_space(key)
+        if space.kind != "vm" or space.policy not in {"isolated", "lab"}:
+            self.error("Cold export is only available for a dedicated restricted VM.")
+            return
+        parent = QFileDialog.getExistingDirectory(
+            self, "Select a parent directory for a NEW cold backup", str(Path.home())
+        )
+        if not parent:
+            return
+        default = space.identifier + "-" + datetime.now().strftime("%Y%m%d-%H%M%S")
+        name, ok = QInputDialog.getText(
+            self, "New backup folder", "New folder name (must not exist):", text=default
+        )
+        if not ok:
+            return
+        try:
+            name = safe_name(name.strip())
+        except WorkspaceError as exc:
+            self.error(str(exc))
+            return
+        target = Path(parent) / name
+        if target.exists() or target.is_symlink():
+            self.error("The backup folder already exists. Choose a new unique name.")
+            return
+        self.goto(5)
+        self.recovery_log.setPlainText("Inspecting offline guest and storage, without writing files …")
+        def ready(plan):
+            if QMessageBox.question(
+                self,
+                "Confirm NEW cold backup",
+                plan.describe() +
+                "\n\nCreate an additional copy of these files at:\n" + str(target) +
+                "\n\nThe destination should be encrypted and must have adequate free space.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            ) != QMessageBox.StandardButton.Yes:
+                self.recovery_log.setPlainText("Cancelled; no backup files created.")
+                return
+            self.recovery_log.setPlainText("Copying offline virtual disks and checking SHA-256…")
+            self.work(
+                lambda: ColdBackup().create(space.identifier, space.policy, target, confirmed=True),
+                lambda saved: self.recovery_log.setPlainText(
+                    f"Cold backup completed at: {saved}\n"
+                    "Use Verify saved backup to check file hashes. "
+                    "Recovery is manual, not automatic rollback."
+                ),
+                lambda msg: self.recovery_log.setPlainText("Backup failed or incomplete: " + msg),
+            )
+        self.work(
+            lambda: ColdBackup().plan(space.identifier, space.policy),
+            ready,
+            lambda msg: self.recovery_log.setPlainText("Backup refused: " + msg),
+        )
+
+    def verify_backup_folder(self):
+        directory = QFileDialog.getExistingDirectory(
+            self, "Select a Nightglass cold backup folder", str(Path.home())
+        )
+        if not directory:
+            return
+        self.recovery_log.setPlainText("Hashing backup assets (read-only) …")
+        self.work(
+            lambda: verify_backup(Path(directory)),
+            lambda lines: self.recovery_log.setPlainText(
+                "BACKUP FILE INTEGRITY VERIFIED\n"
+                + "\n".join(lines)
+                + "\n\nThis is NOT proof of successful restoration. "
+                "Test restore on a separate target first."
+            ),
+            lambda msg: self.recovery_log.setPlainText("BACKUP VERIFICATION FAILED: " + msg),
+        )
+
     def goto(self, index: int):
         self.stack.setCurrentIndex(index)
-        self.header_title.setText(["Security workspaces", "Trust boundaries", "System diagnostics", "Machine settings", "Offline VM preparation"][index])
+        self.header_title.setText(["Security workspaces", "Trust boundaries", "System diagnostics", "Machine settings", "Offline VM preparation", "VM backups"][index])
         if index == 2:
             self.check_host()
 
