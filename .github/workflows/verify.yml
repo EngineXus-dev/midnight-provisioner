@@ -23,3 +23,24 @@ jobs:
         run: python -m nightglass profile show
       - name: Unit tests (no VMs or root)
         run: python -m unittest discover -s tests -v
+
+  native-tools:
+    name: Native libvirt and QEMU fixtures (no VMs)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install real libvirt schema tools and QEMU disk utilities
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libvirt-clients qemu-utils
+      - name: Confirm tools are installed
+        run: |
+          command -v virt-xml-validate
+          command -v qemu-img
+          virt-xml-validate tests/fixtures/native-offline-domain.xml domain
+          qemu-img --version
+      - name: Run native host-tool integration tests on harmless fixtures
+        run: python -m unittest discover -s tests -p 'test_native_tools.py' -v
