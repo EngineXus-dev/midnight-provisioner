@@ -621,6 +621,81 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.window.audit_registered_kali_recovery()
             dialog.assert_not_called()
 
+    def test_running_kali_recovery_gui_is_explicit_guest_bound_and_cancelable(self):
+        from types import SimpleNamespace
+        from PySide6.QtWidgets import QPushButton
+        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        self.window.prepare_space("pentest")
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("recon")
+        )
+        labels = {
+            button.text() for button in
+            self.window.stack.currentWidget().findChildren(QPushButton)
+        }
+        self.assertIn("Observe running Kali recovery", labels)
+        original = Path(self.temp.name) / "original-setup.json"
+        save_setup_plan(build_setup_plan("recon"), original)
+        backup = Path(self.temp.name) / "cold-backup"
+        backup.mkdir()
+        disk = Path(self.temp.name) / "running-recovered.qcow2"
+        disk.write_bytes(b"synthetic-never-hashed")
+        recovered = "nightglass-kali-recon-rehearsal"
+        result = SimpleNamespace(
+            ok=True, describe=lambda:
+            "KALI RUNNING-GUEST OBSERVATION: PASS (LIBVIRT/SELINUX METADATA ONLY)"
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName",
+            side_effect=[(str(original), "JSON"), (str(disk), "QEMU")],
+        ), patch.object(
+            self.ui.QFileDialog, "getExistingDirectory", return_value=str(backup),
+        ), patch.object(
+            self.ui.QInputDialog, "getText", return_value=(recovered, True)
+        ), patch.object(
+            self.ui, "KaliRunningInspector"
+        ) as checker, patch.object(self.window, "work") as worker:
+            checker.return_value.inspect.return_value = result
+            self.window.observe_running_kali_recovery()
+            worker.assert_called_once()
+            task, success, failure = worker.call_args.args
+            self.assertIs(task(), result)
+            checker.return_value.inspect.assert_called_once_with(
+                original, backup, recovered, disk
+            )
+            success(result)
+            self.assertIn("METADATA ONLY", self.window.provision_result.toPlainText())
+        self.assertEqual(disk.read_bytes(), b"synthetic-never-hashed")
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("web-audit")
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName",
+            side_effect=[(str(original), "JSON"), (str(disk), "QEMU")],
+        ), patch.object(
+            self.ui.QFileDialog, "getExistingDirectory", return_value=str(backup),
+        ), patch.object(
+            self.ui.QInputDialog, "getText", return_value=(recovered, True)
+        ), patch.object(
+            self.ui, "KaliRunningInspector"
+        ) as checker, patch.object(self.window, "work") as worker:
+            self.window.observe_running_kali_recovery()
+            task, success, failure = worker.call_args.args
+            with self.assertRaisesRegex(Exception, "differs from saved setup plan"):
+                task()
+            checker.assert_not_called()
+            failure("wrong original template")
+            self.assertIn("BLOCKED", self.window.provision_result.toPlainText())
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName", return_value=("", ""),
+        ), patch.object(self.window, "work") as worker:
+            self.window.observe_running_kali_recovery()
+            worker.assert_not_called()
+        self.window.prepare_space("analysis")
+        with patch.object(self.ui.QFileDialog, "getOpenFileName") as picker:
+            self.window.observe_running_kali_recovery()
+            picker.assert_not_called()
+
     def test_analysis_profile_cannot_save_running_memory(self):
         with patch.object(self.window, "error") as error, \
              patch.object(self.window, "work") as background:
