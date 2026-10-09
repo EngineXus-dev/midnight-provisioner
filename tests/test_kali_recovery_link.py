@@ -5,6 +5,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 import hashlib
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -32,6 +33,25 @@ def domain(path, *, uuid=UUID, extra="", nvram=None):
         f'<source file="{path}"/><target dev="vda" bus="virtio"/></disk>'
         f'{extra}</devices></domain>'
     )
+
+
+# Native Windows cannot perform POSIX fchmod. Isolate this capability only
+# while running synthetic module tests; production Linux enforcement is intact.
+_fixture_mode_patch = None
+
+
+def setUpModule():
+    global _fixture_mode_patch
+    if os.name == "nt":
+        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch.start()
+
+
+def tearDownModule():
+    global _fixture_mode_patch
+    if _fixture_mode_patch is not None:
+        _fixture_mode_patch.stop()
+        _fixture_mode_patch = None
 
 
 class KaliRecoveryLinkTests(unittest.TestCase):
@@ -216,7 +236,10 @@ class KaliRecoveryLinkTests(unittest.TestCase):
 
     def test_backup_or_stage_symlinked_directory_refused(self):
         alias = self.root / "alias"
-        alias.symlink_to(self.staged, target_is_directory=True)
+        try:
+            alias.symlink_to(self.staged, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies creation of synthetic symlinks")
         with self.assertRaisesRegex(ToolError, "symlink path"):
             KaliRecoveryLink().inspect(self.plan, self.backup, alias)
 
@@ -233,7 +256,8 @@ class KaliRecoveryLinkTests(unittest.TestCase):
         report = self.check()
         destination = self.root / "new-evidence.json"
         self.assertEqual(save_kali_recovery_link(report, destination), destination)
-        self.assertEqual(destination.stat().st_mode & 0o777, 0o600)
+        if os.name != "nt":
+            self.assertEqual(destination.stat().st_mode & 0o777, 0o600)
         content = destination.read_text()
         self.assertNotIn(str(self.root), content)
         self.assertIn("guest_imported", content)
