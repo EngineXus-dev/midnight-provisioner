@@ -194,7 +194,7 @@ class ColdBackupTests(unittest.TestCase):
         document = json.loads((dest / "manifest.json").read_text())
         document["files"] = document["files"][:-1]
         (dest / "manifest.json").write_text(json.dumps(document))
-        with self.assertRaisesRegex(ToolError, "at least one disk and one XML"):
+        with self.assertRaisesRegex(ToolError, "unexpected file inventory|at least one disk and one XML"):
             verify_backup(dest)
 
 
