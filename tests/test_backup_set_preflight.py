@@ -135,6 +135,64 @@ class BackupSetTests(unittest.TestCase):
                 {x["id"]: x for x in report["entries"]}["personal"]
                 ["same_file_identity_count"], 1)
 
+    def test_other_group_source_hardlink_blocks_entire_backup_set(self):
+        # Source of group A and copied file of group B share inode,
+        # though group B's own source has a DIFFERENT inode. All bytes
+        # still match: only global source identity catches this.
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp)
+            roots = self.fixture(home)
+            unrelated_original = roots["nightglass"][0] / ".env"
+            fake_backup = roots["personal"][1] / ".env"
+            fake_backup.unlink()
+            try:
+                os.link(unrelated_original, fake_backup)
+            except (OSError, NotImplementedError):
+                self.skipTest("Hardlinks unavailable on synthetic filesystem")
+            if (unrelated_original.stat().st_ino == 0
+                    or unrelated_original.stat().st_ino != fake_backup.stat().st_ino):
+                self.skipTest("Filesystem lacks stable hardlink identity")
+            manifest = self.manifest(home, roots)
+            with redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(settool.main([
+                    "--mode", "Verify", "--manifest", str(manifest)]), 1)
+            report = json.loads(output.getvalue())
+            self.assertEqual(report["status"], "INCOMPLETE")
+            self.assertFalse(report["all_selected_content_matched"])
+            self.assertEqual(report["source_identity_scope"], "ALL_SELECTED_SOURCE_ROOTS")
+            by_id = {row["id"]: row for row in report["entries"]}
+            self.assertEqual(by_id["nightglass"]["same_file_identity_count"], 0)
+            self.assertEqual(by_id["personal"]["different_file_hashes"], 0)
+            self.assertEqual(by_id["personal"]["same_file_identity_count"], 1)
+            self.assertEqual(by_id["personal"]["identity_scope"],
+                             "ALL_SELECTED_SOURCE_ROOTS")
+            self.assertEqual(by_id["personal"]["status"], "NOT_INDEPENDENT_FILE_COPY")
+
+    def test_inspect_mode_also_blocks_cross_group_source_alias(self):
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp)
+            roots = self.fixture(home)
+            original = roots["nightglass"][0] / ".env"
+            alias = roots["personal"][1] / ".env"
+            alias.unlink()
+            try:
+                os.link(original, alias)
+            except (OSError, NotImplementedError):
+                self.skipTest("Hardlinks unavailable on synthetic filesystem")
+            if original.stat().st_ino == 0 or original.stat().st_ino != alias.stat().st_ino:
+                self.skipTest("Filesystem lacks stable hardlink identity")
+            manifest = self.manifest(home, roots)
+            with redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(settool.main([
+                    "--mode", "Inspect", "--manifest", str(manifest)]), 1)
+            report = json.loads(output.getvalue())
+            self.assertEqual(report["status"], "INCOMPLETE")
+            self.assertFalse(report["all_selected_content_matched"])
+            self.assertTrue(all(not row["content_hashed"] for row in report["entries"]))
+            self.assertEqual(
+                {row["id"]: row for row in report["entries"]}["personal"]
+                ["same_file_identity_count"], 1)
+
     def test_inspect_does_not_claim_content_matching(self):
         with tempfile.TemporaryDirectory() as temp:
             home = Path(temp)
