@@ -70,6 +70,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nightglass-offscreen-preview
-          path: /tmp/nightglass-gui-smoke.png
+          path: /tmp/nightglass-gui-smoke*.png
           if-no-files-found: error
           retention-days: 7
