@@ -118,6 +118,10 @@ def evaluate(entries, module, *, mode: str, max_files: int, max_bytes: int):
         roots.extend((source, backup))
         a = module.inventory(source, max_files=max_files, max_bytes=max_bytes)
         b = module.inventory(backup, max_files=max_files, max_bytes=max_bytes)
+        # Empty source directories cannot establish that a useful
+        # project/data backup exists. Block instead of vacuous PASS.
+        if not a.files:
+            raise SetError("A selected source contains no regular files; review backup scope")
         source_device = source.stat().st_dev
         backup_device = backup.stat().st_dev
         result, _ = module.compare(
