@@ -350,7 +350,7 @@
         "DisableRecall",
         "DisableClickToDo"
       ],
-      "note": "Recall/Click-to-Do require Copilot+ hardware and may be absent on target CPU (verify compatibility); prefer supported policies; no component store surgery."
+      "note": "Recall/Click-to-Do disabling is proposed as reviewed core; upstream -DisableCopilot also UNINSTALLS the Copilot app, so Copilot removal is a separate explicit app gate. Hardware may lack Recall/Click-to-Do."
     }
   ],
   "prohibited": [
