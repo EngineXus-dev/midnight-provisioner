@@ -89,7 +89,7 @@ into an automatic "just do everything" pass.
 | 31 | Disable Xbox Game Bar recording/integration and uninstall app optionally | Separate app removal | Game DVR and Game Bar disabled by default profile; app removal separate review. |
 | 32 | Disable Brave browser AI/crypto/news bloat | Separate browser review | Apply only if Brave installed; verify Chrome/Brave policies against browser release. |
 | 33 | Remove OneDrive app and hide Explorer integration | Separate app removal | Unlink and verify cloud files are locally backed up before removal; do not delete files; no automatic app uninstall in core. |
-| 34 | Remove optional promotional apps and Widgets | Separate app removal | Core disables Widgets surface; optional Appx removals require explicit per-app selection and separate restore validation. |
+| 34 | Remove optional promotional apps and Widgets | Separate app removal | Widgets service/app changes may remove StartExperiencesApp; widget disabling/removal requires separate app/rollback approval. |
 | 35 | Disable Copilot, Recall and Click to Do | Core candidate | Recall/Click-to-Do require Copilot+ hardware and may be absent on target CPU (verify compatibility); prefer supported policies; no component store surgery. |
 
 ### Additional guardrails and unsupported absolutes
