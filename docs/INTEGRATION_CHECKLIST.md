@@ -159,8 +159,12 @@ SELinux/sVirt, packet isolation or cold recovery on physical hardware.
   The user still needs to rerun the checks; this is NOT proof of real
   Fedora process-label or network isolation.
 
-- Test the entire latest cumulative code on Python 3.11/3.12/3.13
-  where available, Qt offscreen and native fixtures.
+- **Headless synthetic Python 3.11/3.12/3.13 matrix PASSED** on the
+  user's Docker Desktop at commit `4864998`: each interpreter ran 397
+  tests, 368 passed, 29 skipped, zero failures/errors. GUI/native
+  tools were not run in these three slim-image environments; Qt and
+  native fixtures PASSED separately in Fedora 43/Python 3.14.7.
+  Actual host compatibility and VM isolation are still unverified.
 - Check PR #28/#29 ancestry and forward-revert interactions before
   merging; those branches include reversible correction commits. Do
   not force-push to "tidy" them.
@@ -184,7 +188,8 @@ whole stack.
 
 This guide records the verified Fedora container test result on commit
 `d4bf4b9`; it does not establish real-host SELinux/sVirt/KVM, guest isolation,
-packet-level network denial, guest cold restore or Python 3.11–3.13 results.
+packet-level network denial or guest cold restore. The Python 3.11–3.13
+**headless synthetic matrix** now passed separately on 2026-10-09.
 Existing draft PRs remain unmerged.
 
 
@@ -199,11 +204,11 @@ starts from the verified Fedora Docker integration branch. It introduces:
 - An opt-in Windows Docker Linux headless test matrix for Python 3.11–3.13,
   with separate read-only containers and no GitHub Actions
 
-**Implementation is NOT evidence that either the real Fedora host audit
-or new 3.11–3.13 matrix has been run.** These remain pending user-run
-verification, alongside benign guest boot, packet-level network
-isolation, effective host SELinux/sVirt contexts, cold recovery and
-explicit integration/merge approval.
+**The headless Python 3.11–3.13 matrix has now PASSED** in isolated
+Linux Docker containers (397 tests/version, 29 skips/version).
+**The real Fedora host audit has NOT been run.** Benign guest boot,
+packet-level network isolation, effective host SELinux/sVirt contexts,
+cold recovery, and explicit integration/merge approval remain pending.
 
 Do not merge any draft PR as part of this phase. See
 [Fedora host prerequisite plan](FEDORA_HOST_PREFLIGHT.md) and
