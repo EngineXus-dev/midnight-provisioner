@@ -180,6 +180,31 @@ class KaliPreflightTests(unittest.TestCase):
         self.assertIn("stage 2", report.describe())
         self.assertEqual(len(self.runner.calls), 2)
 
+    def test_cli_preflight_returns_nonzero_when_blocked_without_vm_creation(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+        from nightglass.cli import main
+        from types import SimpleNamespace
+        argv = [
+            "templates", "preflight", str(self.plan_path),
+            "--iso", str(self.iso), "--storage-dir", str(self.folder),
+        ]
+        healthy = SimpleNamespace(ok=True, describe=lambda: "DRY-RUN PASSED — MANUAL REVIEW ONLY")
+        blocked = SimpleNamespace(ok=False, describe=lambda: "BLOCKED / UNVERIFIED")
+        output = StringIO()
+        with patch("nightglass.cli.KaliPreflight") as checker, redirect_stdout(output):
+            checker.return_value.inspect.return_value = healthy
+            self.assertEqual(main(argv), 0)
+            checker.return_value.inspect.assert_called_once_with(
+                self.plan_path, self.iso, self.folder
+            )
+            checker.return_value.inspect.return_value = blocked
+            self.assertEqual(main(argv), 2)
+        self.assertIn("MANUAL REVIEW", output.getvalue())
+        self.assertIn("BLOCKED", output.getvalue())
+        self.assertEqual(self.runner.calls, [])
+        self.assertEqual(self.hv.calls, [])
+
     def test_invalid_manifests_refused_before_native_queries(self):
         self.plan_path.write_text('{"format":"nightglass-kali-setup-plan","version":1}')
         with self.assertRaises(ToolError):
