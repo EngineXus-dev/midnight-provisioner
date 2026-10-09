@@ -151,6 +151,23 @@ guest.** A passing check is not proof of boot success or runtime isolation.
 Complete the [supervised Fedora/KVM acceptance guide](docs/FEDORA_ACCEPTANCE.md)
 before introducing any automatic import or rollback behavior.
 
+## Registered guest acceptance (actual libvirt definitions)
+
+After manually importing a *new* recovery guest on Fedora, Nightglass can
+read and compare its **current, inactive, and saved-memory** libvirt XML.
+The **Backup & verify → Audit registered VM** action checks offline or lab
+device rules, local RAM limits, and the declared network inventory. You can
+save a **private local JSON report** to a new file; it is never uploaded.
+
+```bash
+nightglass accept new-guest --policy isolated
+nightglass accept new-guest --policy isolated --report ~/nightglass-audit.json
+```
+
+A report that passes XML checks is **not** evidence of actual boot success,
+packet-level network isolation, or resistance to hypervisor escape. Read the
+[registered guest audit guide](docs/REGISTERED_GUEST_AUDIT.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
