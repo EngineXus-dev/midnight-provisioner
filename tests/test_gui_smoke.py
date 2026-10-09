@@ -286,6 +286,80 @@ class OffscreenMainWindowTests(unittest.TestCase):
             picker.assert_not_called()
         self.assertIn("benign Kali VMs", self.window.provision_result.toPlainText())
 
+    def test_kali_vm_readiness_gui_uses_bound_setup_manifest_and_is_cancelable(self):
+        from types import SimpleNamespace
+        from PySide6.QtWidgets import QPushButton
+        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        self.window.prepare_space("pentest")
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("recon")
+        )
+        controls = {
+            button.text()
+            for button in self.window.stack.currentWidget().findChildren(QPushButton)
+        }
+        self.assertIn("Check Kali VM readiness", controls)
+        digest = "a" * 64
+        self.window.provision_sha.setText(digest)
+        self.window.provision_iso.setText("/tmp/synthetic-kali.iso")
+        manifest = Path(self.temp.name) / "recon-manifest.json"
+        save_setup_plan(build_setup_plan("recon", iso_sha256=digest), manifest)
+        fake_result = SimpleNamespace(
+            ok=True, describe=lambda: "KALI TEMPLATE PREFLIGHT: DRY-RUN PASSED — MANUAL REVIEW ONLY"
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName",
+            return_value=(str(manifest), "JSON"),
+        ), patch.object(
+            self.ui.QFileDialog, "getExistingDirectory",
+            return_value=self.temp.name,
+        ), patch.object(self.ui, "KaliPreflight") as preflight, \
+             patch.object(self.window, "work") as worker:
+            preflight.return_value.inspect.return_value = fake_result
+            self.window.check_kali_template_readiness()
+            worker.assert_called_once()
+            self.assertFalse(self.window.kali_preflight_button.isEnabled())
+            task, completed, failed = worker.call_args.args
+            self.assertIs(task(), fake_result)
+            preflight.return_value.inspect.assert_called_once_with(
+                manifest, Path("/tmp/synthetic-kali.iso"), Path(self.temp.name)
+            )
+            completed(fake_result)
+            self.assertTrue(self.window.kali_preflight_button.isEnabled())
+            self.assertIn("MANUAL REVIEW", self.window.provision_result.toPlainText())
+        # Rebind the UI to another profile but use the old saved manifest:
+        # inspection must fail before reading an ISO or touching libvirt.
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("web-audit")
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName",
+            return_value=(str(manifest), "JSON"),
+        ), patch.object(
+            self.ui.QFileDialog, "getExistingDirectory",
+            return_value=self.temp.name,
+        ), patch.object(self.ui, "KaliPreflight") as preflight, \
+             patch.object(self.window, "work") as worker:
+            self.window.check_kali_template_readiness()
+            task, completed, failed = worker.call_args.args
+            with self.assertRaisesRegex(Exception, "differ"):
+                task()
+            preflight.assert_not_called()
+            failed("manifest mismatch")
+            self.assertTrue(self.window.kali_preflight_button.isEnabled())
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("recon")
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName", return_value=("", "")
+        ), patch.object(self.window, "work") as worker:
+            self.window.check_kali_template_readiness()
+            worker.assert_not_called()
+        self.window.prepare_space("analysis")
+        with patch.object(self.ui.QFileDialog, "getOpenFileName") as dialog:
+            self.window.check_kali_template_readiness()
+            dialog.assert_not_called()
+
     def test_analysis_profile_cannot_save_running_memory(self):
         with patch.object(self.window, "error") as error, \
              patch.object(self.window, "work") as background:
