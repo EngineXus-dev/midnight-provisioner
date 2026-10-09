@@ -18,7 +18,7 @@ jobs:
       - name: Compile
         run: python -m compileall -q nightglass tests
       - name: Check installer shell syntax
-        run: bash -n scripts/setup-nightglass.sh
+        run: bash -n scripts/setup-nightglass.sh && bash -n scripts/fedora-recovery-smoke.sh
       - name: Smoke-test headless machine tuning
         run: python -m nightglass profile show
       - name: Unit tests (no VMs or root)
