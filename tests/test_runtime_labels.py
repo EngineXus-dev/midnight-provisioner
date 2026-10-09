@@ -112,7 +112,6 @@ class RuntimeLabelTests(unittest.TestCase):
         self.assertTrue(report.ok, report.describe())
         self.assertEqual(report.state, "running")
         self.assertIn("METADATA ONLY", report.describe())
-        self.assertIn("SELinux-runtime", report.describe()) if False else None
         self.assertIn("effective-qemu-process-selinux-context", report.evidence()["observations_not_performed"])
         self.assertEqual(self.hv.calls.count("state"), 2)
         self.assertIn(("capabilities",), self.hv.calls)
