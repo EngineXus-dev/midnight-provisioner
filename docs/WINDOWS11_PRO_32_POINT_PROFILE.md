@@ -99,10 +99,22 @@ into an automatic "just do everything" pass.
   search personalization where supported; allow required diagnostics,
   security update and Defender traffic. Stop if a proposed "privacy"
   preset breaks Windows Update, firewall or SmartScreen.
+- **Copilot app removal is separate.** The actual upstream
+  `-DisableCopilot` option disables Copilot and **uninstalls its Appx
+  package**. Nightglass excludes it from ApplyCore even though the
+  35-item catalog records the user's removal preference. Uninstall
+  is approved only in a separate, recovery-reviewed app phase; a
+  registry snapshot cannot reinstall removed apps.
 - **Recall/Click to Do** are principally Copilot+ PC features and may
   be **absent** on the detected RAM capacity target CPU (verify compatibility). No reason to remove
   component-store packages or interfere with system servicing to
   suppress a nonexistent feature.
+- **Automatic encryption timing matters.** The upstream
+  `-DisableBitlockerAutoEncryption` option is most effective during
+  pre-user setup/Sysprep. Applying it after Windows 11 has
+  automatically encrypted the drive will **not decrypt** it.
+  This needs a separate pre-install security decision, NOT blind
+  application in a post-install debloat pass.
 - **Encryption:** requested prohibition of *future automatic* device
   encryption is a security tradeoff, not an instruction to decrypt
   existing volumes. Decrypting existing BitLocker is **not in scope**.
