@@ -1,8 +1,10 @@
 # Local Python compatibility matrix (no GitHub Actions)
 
-**Status:** First Docker Desktop execution FAILED on Python 3.11 due to
-insufficient test tmpfs capacity; runner corrected, **rerun pending**.
-No Python 3.11/3.12/3.13 compatibility PASS has been established yet.
+**Status: HEADLESS LINUX PYTHON 3.11–3.13 MATRIX PASSED on 2026-10-09.**
+Tested source commit: `4864998afa84e88963718a4bb417ea420d21f611`.
+**GUI and native-tool suites were skipped in this compatibility matrix;**
+the separate Fedora 43/Python 3.14.7 run covered them. Physical Fedora
+host security acceptance remains unverified.
 
 The already tested Fedora 43 container used Python 3.14.7. Nightglass
 declares Python >=3.11, so this opt-in script checks headless Linux
@@ -76,7 +78,32 @@ network-denied operation and original 256 MiB application reserve.
 Regression coverage checks the configured space exceeds that reserve
 and confirms the backup/recovery checks still exist.
 
-**This resource correction is committed but has not been re-executed.**
-Rerun the complete three-version matrix. Do not infer that Python
-3.11 passed, that versions 3.12/3.13 were attempted, or that real
-Fedora host isolation has been verified.
+**Historical note:** this original failed run led to the 512 MiB
+tmpfs fix. The correction subsequently passed all three interpreters,
+as documented below. These are headless synthetic tests, not a real
+Fedora security assessment.
+
+## Corrected Python matrix — verified 2026-10-09
+
+The user reran the isolated, offline-at-runtime Docker matrix at
+`4864998afa84e88963718a4bb417ea420d21f611`.
+The log confirms all three independently containerized versions
+returned zero:
+
+| Linux interpreter | Tests discovered | Passed | Skipped | Failed/errors |
+| --- | ---: | ---: | ---: | ---: |
+| Python 3.11 (official slim) | 397 | 368 | 29 | 0 |
+| Python 3.12 (official slim) | 397 | 368 | 29 | 0 |
+| Python 3.13 (official slim) | 397 | 368 | 29 | 0 |
+| **Total** | **1,191** | **1,104** | **87** | **0** |
+
+Python 3.12 and 3.13 images were acquired before their respective
+test-container executions. The runtime containers used `--network none`
+and a read-only separate checkout; the test log reports original
+`main` untouched, no merges and no GitHub Actions triggered.
+
+The 29 per-version skipped tests are **not version-specific GUI or native
+libvirt/QEMU successes**. The successfully tested Fedora 43/Python
+3.14.7 container separately ran 23 Qt offscreen tests and six native
+fixtures. A real Fedora desktop with KVM and enforcing SELinux is
+still required for hardware acceptance.
