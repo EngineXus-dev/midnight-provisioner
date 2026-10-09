@@ -239,12 +239,25 @@ class RestoreTests(unittest.TestCase):
         with self.assertRaisesRegex(ToolError, "Unsafe"):
             self.service.plan(self.source, self.root / "x", "restored")
 
+    def test_xml_with_external_direct_boot_files_rejected(self):
+        self.xml = self._xml().replace(
+            '<memory unit="MiB">',
+            '<os><kernel>/host/kernel</kernel></os><memory unit="MiB">'
+        )
+        self._backup()
+        with self.assertRaisesRegex(ToolError, "external direct-boot"):
+            self.service.plan(self.source, self.root / "x", "restored")
+
+    def test_xml_with_extra_disk_backing_store_rejected(self):
+        self.xml = self._xml().replace(
+            '</disk>',
+            '<backingStore type="file"><source file="/host/base.qcow2"/></backingStore></disk>'
+        )
+        self._backup()
+        with self.assertRaisesRegex(ToolError, "layered disk XML"):
+            self.service.plan(self.source, self.root / "x", "restored")
+
     def test_incomplete_on_copied_file_corruption(self):
-        with patch("nightglass.recovery.CHUNK_BYTES", 20):
-            with patch("nightglass.recovery.hashlib.sha256") as mock_digest:
-                # Avoid falsifying *preflight* hash verification; test a
-                # real staged failure by rejecting the staged XML instead.
-                pass
         # Source XML and source manifest are valid when staging starts, but
         # a competing edit can invalidate final validation.
         with patch("nightglass.recovery.verify_staging", side_effect=ToolError("post-copy audit failed")):
