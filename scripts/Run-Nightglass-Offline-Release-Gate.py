@@ -27,7 +27,7 @@ import sys
 import tempfile
 import time
 
-BRANCH = "verification/offline-release-candidate-gate"
+BRANCH = "deployment/windows11-pro-activation-media-preflight"
 ORIGIN = re.compile(
     r"^(?:https://github\.com/|git@github\.com:)"
     r"enginexus-dev/nightglass-workspaces(?:\.git)?/?$",
