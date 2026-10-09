@@ -32,7 +32,7 @@ KALI_RELEASE = re.compile(r"^kali-[a-z0-9][a-z0-9.~-]{0,63}$")
 def guest_inventory_instructions(identifier: str) -> str:
     """Return manual, non-executable steps for one approved Kali guest."""
     template = get_template(identifier)
-    return "\\n".join((
+    return "\n".join((
         f"READ-ONLY KALI GUEST INVENTORY — {template.name}",
         f"Separate guest name: {template.default_name}",
         "1. On the host, generate and verify a NEW setup plan:",
