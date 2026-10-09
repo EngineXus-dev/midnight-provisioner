@@ -21,6 +21,7 @@ from .kali_setup import (
     compare_inventory_files, save_version_lock, guest_inventory_instructions,
 )
 from .kali_drift import compare_version_lock_files, save_drift_review
+from .kali_preflight import KaliPreflight
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -85,6 +86,13 @@ def main(argv: list[str] | None = None) -> int:
     template_drift.add_argument("lock", type=Path)
     template_drift.add_argument("inventory", type=Path)
     template_drift.add_argument("--report", type=Path, help="Write optional NEW private JSON evidence")
+    template_preflight = template_commands.add_parser(
+        "preflight", help="Read-only Kali ISO, two-stage VM XML, host RAM and storage readiness"
+    )
+    template_preflight.add_argument("plan", type=Path, help="Existing catalog-verified Kali setup manifest")
+    template_preflight.add_argument("--iso", type=Path, required=True)
+    template_preflight.add_argument("--storage-dir", type=Path, required=True,
+                                    help="Existing destination volume directory; nothing is created")
     wizard = sub.add_parser("provision", help="Read-only VM ISO integrity and guest XML preflight")
     wizard.add_argument("kind", choices=("pentest", "analysis"))
     wizard.add_argument("--iso", required=True)
@@ -134,6 +142,10 @@ def main(argv: list[str] | None = None) -> int:
     cmd = args.command or "gui"
     try:
         if cmd == "templates":
+            if args.template_action == "preflight":
+                report = KaliPreflight().inspect(args.plan, args.iso, args.storage_dir)
+                print(report.describe())
+                return 0 if report.ok else 2
             if args.template_action == "drift":
                 report = compare_version_lock_files(args.plan, args.lock, args.inventory)
                 print(report.describe())
@@ -177,7 +189,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 print("PLANS ONLY: each template uses a separate, disconnected Kali VM.")
                 return 0
-            parser.error("Choose templates list, show, export, verify, compare, lock, drift or guest-help")
+            parser.error("Choose templates list, show, export, verify, compare, lock, drift, preflight or guest-help")
         if cmd == "runtime-label":
             report = RuntimeLabelInspector().inspect(args.guest, args.policy)
             print(report.describe())
