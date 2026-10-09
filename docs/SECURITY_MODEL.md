@@ -26,6 +26,15 @@ Nightglass is a desktop controller. It **does not provide** a new hypervisor, ke
 - No user-level network sandbox is provided for host processes. Personal browsing isn't isolated from development on the same Fedora desktop.
 - Persistence of the VM virtual disk does **not** mean a clean restore exists. VM backups and baselines are separate requirements.
 
+## Current read-only sVirt metadata check (v0.3d, draft)
+
+For benign, already-running guests, `nightglass runtime-label` checks that
+Fedora reports enforcing SELinux and that libvirt **reports** dynamic sVirt
+process/image labels with matching categories. These are **declared metadata**,
+not actual QEMU process or disk-inode security-label measurements. A passing
+observation is not evidence of network-denial behavior or guaranteed guest
+containment. See [runtime sVirt observation](RUNTIME_SVIRT_OBSERVATION.md).
+
 ## Intended improvements before calling it hardened
 
 1. Per-VM policy enforcement at libvirt lifecycle hook boundaries, using independent root-controlled policy records; no read-only GUI acting as policy authority.
