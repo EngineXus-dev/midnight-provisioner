@@ -4,9 +4,9 @@
   "repository": "EngineXus-dev/nightglass-workspaces",
   "default_branch": "main",
   "note": "Stored on newest candidate branch, read via verified origin/<branch> Git object; do NOT depend on this file existing in main working tree.",
-  "snapshot_status": "Historical snapshot: 49 predecessor drafts (#1–29 and #31–50), PR #30 absent; live status must be independently verified before merging.",
+  "snapshot_status": "Historical observation of predecessor PRs #1–29 and #31–51 as draft/unmerged; PR #30 absent. Check current live PR status before any merge.",
   "pr30": "NOT_FOUND",
-  "candidate_branch": "verification/phase16-isolated-import-paths",
+  "candidate_branch": "verification/phase17-qemu-subset-integrity",
   "review_requires": [
     "full_current_GitHub_PR_status_refresh",
     "all_source_diffs_independent_review",
@@ -259,6 +259,11 @@
       "pr": 50,
       "base": "verification/phase14-release-gate-repair",
       "head": "verification/phase15-portable-suite-coverage"
+    },
+    {
+      "pr": 51,
+      "base": "verification/phase15-portable-suite-coverage",
+      "head": "verification/phase16-isolated-import-paths"
     }
   ]
 }
