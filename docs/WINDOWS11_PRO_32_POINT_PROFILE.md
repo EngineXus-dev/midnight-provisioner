@@ -202,6 +202,29 @@ BitLocker/TPM; enable Sandbox/WSL; reset Start pins; run Chrome
 policies; remove Store/WebView2; disable Windows Update; or copy
 user files. Those remain separate manual consent gates.
 
+## Activation choice: during setup or later
+
+**Default: activate Windows 11 Pro later.** the selected edition requires a valid
+Pro key but may choose not to enter it during the future clean install.
+If genuine Microsoft Setup shows the product-key page, choose
+**I don't have a product key**, then independently confirm the
+installer will install **Windows 11 Pro**. OEM firmware can supply a
+Home key and suppress the edition prompt; stop rather than install Home
+accidentally. Later, choose **Settings > System > Activation >
+Change product key** and enter the private Pro key there.
+
+Alternatively select **DuringSetup** to enter the Pro key privately
+into genuine Microsoft Setup. No key is ever collected, embedded in
+NTLite, saved to JSON, transmitted to GitHub or processed by Nightglass.
+An unactivated Pro install is NOT a fully activated system; activation
+must be checked before treating the configuration as validated.
+
+The Pro customization planner accepts `-ActivationTiming ActivateLater`
+(default) or `-ActivationTiming DuringSetup` in read-only Preview
+and ExportPlan modes. This does not bypass supported Windows setup,
+licensing, account/TPM requirements or the installation hold.
+See [activation later runbook](WINDOWS11_PRO_ACTIVATE_LATER.md).
+
 ## Windows Pro NTLite edition change
 
 Your Pro key changes the earlier edition decision: retain a genuine
