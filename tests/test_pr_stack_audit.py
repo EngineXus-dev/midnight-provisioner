@@ -64,6 +64,24 @@ class StackAuditTests(unittest.TestCase):
                 with self.assertRaises(audit.StackError):
                     audit.validate_manifest(model)
 
+    def test_snapshot_rejects_duplicate_keys_and_bool_pr_ids(self):
+        with tempfile.TemporaryDirectory() as folder:
+            bad = Path(folder) / "config"
+            bad.mkdir()
+            path = bad / "nightglass-pr-stack-snapshot.json"
+            path.write_text('{"schema": "one", "schema": "two"}',
+                            encoding="utf-8")
+            with self.assertRaises(audit.StackError):
+                audit.read_manifest(Path(folder))
+        modified = copy.deepcopy(self.snapshot)
+        modified["pull_requests"][0]["pr"] = True
+        with self.assertRaises(audit.StackError):
+            audit.validate_manifest(modified)
+        modified = copy.deepcopy(self.snapshot)
+        modified["pull_requests"][10]["head"] = "main"
+        with self.assertRaises(audit.StackError):
+            audit.validate_manifest(modified)
+
     def test_dangerous_branch_names_rejected(self):
         for name in ("../main", "refs/heads/main", "origin//main",
                      "evil;rm -rf /", "bad@{0}", "evil.lock", "",
