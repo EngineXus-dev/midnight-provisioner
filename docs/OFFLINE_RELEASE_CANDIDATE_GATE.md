@@ -12,7 +12,7 @@ Nightglass has many unmerged stacked draft PRs and no remaining
 hosted GitHub Actions minutes. Earlier successful Fedora 43 Docker
 and Python 3.11/3.12/3.13 tests apply to older Git commits.
 The new offline release gate checks the **entire latest cumulative**
-verification/remote-ref-stack-audit branch without overwriting
+verification/test-gate-reliability-hardening branch without overwriting
 the user's original Windows checkout or consuming GitHub Actions.
 
 Six mandatory checks must all pass:
@@ -61,14 +61,14 @@ than force-removed automatically.
 
 From the user's original nightglass-workspaces PowerShell directory:
 
-    git fetch --no-tags origin verification/remote-ref-stack-audit
+    git fetch --no-tags origin verification/test-gate-reliability-hardening
     if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
     $dir = Join-Path $env:TEMP ("Nightglass-RC-Runner-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $dir | Out-Null
     $runner = Join-Path $dir "Run-Nightglass-Offline-Release-Gate.py"
 
-    $scriptText = & git show origin/verification/remote-ref-stack-audit:scripts/Run-Nightglass-Offline-Release-Gate.py
+    $scriptText = & git show origin/verification/test-gate-reliability-hardening:scripts/Run-Nightglass-Offline-Release-Gate.py
     if ($LASTEXITCODE -ne 0) { throw "Runner retrieval failed" }
     $scriptText | Set-Content -LiteralPath $runner -Encoding UTF8
 
@@ -152,3 +152,16 @@ explicitly approved. This is additional protection, not
 independent trustworthy evidence of Windows/Fedora security.
 
 New tests are committed but have not yet been run on Windows/Docker.
+
+## Phase 9 — strict suite completeness (newest candidate)
+
+The latest test candidate fixes a stale Git-worktree regression
+assertion and prevents empty/skipped test suites from reporting PASS.
+Python 3.11–3.13 now invoke `scripts/run_headless_matrix.py`,
+requiring 60 collected / 40 executed tests. Fedora 43's `--all`
+requires real, non-skipped Qt and QEMU/libvirt fixture suites
+(at least five tests each). Missing Linux Bash syntax validation
+is also a blocker, not a silent NOT RUN.
+
+Read [strict test completeness](OFFLINE_TEST_COMPLETENESS.md).
+These changes have not yet been run on the Windows/Docker host.
