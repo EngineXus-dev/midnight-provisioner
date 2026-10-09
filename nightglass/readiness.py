@@ -73,6 +73,11 @@ def inspect_image_metadata(runner: Runner, path: Path, expected_format: str) -> 
     return meta
 
 
+def _kvm_accessible() -> bool:
+    """Require the real host KVM device, readable and writable as this user."""
+    return os.path.exists("/dev/kvm") and os.access("/dev/kvm", os.R_OK | os.W_OK)
+
+
 class RecoveryReadiness:
     """Read-only checks involving libvirt, virt-xml-validate and qemu-img."""
 
@@ -94,7 +99,7 @@ class RecoveryReadiness:
         reports = verify_staging(directory)
         if platform.system() != "Linux":
             raise ToolError("Host readiness requires Fedora/Linux")
-        if not os.path.exists("/dev/kvm") or not os.access("/dev/kvm", os.R_OK | os.W_OK):
+        if not _kvm_accessible():
             raise ToolError("KVM access unavailable; do not run Nightglass as root to work around permissions")
 
         manifest = json.loads((directory / "recovery-manifest.json").read_text(encoding="utf-8"))
