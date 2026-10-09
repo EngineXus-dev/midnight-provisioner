@@ -33,27 +33,51 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-windows-hard
 
 Prior to Linux dual boot: create a verified full-disk Windows backup, recover BitLocker keys if applicable, confirm UEFI/GPT, check free disk capacity and whether a second SSD exists, and test Fedora KDE live USB hardware compatibility (Wi-Fi, audio, AMD GPU). **Do not repartition, disable BitLocker, or change BIOS settings based only on automatic checks.** Windows 10's ordinary support has ended; use a supported/extended-security-patched Windows environment.
 
-## Fedora installation and run
+## Fedora installation and run — one application installer
 
-On a manually installed Fedora KDE host (with UEFI boot entries preserved):
+**First install Fedora KDE alongside Windows manually, after making and testing full backups.** Nightglass's installer is an **application installer**, not an OS/partition/EFI installer.
+
+On the manually installed Fedora desktop, as your regular user:
 
 ```bash
-# Optional: installs RPM dependencies after typing INSTALL. It never changes disk partitions.
-./scripts/fedora-dependencies.sh
+# Optional system dependencies, reviewed and explicitly confirmed separately:
+bash scripts/fedora-dependencies.sh
 
-# On Fedora, using a normal user account, no sudo for the controller.
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e .
+# One installer on any machine, regardless of RAM size:
+bash scripts/setup-nightglass.sh
 
-# Read-only readiness and inventory
-nightglass doctor
-nightglass list
-nightglass gui
+# Open Nightglass:
+"$HOME/.local/share/nightglass/venv/bin/nightglass" gui
 ```
 
-If `qemu:///system` access fails, configure libvirt/polkit via Fedora's official virtualization guidance rather than starting the entire GUI as root. Network/VM management needs an authorized user. Some machines use modular libvirt socket units; don't assume a legacy `libvirtd.service` is mandatory. Check with `virsh --connect qemu:///system list --all`.
+The installer stores its **own** Python environment in `${XDG_DATA_HOME:-~/.local/share}/nightglass/venv`. It never deletes an existing environment or changes a different project's `.venv`, machine profile, Windows installation, partitions, or virtual disks. Rerunning it refreshes only Nightglass's dependencies after user confirmation.
+
+Select **Machine settings** inside Nightglass. `Automatic` detects RAM and logical CPUs each time you start a VM, clamping allocated memory and concurrent-VM limits to the actual host. `Compact`, `Balanced`, and `Performance` are preferences that **cannot override hardware limits**. Optional wheel-safe text fields let you fine-tune maximum guest RAM, active VMs, and an advisory vCPU recommendation.
+
+Equivalent terminal commands (run from within the installed Nightglass environment):
+
+```bash
+nightglass profile show
+nightglass profile apply auto
+nightglass profile apply compact
+nightglass profile apply balanced
+nightglass profile apply performance
+```
+
+Machine-local settings go to `${XDG_CONFIG_HOME:-~/.config}/nightglass/machine.json` (mode 0600); workspace definitions remain in the separate `workspaces.json`. **Moving to a new PC requires installing the app again and provisioning or restoring compatible VMs separately**—copying a workspace definition alone does not transfer VM disks, firmware, keys, or networks.
+
+### Updating the application
+
+**Updates are optional and never install silently.** On an official, clean `main` source checkout, Nightglass can check for updates and request explicit approval for a fast-forward-only source update. Branches, modified files, untracked files, and unexpected Git remotes block this path. GitHub source updates are not signed-binary verification.
+
+```bash
+nightglass update check
+nightglass update apply
+```
+
+The GUI also offers **Machine settings → Check for updates / Install available update**. Enabling check-at-start only checks for updates and never installs them. Restart the GUI after an update. If Python dependencies change, rerun `bash scripts/setup-nightglass.sh` manually.
+
+For libvirt access errors, use Fedora's documented polkit/virtualization configuration. Do **not** run Nightglass as root to bypass access checks.
 
 ### First usable workspace
 
