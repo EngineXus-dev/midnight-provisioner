@@ -496,3 +496,18 @@ writing, portable example backup-drive capacity backup drive use, Windows debloa
 VM boot, PR merge or GitHub Actions invocation has occurred.
 
 See [Windows offline one-command guide](WINDOWS_ONE_COMMAND_OFFLINE_CHECKS.md).
+
+## Phase 9 — executed-test coverage hardening (UNVERIFIED RUNTIME)
+
+The newest `verification/test-gate-reliability-hardening`
+draft fixes a false-negative Git command-order assertion and prevents
+zero/discovered-but-skipped tests from being accepted as PASS.
+Each Python compatibility container requires at least 60 discovered
+and 40 executed cases. Fedora Qt and native fixtures each require
+five actual tests, zero skips. Missing Bash syntax validation in
+a Linux `--all` test also blocks release evidence.
+
+The snapshot now contains 42 predecessor PRs (#1–29 and #31–43;
+#30 absent). All remain unmerged. No latest-branch native Windows,
+Docker or Fedora tests have been run yet. No OS/USB/VM changes.
+See [strict test completeness](OFFLINE_TEST_COMPLETENESS.md).
