@@ -61,6 +61,12 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.assertIn("QFrame#Sidebar QPushButton:checked", stylesheet)
         self.assertIn(COLORS["neon_pink"], stylesheet)
         self.assertIn(COLORS["neon_purple"], stylesheet)
+        # Primary and neutral text are lavender-tinted, never glare-white.
+        for token in ("text", "text_strong", "text_muted"):
+            channel = COLORS[token]
+            self.assertEqual(len(channel), 7)
+            self.assertGreater(int(channel[5:7], 16), int(channel[3:5], 16))
+        self.assertIn(COLORS["text"], stylesheet)
         self.assertIn("QFrame#AccentRail", stylesheet)
         self.assertIn("border-left: 3px solid", stylesheet)
         self.assertEqual(
