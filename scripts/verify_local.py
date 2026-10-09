@@ -40,6 +40,7 @@ WINDOWS_PORTABLE_SUITES = (
     "test_offline_release_gate.py",
     "test_install_media_preflight.py",
     "test_release_evidence_audit.py",
+    "test_pr_stack_audit.py",
 )
 
 # Cross-platform synthetic /proc process checks only: excludes the strict
