@@ -201,11 +201,19 @@ def compare(source: Inventory, backup: Inventory, *, verify: bool,
 
 def write_report_new(path: Path, payload: dict, roots: tuple[Path, Path]) -> None:
     target = path.absolute()
+    try:
+        parent_st = target.parent.lstat()
+        if is_link_or_reparse(target.parent, parent_st):
+            raise BackupError("Linked/junction report parent is unsupported")
+        # Reject alternate path spellings through an earlier parent link.
+        # The destination must not resolve into either inspected tree.
+        resolved = target.resolve(strict=False)
+    except OSError as exc:
+        raise BackupError("Report parent is inaccessible") from exc
     for root in roots:
-        if target == root or root in target.parents:
+        if (target == root or root in target.parents
+                or resolved == root or root in resolved.parents):
             raise BackupError("Report must be outside both inspected trees")
-    if target.parent.is_symlink():
-        raise BackupError("Linked report parent is unsupported")
     flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, "O_NOFOLLOW", 0)
     with os.fdopen(os.open(target, flags, 0o600), "w", encoding="utf-8") as stream:
         json.dump(payload, stream, indent=2, sort_keys=True)
