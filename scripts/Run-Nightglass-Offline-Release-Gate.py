@@ -27,7 +27,7 @@ import sys
 import tempfile
 import time
 
-BRANCH = "verification/stack-integration-readiness"
+BRANCH = "verification/remote-ref-stack-audit"
 ORIGIN = re.compile(
     r"^(?:https://github\.com/|git@github\.com:)"
     r"enginexus-dev/nightglass-workspaces(?:\.git)?/?$",
