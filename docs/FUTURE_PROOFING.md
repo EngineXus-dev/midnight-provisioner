@@ -4,6 +4,7 @@
 
 ## Runtime and platform compatibility
 
+- **PowerShell source encoding:** On Windows PowerShell 5.1, BOM-less UTF-8 source can be decoded with the legacy ANSI codepage. Non-ASCII punctuation inside strings (for example an em dash) can become a typographic quote and break parsing. Keep .ps1 sources ASCII-only unless encoded with an explicit UTF-8 BOM. Run both the source-encoding regression and native Windows AST parser checks on every release.
 - **Windows:** PowerShell 5.1 is the baseline for .ps1 scripts. Its automatic variables are case-insensitive: assigning to $home is the same as overwriting read-only $HOME. Run the lexical checker with python scripts/check_powershell_guardrails.py, and parse all PowerShell sources using the native Windows parser. Use descriptive locals such as $testHome instead of automatic-variable names.
 - **Python:** Pin supported interpreter versions and validate all of them separately. Do not silently install or upgrade interpreters or libraries. A passing Python 3.12 run does not prove Python 3.13+ compatibility.
 - **Qt:** Real offscreen PySide6 is an independent gate. Missing Qt, empty test discovery, every test skipped, or a test timeout must not count as a pass. The GUI test must never start a real VM.
