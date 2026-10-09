@@ -360,6 +360,66 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.window.check_kali_template_readiness()
             dialog.assert_not_called()
 
+    def test_registered_kali_template_audit_is_explicit_and_guest_bound(self):
+        from types import SimpleNamespace
+        from PySide6.QtWidgets import QPushButton
+        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        self.window.prepare_space("pentest")
+        entry = self.window.provision_template.findData("recon")
+        self.window.provision_template.setCurrentIndex(entry)
+        labels = {
+            button.text()
+            for button in self.window.stack.currentWidget().findChildren(QPushButton)
+        }
+        self.assertIn("Audit installed Kali template VM", labels)
+        plan = Path(self.temp.name) / "template-plan.json"
+        save_setup_plan(build_setup_plan("recon"), plan)
+        disk = Path(self.temp.name) / "own-recon.qcow2"
+        disk.write_bytes(b"synthetic-disk-not-touched")
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName",
+            side_effect=[(str(plan), "JSON"), (str(disk), "QEMU")],
+        ), patch.object(self.ui, "KaliRegistrationInspector") as inspector, \
+             patch.object(self.window, "work") as worker:
+            report = SimpleNamespace(
+                ok=True,
+                describe=lambda: "KALI REGISTERED TEMPLATE: PASS (CONFIGURATION ONLY)"
+            )
+            inspector.return_value.inspect.return_value = report
+            self.window.audit_registered_kali_template()
+            worker.assert_called_once()
+            check, completed, failed = worker.call_args.args
+            self.assertIs(check(), report)
+            inspector.return_value.inspect.assert_called_once_with(plan, disk)
+            completed(report)
+            self.assertIn("CONFIGURATION ONLY", self.window.provision_result.toPlainText())
+        self.assertEqual(disk.read_bytes(), b"synthetic-disk-not-touched")
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("web-audit")
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName",
+            side_effect=[(str(plan), "JSON"), (str(disk), "QEMU")],
+        ), patch.object(self.ui, "KaliRegistrationInspector") as inspector, \
+             patch.object(self.window, "work") as worker:
+            self.window.audit_registered_kali_template()
+            check, completed, failed = worker.call_args.args
+            with self.assertRaisesRegex(Exception, "identity does not match"):
+                check()
+            inspector.assert_not_called()
+            failed("mismatched Kali profile")
+        self.assertIn("BLOCKED", self.window.provision_result.toPlainText())
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName", return_value=("", "")
+        ), patch.object(self.window, "work") as worker:
+            self.window.audit_registered_kali_template()
+            worker.assert_not_called()
+        self.window.prepare_space("analysis")
+        with patch.object(self.ui.QFileDialog, "getOpenFileName") as picker:
+            self.window.audit_registered_kali_template()
+            picker.assert_not_called()
+        self.assertIn("do not apply", self.window.provision_result.toPlainText())
+
     def test_analysis_profile_cannot_save_running_memory(self):
         with patch.object(self.window, "error") as error, \
              patch.object(self.window, "work") as background:
