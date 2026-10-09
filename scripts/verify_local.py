@@ -193,6 +193,10 @@ def main(argv=None) -> int:
             ))
         else:
             print("[NOT RUN] Bash script syntax (missing bash or scripts).", flush=True)
+            if args.all:
+                print("[FAIL] Full Linux verification requires Bash syntax validation.",
+                      file=sys.stderr, flush=True)
+                failed = True
     else:
         print("[NOT RUN] Bash script validation (requires native Linux bash).", flush=True)
 
@@ -234,7 +238,7 @@ def main(argv=None) -> int:
     if args.gui:
         failed |= bool(run_command(
             "Opt-in PySide6 offscreen GUI smoke",
-            unit_args("test_gui_smoke.py"),
+            [sys.executable, "-B", "scripts/run_required_suite.py", "--check", "gui"],
             extra_env={
                 "QT_QPA_PLATFORM": "offscreen",
                 "NIGHTGLASS_GUI_SMOKE": "1",
@@ -261,7 +265,8 @@ def main(argv=None) -> int:
             else:
                 failed |= bool(run_command(
                     "Native libvirt/QEMU fixtures (NO VMs)",
-                    unit_args("test_native_tools.py"), dry_run=args.dry_run,
+                    [sys.executable, "-B", "scripts/run_required_suite.py",
+                     "--check", "native"], dry_run=args.dry_run,
                 ))
     else:
         print("[NOT RUN] Native libvirt/QEMU fixtures (use --native on Fedora).")
