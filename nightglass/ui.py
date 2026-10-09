@@ -9,7 +9,7 @@ from functools import partial
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Qt, QTimer, Signal
 from PySide6.QtGui import QDoubleValidator, QIntValidator
 from PySide6.QtWidgets import (
-    QApplication, QCheckBox, QComboBox, QFrame, QGridLayout, QHBoxLayout, QInputDialog,
+    QApplication, QCheckBox, QComboBox, QFileDialog, QFrame, QGridLayout, QHBoxLayout, QInputDialog,
     QLabel, QLineEdit, QMainWindow, QMessageBox, QPushButton, QScrollArea, QStackedWidget,
     QVBoxLayout, QWidget, QPlainTextEdit,
 )
@@ -23,6 +23,7 @@ from .portability import (
     MachinePreferences, current_budget, load_machine_preferences, save_machine_preferences,
 )
 from .updates import SourceUpdater
+from .provisioning import OfflineProvisioner, build_plan
 
 STYLE = """
 QWidget { background: #0b0e13; color: #dce5e9; font-family: 'Noto Sans', 'DejaVu Sans', sans-serif; font-size: 12px; }
@@ -113,6 +114,9 @@ class SpaceCard(QFrame):
             self.stop.clicked.connect(lambda: parent.shutdown_space(space.key))
             buttons.addWidget(self.stop)
             self.stop.setEnabled(False)
+            self.prepare = QPushButton("Prepare new VM")
+            self.prepare.clicked.connect(lambda: parent.prepare_space(space.key))
+            buttons.addWidget(self.prepare)
             self.configure = QPushButton("Bind VM")
             self.configure.clicked.connect(lambda: parent.bind_space(space.key))
             buttons.addWidget(self.configure)
@@ -209,7 +213,7 @@ class MainWindow(QMainWindow):
         side.addWidget(slogan)
         side.addSpacing(26)
         self.stack = QStackedWidget()
-        nav = [("▦  Workspaces", 0), ("◇  Security model", 1), ("✦  Diagnostics", 2), ("⚙  Machine settings", 3)]
+        nav = [("▦  Workspaces", 0), ("◇  Security model", 1), ("✦  Diagnostics", 2), ("⚙  Machine settings", 3), ("⬡  Prepare VM", 4)]
         for label, index in nav:
             button = QPushButton(label)
             button.setMinimumHeight(43)
@@ -245,6 +249,7 @@ class MainWindow(QMainWindow):
         self._build_security()
         self._build_diagnostics()
         self._build_machine()
+        self._build_provisioning()
 
     def _build_workspaces(self):
         viewport = QScrollArea()
@@ -484,9 +489,145 @@ class MainWindow(QMainWindow):
             lambda message: self.update_message.setText("Update blocked: " + message),
         )
 
+    def _build_provisioning(self):
+        """Read-only, fail-closed VM planning: never creates a disk or guest."""
+        page = QScrollArea()
+        page.setWidgetResizable(True)
+        holder = QWidget()
+        layout = QVBoxLayout(holder)
+        layout.setContentsMargins(4, 5, 4, 14)
+        layout.setSpacing(12)
+        intro = QLabel(
+            "Prepare a new offline Kali/pentesting or analysis VM. "
+            "Choose a LOCAL installer ISO and paste its SHA-256 from the publisher's official site. "
+            "Nightglass verifies the file and checks BOTH virt-install XML phases using --dry-run. "
+            "This preview does NOT create or boot a VM. Use virt-manager to install and then Bind VM."
+        )
+        intro.setObjectName("SubTitle")
+        intro.setWordWrap(True)
+        layout.addWidget(intro)
+        panel = QFrame()
+        panel.setObjectName("Panel")
+        grid = QGridLayout(panel)
+        grid.setContentsMargins(18, 15, 18, 15)
+        grid.setSpacing(10)
+        self.provision_kind = NoWheelComboBox()
+        self.provision_kind.addItem("Kali / authorized pentesting (offline initially)", "pentest")
+        self.provision_kind.addItem("Disposable malware analysis (offline)", "analysis")
+        self.provision_name = QLineEdit("nightglass-kali")
+        self.provision_name.setPlaceholderText("Unique VM name")
+        self.provision_kind.currentIndexChanged.connect(self.provision_kind_changed)
+        self.provision_iso = QLineEdit()
+        self.provision_iso.setPlaceholderText("Select downloaded Linux .iso file")
+        iso_row = QHBoxLayout()
+        iso_row.addWidget(self.provision_iso, 1)
+        browse = QPushButton("Browse")
+        browse.clicked.connect(self.choose_provision_iso)
+        iso_row.addWidget(browse)
+        self.provision_sha = QLineEdit()
+        self.provision_sha.setPlaceholderText("64-character official ISO SHA-256 checksum")
+        self.provision_ram = QLineEdit()
+        self.provision_ram.setPlaceholderText("Auto (MiB)")
+        self.provision_ram.setValidator(QIntValidator(1024, 131072, self))
+        self.provision_cpus = QLineEdit()
+        self.provision_cpus.setPlaceholderText("Auto (vCPUs)")
+        self.provision_cpus.setValidator(QIntValidator(1, 128, self))
+        self.provision_disk = QLineEdit()
+        self.provision_disk.setPlaceholderText("Auto (GiB)")
+        self.provision_disk.setValidator(QIntValidator(20, 256, self))
+        specs = [
+            ("Workspace type", self.provision_kind),
+            ("VM name", self.provision_name),
+            ("SHA-256 from publisher", self.provision_sha),
+            ("RAM in MiB", self.provision_ram),
+            ("Virtual disk in GiB", self.provision_disk),
+            ("vCPU count", self.provision_cpus),
+        ]
+        grid.addWidget(QLabel("Installer ISO"), 0, 0)
+        grid.addLayout(iso_row, 0, 1)
+        for index, (label, field) in enumerate(specs, start=1):
+            grid.addWidget(QLabel(label), index, 0)
+            grid.addWidget(field, index, 1)
+        layout.addWidget(panel)
+
+        controls = QHBoxLayout()
+        self.provision_preview_button = QPushButton("Verify ISO + preview VM")
+        self.provision_preview_button.setObjectName("Primary")
+        self.provision_preview_button.clicked.connect(self.preview_provision)
+        controls.addWidget(self.provision_preview_button)
+        vm_manager = QPushButton("Open virt-manager")
+        vm_manager.clicked.connect(lambda: self.open_program(["virt-manager", "--connect", "qemu:///system"]))
+        controls.addWidget(vm_manager)
+        layout.addLayout(controls)
+        self.provision_result = QPlainTextEdit()
+        self.provision_result.setReadOnly(True)
+        self.provision_result.setMinimumHeight(265)
+        self.provision_result.setPlaceholderText(
+            "Preview is strictly read-only: no VM creation, no disk changes, no downloads."
+        )
+        layout.addWidget(self.provision_result)
+        layout.addStretch()
+        page.setWidget(holder)
+        self.stack.addWidget(page)
+
+    def provision_kind_changed(self, *_):
+        kind = self.provision_kind.currentData()
+        self.provision_name.setText("nightglass-malware" if kind == "analysis" else "nightglass-kali")
+        self.provision_result.clear()
+
+    def choose_provision_iso(self):
+        selected, _ = QFileDialog.getOpenFileName(
+            self, "Choose a local installer ISO", "", "Installer images (*.iso)"
+        )
+        if selected:
+            self.provision_iso.setText(selected)
+            self.provision_result.clear()
+
+    def prepare_space(self, key: str):
+        if key not in {"pentest", "analysis"}:
+            self.error("Only dedicated guest workspaces support offline preparation.")
+            return
+        index = self.provision_kind.findData(key)
+        self.provision_kind.setCurrentIndex(index)
+        self.goto(4)
+
+    def preview_provision(self):
+        try:
+            plan = build_plan(
+                self.provision_kind.currentData(),
+                self.provision_iso.text().strip(),
+                self.provision_sha.text().strip(),
+                name=self.provision_name.text().strip(),
+                ram_mib=int(self.provision_ram.text()) if self.provision_ram.text() else None,
+                vcpus=int(self.provision_cpus.text()) if self.provision_cpus.text() else None,
+                disk_gib=int(self.provision_disk.text()) if self.provision_disk.text() else None,
+            )
+        except (WorkspaceError, ToolError, ValueError, OSError) as exc:
+            self.error(str(exc))
+            return
+        if QMessageBox.question(
+            self, "Read-only VM preflight",
+            "Verify the ISO checksum and ask virt-install to print configuration XML "
+            "for both phases? This may take time for a large ISO, but does not create a VM.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        ) != QMessageBox.StandardButton.Yes:
+            return
+        self.provision_preview_button.setEnabled(False)
+        self.provision_result.setPlainText("Checking local ISO checksum and validating offline guest XML…")
+        def completed(preview):
+            self.provision_preview_button.setEnabled(True)
+            self.provision_result.setPlainText(preview.describe())
+        def failed(message):
+            self.provision_preview_button.setEnabled(True)
+            self.provision_result.setPlainText(
+                "PROVISIONING BLOCKED — NO VM CREATED\n" + message +
+                "\nReview guest tools and ISO provenance before retrying."
+            )
+        self.work(lambda: OfflineProvisioner().preview(plan), completed, failed)
+
     def goto(self, index: int):
         self.stack.setCurrentIndex(index)
-        self.header_title.setText(["Security workspaces", "Trust boundaries", "System diagnostics", "Machine settings"][index])
+        self.header_title.setText(["Security workspaces", "Trust boundaries", "System diagnostics", "Machine settings", "Offline VM preparation"][index])
         if index == 2:
             self.check_host()
 
