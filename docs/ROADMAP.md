@@ -489,3 +489,12 @@
 - [ ] Run all Windows-portable tests on native Windows and inspect actual execution counts per pattern
 - [ ] Run full pinned commit Python/Fedora offline gate, evidence audit and physical Fedora acceptance separately
 - [ ] No system installation, GitHub Actions, merges or backup-drive operations until explicitly authorized
+
+## Phase 16 — make script-launched synthetic tests actually import Nightglass
+- [x] Reproduce `ModuleNotFoundError` when invoking a unittest loader under `scripts/` with `nightglass/` at repository root
+- [x] Prioritize trusted source root on `sys.path` in portable, headless Python matrix and Fedora GUI/native fixture runners
+- [x] Add isolated real-subprocess fixture regression for each runner; fail if the project package is missing
+- [x] Retain minimum executed-test counts, allowlists, resource guards and platform-specific caveats
+- [x] Advance exact candidate branch and precursor snapshot through PR #50 (49 predecessors, PR #30 absent)
+- [ ] Run new regression on actual branch using native Windows and isolated Docker Python 3.11–3.13 / Fedora 43
+- [ ] Require private log/evidence matching exact SHA before integration; do not merge or install based on local mock pass
