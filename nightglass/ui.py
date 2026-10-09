@@ -27,7 +27,8 @@ from .portability import (
 from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
 from .kali_templates import get_template, list_templates, plan_template
-from .kali_setup import build_setup_plan, save_setup_plan, compare_inventory_files, guest_inventory_instructions
+from .kali_setup import build_setup_plan, save_setup_plan, load_setup_plan, compare_inventory_files, guest_inventory_instructions
+from .kali_preflight import KaliPreflight
 from .kali_drift import compare_version_lock_files
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
@@ -691,6 +692,14 @@ class MainWindow(QMainWindow):
         self.provision_preview_button.setObjectName("Primary")
         self.provision_preview_button.clicked.connect(self.preview_provision)
         controls.addWidget(self.provision_preview_button)
+        self.kali_preflight_button = QPushButton("Check Kali VM readiness")
+        self.kali_preflight_button.setToolTip(
+            "Check a SAVED Kali plan, local ISO hash, both offline VM XML stages, "
+            "host RAM, other running VMs and a chosen storage volume. "
+            "No guest, disk, VM definition or network is created."
+        )
+        self.kali_preflight_button.clicked.connect(self.check_kali_template_readiness)
+        controls.addWidget(self.kali_preflight_button)
         vm_manager = QPushButton("Open virt-manager")
         vm_manager.clicked.connect(lambda: self.open_program(["virt-manager", "--connect", "qemu:///system"]))
         controls.addWidget(vm_manager)
@@ -833,6 +842,63 @@ class MainWindow(QMainWindow):
                 "\nNo guest, system configuration or file was modified."
             ),
         )
+
+    def check_kali_template_readiness(self):
+        if self.provision_kind.currentData() != "pentest":
+            self.provision_result.setPlainText(
+                "Kali readiness checks apply only to one selected authorized pentest VM."
+            )
+            return
+        template_id = self.provision_template.currentData()
+        if not template_id:
+            self.provision_result.setPlainText("Select a curated Kali VM template first.")
+            return
+        iso = self.provision_iso.text().strip()
+        guest = self.provision_name.text().strip()
+        sha = self.provision_sha.text().strip().lower()
+        if not iso or not sha:
+            self.provision_result.setPlainText(
+                "Select a local Kali ISO and enter its official SHA-256 digest first."
+            )
+            return
+        manifest, _ = QFileDialog.getOpenFileName(
+            self, "Select SAVED Kali setup plan JSON", "", "JSON files (*.json)"
+        )
+        if not manifest:
+            return
+        storage = QFileDialog.getExistingDirectory(
+            self, "Select existing destination volume for an independent Kali VM disk"
+        )
+        if not storage:
+            return
+        self.kali_preflight_button.setEnabled(False)
+        self.provision_result.setPlainText(
+            "Checking private Kali setup plan, host resources, local ISO hash and "
+            "both offline VM XML stages without creating any VM …"
+        )
+        def check():
+            data = load_setup_plan(Path(manifest))
+            if data["template_id"] != template_id or data["guest"] != guest:
+                raise ToolError(
+                    "Saved Kali manifest and selected toolkit/VM name differ; "
+                    "never apply one guest's plan to another"
+                )
+            if data["claimed_installer_iso_sha256"] != sha:
+                raise ToolError(
+                    "ISO SHA-256 in saved manifest and GUI do not match; "
+                    "export a new correctly verified plan"
+                )
+            return KaliPreflight().inspect(Path(manifest), Path(iso), Path(storage))
+        def completed(report):
+            self.kali_preflight_button.setEnabled(True)
+            self.provision_result.setPlainText(report.describe())
+        def failed(message):
+            self.kali_preflight_button.setEnabled(True)
+            self.provision_result.setPlainText(
+                "KALI VM READINESS: BLOCKED / UNVERIFIED\\n" + message +
+                "\\nNo disk, guest, VM definition or configuration was changed."
+            )
+        self.work(check, completed, failed)
 
     def show_kali_template(self):
         if self.provision_kind.currentData() != "pentest":
