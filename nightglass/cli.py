@@ -25,6 +25,7 @@ from .kali_preflight import KaliPreflight
 from .kali_registration import KaliRegistrationInspector, save_registration_report
 from .kali_cold_baseline import KaliColdBaselineInspector, save_cold_baseline_report
 from .kali_recovery_link import KaliRecoveryLink, save_kali_recovery_link
+from .kali_recovery_registration import KaliRecoveryRegistrationInspector, save_registered_recovery
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -124,6 +125,15 @@ def main(argv: list[str] | None = None) -> int:
                                    help="Existing separately staged NEW recovered guest folder")
     template_recovery.add_argument("--report", type=Path,
                                    help="Optional NEW private metadata evidence file")
+    registered_recovery = template_commands.add_parser(
+        "recovery-registered",
+        help="Read-only check of manually registered, shut-off Kali recovery VM against backup and stage"
+    )
+    registered_recovery.add_argument("plan", type=Path)
+    registered_recovery.add_argument("--backup", type=Path, required=True)
+    registered_recovery.add_argument("--staged", type=Path, required=True)
+    registered_recovery.add_argument("--report", type=Path,
+                                     help="Optional NEW private recovery handoff evidence")
     wizard = sub.add_parser("provision", help="Read-only VM ISO integrity and guest XML preflight")
     wizard.add_argument("kind", choices=("pentest", "analysis"))
     wizard.add_argument("--iso", required=True)
@@ -173,6 +183,14 @@ def main(argv: list[str] | None = None) -> int:
     cmd = args.command or "gui"
     try:
         if cmd == "templates":
+            if args.template_action == "recovery-registered":
+                report = KaliRecoveryRegistrationInspector().inspect(
+                    args.plan, args.backup, args.staged
+                )
+                print(report.describe())
+                if args.report:
+                    print("Private registered recovery metadata:", save_registered_recovery(report, args.report))
+                return 0 if report.ok else 2
             if args.template_action == "recovery-link":
                 report = KaliRecoveryLink().inspect(args.plan, args.backup, args.staged)
                 print(report.describe())
@@ -238,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 print("PLANS ONLY: each template uses a separate, disconnected Kali VM.")
                 return 0
-            parser.error("Choose templates list, show, export, verify, compare, lock, drift, preflight, registered, baseline, recovery-link or guest-help")
+            parser.error("Choose templates list, show, export, verify, compare, lock, drift, preflight, registered, baseline, recovery-link, recovery-registered or guest-help")
         if cmd == "runtime-label":
             report = RuntimeLabelInspector().inspect(args.guest, args.policy)
             print(report.describe())
