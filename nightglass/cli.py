@@ -20,6 +20,7 @@ from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
 from .acceptance import RegisteredGuestAuditor, save_acceptance
 from .resources import collect_resources
+from .host_posture import inspect_host_posture
 import os
 
 
@@ -28,6 +29,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("doctor", help="Read-only host readiness checks")
     sub.add_parser("resources", help="Inspect live host RAM pressure and active system libvirt VMs (read-only)")
+    sub.add_parser("host-security", help="Review Fedora SELinux/KVM/firewall posture without changes")
     sub.add_parser("list", help="List configured workspaces (read-only)")
     sub.add_parser("gui", help="Launch workspace manager graphical interface")
     info = sub.add_parser("inspect", help="Read-only policy audit of a configured VM")
@@ -86,6 +88,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     cmd = args.command or "gui"
     try:
+        if cmd == "host-security":
+            posture = inspect_host_posture()
+            print(posture.describe())
+            return 0 if posture.complete else 2
         if cmd == "resources":
             snapshot = collect_resources(workspaces=load_workspaces())
             print(snapshot.describe())
