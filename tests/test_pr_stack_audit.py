@@ -131,7 +131,7 @@ class StackAuditTests(unittest.TestCase):
                 self.assertEqual(audit.warn_path(value), expected)
 
     def run_fake(self, *, sha=CANDIDATE_SHA, main_tail=MAIN_SHA,
-                 merged_failure=False, main_only=0):
+                 merged_failure=False, main_only=0, diff_bytes=None):
         calls = []
         root = ROOT
 
@@ -159,7 +159,8 @@ class StackAuditTests(unittest.TestCase):
                 return f"{main_only} 454"
             if args[0] == "diff":
                 assert raw is True
-                return b".github/workflows/verify.yml\0nightglass/app.py\0"
+                return (diff_bytes if diff_bytes is not None else
+                        b".github/workflows/verify.yml\0nightglass/app.py\0")
             raise AssertionError("unexpected Git query: " + str(args))
 
         def fake_run(args, **kwargs):
@@ -213,11 +214,11 @@ class StackAuditTests(unittest.TestCase):
         for injected in (
             workflow.replace(b"  workflow_dispatch:", b"  push:"),
             workflow.replace(b"  workflow_dispatch:",
-                             b"  workflow_dispatch:\\n  pull_request:"),
+                             b"  workflow_dispatch:\n  pull_request:"),
             workflow.replace(b"  contents: read", b"  contents: write"),
-            workflow.replace(b"  contents: read", b"  contents: read\\n  actions: write"),
-            workflow + b"\\npermissions:\\n  contents: write\\n",
-            workflow + b"\\njobs:\\n  test:\\n    permissions: write-all\\n",
+            workflow.replace(b"  contents: read", b"  contents: read\n  actions: write"),
+            workflow + b"\npermissions:\n  contents: write\n",
+            workflow + b"\njobs:\n  test:\n    permissions: write-all\n",
             workflow.replace(b"ubuntu-latest", b"self-hosted"),
         ):
             with self.subTest(blob=injected[-90:]):
@@ -229,12 +230,8 @@ class StackAuditTests(unittest.TestCase):
             audit.review_manual_workflow(b"")
 
     def test_diff_paths_must_have_valid_utf8(self):
-        with patch.object(audit, "git", side_effect=lambda args, **kwargs:
-                          b"\\xffbad.py\\0" if args[0] == "diff"
-                          else "unexpected"):
-            with self.assertRaises((audit.StackError, AssertionError, ValueError)):
-                audit.verify(ROOT, manifest=self.chain,
-                             expected_sha=CANDIDATE_SHA)
+        with self.assertRaises(audit.StackError):
+            self.run_fake(diff_bytes=b"\xffbad.py\0")
 
     def test_exclusive_local_report_never_overwrites(self):
         with tempfile.TemporaryDirectory() as folder:
