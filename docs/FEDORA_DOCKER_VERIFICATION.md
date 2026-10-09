@@ -170,3 +170,41 @@ Fedora SELinux/sVirt and KVM host isolation, guest boot/rollback, and
 Python 3.11–3.13 matrix. Continue to treat the overall gate as
 **INTEGRATION HOLD** until the new GUI container log succeeds and later
 physical Fedora checks are performed.
+
+## 2026-10-09: third Docker run — full container suite PASSED
+
+The user supplied the complete successful Windows 10 + Docker Desktop
+Linux-engine transcript for the clean detached worktree at code commit
+`d4bf4b9d7748b1d75c077e4f37031374bd9d2029`:
+
+| Gate | Outcome |
+| --- | --- |
+| Fedora 43 container reused from cache, rootless and offline | PASS |
+| Python AST parse | 62 source files PASS |
+| Bash syntax | PASS |
+| Full Linux `unittest` discovery | 381 tests, OK (23 skipped GUI opt-in tests) |
+| Separate PySide6 offscreen GUI smoke | 23 tests, OK (0 skipped) |
+| Native `qemu-img` and `virt-xml-validate` fixtures | 6 tests, OK |
+| Requested test runner exit status | PASS, no failed suites |
+
+The earlier Qt SIGSEGV no longer occurred in this run after the
+signal-connection compatibility patch. The 23 skipped GUI tests in
+generic unit discovery **were all exercised and passed in the
+separate explicit GUI suite**. Native tests operate on harmless
+temporary files, not a real guest.
+
+**Cleared:** Fedora container-based Linux regression, synthetic
+permission/symlink and policy tests, offscreen Qt construction/events,
+and native image/XML fixture validation.
+
+**Still NOT verified:** a real Fedora KDE installation, host
+SELinux enforcing state, sVirt/QEMU process and disk contexts,
+physical KVM access/performance, host-and-guest network denial,
+manually supervised benign VM boot and independent cold
+restore/rollback, and Python 3.11/3.12/3.13 compatibility.
+Those are distinct gates; do not call Nightglass release-ready or
+merge the draft PRs based on container results.
+
+The user's run reports the original local checkout and `main`
+unchanged, GitHub Actions unused and all PRs unmerged.
+See `FEDORA_ACCEPTANCE.md` for the supervised host checklist.
