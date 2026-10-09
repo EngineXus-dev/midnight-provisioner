@@ -382,6 +382,24 @@ manifests/files, source guest and policy, separate disk/NVRAM copies
 and exact safe offline XML transformation. It does not create, import,
 boot or restore a VM. See [Kali recovery copy binding](docs/KALI_RECOVERY_LINK.md).
 
+## Audit a separately registered Kali recovery guest before any boot
+
+When a benign Kali VM has been manually recovered into a **NEW guest**
+and separately registered (without booting), Nightglass can verify the
+full template → cold backup → offline staged copy → registered guest chain:
+
+```bash
+nightglass templates recovery-registered ./original-kali-plan.json \
+  --backup /path/to/verified-cold-backup \
+  --staged /path/to/new-offline-recovery
+```
+
+Or use **Prepare VM → Audit registered Kali recovery**. This additional
+read-only gate refuses a reused guest UUID, changed registered disk
+references, enabled/unknown libvirt autostart and a running recovered guest.
+It does **not** import, start or prove a guest can boot or restore. See
+[registered Kali recovery handoff](docs/KALI_REGISTERED_RECOVERY.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
