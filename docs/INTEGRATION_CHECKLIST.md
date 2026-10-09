@@ -445,3 +445,28 @@ and `deployment_approved` stay FALSE.
 been run**. No PRs merged, no Actions used, no Windows 11 Pro
 installation, no USB formatted and no portable backup drive touched.
 Read [PR stack review](PR_STACK_INTEGRATION_READINESS.md).
+
+## Phase 7 — main-checkout compatible pinned-source stack audit (UNTESTED)
+
+The preceding `Audit-Nightglass-PR-Stack.py` was not executable
+as documented from the user's original `main` checkout: the draft-only
+stack manifest wasn't present there. The new branch
+`verification/remote-ref-stack-audit` fixes this without checking
+out any PR or modifying local files: `--verify` reads the manifest
+via `git show <candidate-SHA>:config/nightglass-pr-stack-snapshot.json`
+after remote-tracking refs have been fetched explicitly.
+
+The observed ancestor snapshot now lists **40 PRs through #41**
+(#1–29 and #31–41), PR #30 absent. The auditor also reads the
+same candidate commit's GitHub Actions workflow, demands
+manual `workflow_dispatch` and global `contents: read`,
+and flags mutable action tags. It does NOT run workflow jobs,
+verify their actual dependencies, or merge drafts.
+
+New tests were committed and source-level consistency checked
+(manifest order, pinned blob, manual workflow event, read-only
+permissions, flagged action versions). **No new Python test run,
+Windows AST check, Docker/Fedora cumulative PASS or real hardware
+acceptance is claimed.** All PRs still draft/unmerged and no
+Windows/USB/portable backup drive changed. See
+[pinned-source stack audit](REMOTE_REF_STACK_AUDIT.md).
