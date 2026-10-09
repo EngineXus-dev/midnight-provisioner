@@ -177,6 +177,21 @@ QCOW2 backing-file chains. This is stronger than mocked tool responses, but
 [Native tools testing](docs/NATIVE_TOOLS_TESTING.md) and
 [Fedora acceptance guide](docs/FEDORA_ACCEPTANCE.md).
 
+## Live resource and external VM monitoring (advisory)
+
+From **Diagnostics → Refresh resource monitor**, Nightglass shows host
+`MemAvailable`, swap usage, and active `qemu:///system` guests, including
+VMs started outside Nightglass. After explicit activation, it refreshes every
+20 seconds while Diagnostics is displayed. On the command line:
+
+```bash
+nightglass resources
+```
+
+This is **read-only, not an isolation guarantee or an enforcement service**.
+Missing RAM data or an inaccessible libvirt connection means UNKNOWN, never a
+false NORMAL status. See [resource monitoring limitations](docs/RESOURCE_MONITOR.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
