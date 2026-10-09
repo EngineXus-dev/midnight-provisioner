@@ -24,7 +24,7 @@ Kali/offline analysis guests or erase any device.
 | `-ExpectedCommit` | Require exact candidate SHA40 | FAIL if the fetched branch differs |
 
 The execution branch is
-`deployment/multi-source-backup-readiness`. The PR stack
+`security/backup-boundary-fix`. The PR stack
 snapshot now includes **41 predecessor PRs** (#1–29 and #31–42).
 PR #30 is absent. Those predecessor status observations are
 historical and must be refreshed before integration.
@@ -48,7 +48,7 @@ $dir = Join-Path $env:TEMP ("Nightglass-Checks-" + [guid]::NewGuid().ToString("N
 New-Item -ItemType Directory -Path $dir -ErrorAction Stop | Out-Null
 $launcher = Join-Path $dir "Invoke-Nightglass-OfflineChecks.ps1"
 
-$lines = @(git show origin/deployment/multi-source-backup-readiness:scripts/Invoke-Nightglass-OfflineChecks.ps1)
+$lines = @(git show origin/security/backup-boundary-fix:scripts/Invoke-Nightglass-OfflineChecks.ps1)
 if ($LASTEXITCODE -ne 0 -or $lines.Count -eq 0) { throw "Script retrieval failed" }
 $lines | Set-Content -LiteralPath $launcher -Encoding UTF8
 
@@ -136,3 +136,12 @@ extra SHA verification before worktree creation.
 The original checkout, GitHub Actions status and installation holds
 remain unchanged. The new test paths are committed but NOT YET RUN.
 See [Phase 9 completeness](OFFLINE_TEST_COMPLETENESS.md).
+
+## Phase 12: backup-path regression integration
+
+The newest branch `security/backup-boundary-fix` adds regression
+tests for symlink-parent roots, manifest paths, report destinations,
+parent-traversal inputs and simulated Windows reparse metadata.
+The Windows launcher's default mode is still preview-only and the
+exact-SHA candidate should be audited before running Docker tests.
+No real Windows junction acceptance is claimed yet.
