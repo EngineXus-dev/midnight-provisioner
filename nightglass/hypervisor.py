@@ -5,6 +5,7 @@ privileged user or another program can change libvirt definitions independently.
 """
 from __future__ import annotations
 from dataclasses import dataclass
+import re
 from threading import Lock
 from xml.etree import ElementTree as ET
 from .models import safe_name
@@ -20,6 +21,7 @@ class Audit:
     ok: bool
     warnings: tuple[str, ...]
     policy: str
+    saved_state: bool = False
 
     @property
     def summary(self) -> str:
@@ -118,6 +120,28 @@ def assess_domain(xml_text: str, policy: str, lab_net_xml: str | None = None) ->
     return Audit(not issues, tuple(dict.fromkeys(issues)), policy)
 
 
+def declared_guest_memory_gib(xml_text: str) -> float:
+    """Use the maximum declared RAM, including hotplug, for low-memory limits."""
+    root = ET.fromstring(xml_text)
+    units = {"kib": 1024, "mib": 1024 ** 2, "gib": 1024 ** 3, "b": 1}
+    sizes = []
+    for name in ("memory", "currentMemory", "maxMemory"):
+        mem = root.find(name)
+        if mem is None:
+            if name == "memory":
+                raise ValueError("VM RAM declaration missing")
+            continue
+        if not mem.text:
+            raise ValueError(f"{name} size is missing")
+        unit = (mem.get("unit") or "KiB").lower()
+        if unit not in units:
+            raise ValueError(f"Unsupported {name} memory unit")
+        amount = int(mem.text.strip())
+        if amount <= 0:
+            raise ValueError(f"Invalid {name} memory value")
+        sizes.append(amount * units[unit] / (1024 ** 3))
+    return max(sizes)
+
 class Hypervisor:
     def __init__(self, runner: Runner | None = None):
         self.runner = runner or Runner()
@@ -132,20 +156,51 @@ class Hypervisor:
     def state(self, domain: str) -> str:
         return self._virsh("domstate", safe_name(domain)).strip()
 
+    def _managed_save_xml(self, domain: str) -> str | None:
+        """Query libvirt, not a user-controlled flag, before evaluating a resume."""
+        info = self._virsh("dominfo", safe_name(domain))
+        match = re.search(r"(?im)^\s*Managed save\s*:\s*(yes|no)\s*$", info)
+        if not match:
+            raise ToolError("Cannot verify managed-save status from libvirt dominfo")
+        if match.group(1).lower() == "yes":
+            return self._virsh("managedsave-dumpxml", domain)
+        return None
+
     def audit(self, domain: str, policy: str) -> Audit:
         try:
-            xml = self._virsh("dumpxml", safe_name(domain))
+            domain = safe_name(domain)
+            live_xml = self._virsh("dumpxml", domain)
+            if policy == "trusted":
+                return assess_domain(live_xml, policy)
+            if policy not in {"lab", "isolated"}:
+                return Audit(False, ("Unsupported VM security policy",), policy)
+            saved_xml = self._managed_save_xml(domain)
+            documents = [("Definition", live_xml)]
+            if saved_xml is not None:
+                documents.append(("Saved session", saved_xml))
             lab_xml = None
             if policy == "lab":
+                # Saved state can contain an interface absent from the inactive XML.
                 try:
-                    root = ET.fromstring(xml)
-                    interfaces = root.findall("./devices/interface")
-                    if interfaces:
+                    if any(ET.fromstring(doc).find("./devices/interface") is not None for _, doc in documents):
                         lab_xml = self._virsh("net-dumpxml", ISOLATED_NETWORK)
                 except ET.ParseError:
-                    pass  # assess_domain will reject malformed XML
-            # assess_domain also detects and fails if the lab network cannot be verified.
-            return assess_domain(xml, policy, lab_xml)
+                    pass  # each malformed domain document is rejected below
+            failures = []
+            for label, doc in documents:
+                check = assess_domain(doc, policy, lab_xml)
+                if not check.ok:
+                    failures.extend(f"{label}: {message}" for message in check.warnings)
+            if saved_xml is not None:
+                try:
+                    current_root, saved_root = (ET.fromstring(doc) for _, doc in documents)
+                    for name in ("name", "uuid"):
+                        current, saved = current_root.findtext(name), saved_root.findtext(name)
+                        if current and saved and current != saved:
+                            failures.append(f"Saved session has a different {name}")
+                except ET.ParseError:
+                    pass  # malformed XML already blocked above
+            return Audit(not failures, tuple(dict.fromkeys(failures)), policy, saved_xml is not None)
         except ToolError as exc:
             return Audit(False, (str(exc),), policy)
 
@@ -169,25 +224,13 @@ class Hypervisor:
                 if self.state(other).lower().startswith(("running", "paused", "idle")):
                     raise ToolError("Low-memory guard: another VM is already active. Stop or save it before starting a second VM.")
             try:
-                xml = ET.fromstring(self._virsh("dumpxml", domain))
-                units = {"kib": 1024, "mib": 1024 ** 2, "gib": 1024 ** 3, "b": 1}
-                declared_gib = []
-                for name in ("memory", "currentMemory", "maxMemory"):
-                    mem = xml.find(name)
-                    if mem is None:
-                        if name == "memory":
-                            raise ValueError("VM RAM declaration missing")
-                        continue
-                    if not mem.text:
-                        raise ValueError(f"{name} size is missing")
-                    unit = (mem.get("unit") or "KiB").lower()
-                    if unit not in units:
-                        raise ValueError(f"Unsupported {name} memory unit")
-                    amount = int(mem.text.strip())
-                    if amount <= 0:
-                        raise ValueError(f"Invalid {name} memory value")
-                    declared_gib.append(amount * units[unit] / (1024 ** 3))
-                vm_gib = max(declared_gib)
+                # Saved-state XML may declare more RAM than the inactive VM.
+                xml_docs = [self._virsh("dumpxml", domain)]
+                if policy in {"lab", "isolated"}:
+                    saved = self._managed_save_xml(domain)
+                    if saved is not None:
+                        xml_docs.append(saved)
+                vm_gib = max(declared_guest_memory_gib(xml) for xml in xml_docs)
             except (ET.ParseError, ValueError, TypeError) as exc:
                 raise ToolError(f"Low-memory guard: cannot verify VM RAM size ({exc})") from exc
             if vm_gib > 3.5:
@@ -198,6 +241,11 @@ class Hypervisor:
         safe_name(domain)
         return self._virsh("shutdown", domain, timeout=30).strip() or "Shutdown requested"
 
-    def managed_save(self, domain: str) -> str:
+    def managed_save(self, domain: str, policy: str) -> str:
         safe_name(domain)
+        if policy == "isolated":
+            raise ToolError("Analysis VMs must be shut down/discarded; saving a potentially infected RAM image is disabled")
+        check = self.audit(domain, policy)
+        if not check.ok:
+            raise ToolError("Cannot save a VM that violates its workspace policy: " + "; ".join(check.warnings))
         return self._virsh("managedsave", domain, timeout=600).strip() or "VM state saved"
