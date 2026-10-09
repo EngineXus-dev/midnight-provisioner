@@ -39,7 +39,7 @@ class Windows11ProCustomContract(unittest.TestCase):
 
     def test_no_destructive_actions_mixed_into_approved_core(self):
         source = self.script
-        self.assertIn("if ($flag -in @('RemoveGamingApps','DisableCopilot')) { continue }", source)
+        self.assertIn("if ($flag -in @('RemoveGamingApps','DisableCopilot','DisableSearchHistory',", source)
         for risky in (
             "DisableBitlockerAutoEncryption", "EnableWindowsSandbox",
             "EnableWindowsSubsystemForLinux", "RemoveGamingApps",
@@ -88,6 +88,14 @@ class Windows11ProCustomContract(unittest.TestCase):
             with self.subTest(pat=pat):
                 self.assertIsNone(re.search(pat, code, re.IGNORECASE))
 
+    def test_unsafe_store_acl_and_start_pin_operations_stay_manual(self):
+        source = self.script
+        core = source.split("$approvedSwitches = @(", 1)[1].split("\n)", 1)[0]
+        for forbidden in ("DisableStoreSearchSuggestions",
+                          "ClearStart", "StartAllAppsList", "DisableSearchHistory"):
+            self.assertNotIn("'" + forbidden + "'", core)
+        self.assertIn("Store search ACLs", source)
+
     def test_third_party_launcher_is_not_an_approved_input(self):
         source = self.script
         self.assertIn("Get.ps1", source)
@@ -97,6 +105,7 @@ class Windows11ProCustomContract(unittest.TestCase):
 
     def test_selected_core_cover_explicit_requirements(self):
         for term in (
+            "DisableTelemetry", "DisableStartRecommended",
             "DisableGameBarIntegration", "DisableDVR", "DisableRecall",
             "DisableClickToDo", "DisableLocationServices",
             "DisableFastStartup", "DisableUpdateASAP",
