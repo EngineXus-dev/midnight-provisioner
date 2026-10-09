@@ -145,6 +145,16 @@ class RestoreTests(unittest.TestCase):
         with self.assertRaisesRegex(ToolError, "unapproved network"):
             self.service.plan(self.source, self.root / "x", "restored")
 
+    def test_recovery_rejects_wrong_disk_driver_before_marking_complete(self):
+        # Manifest and original backup hashes may be correct while its
+        # XML driver asks QEMU to reinterpret QCOW2 bytes as raw.
+        self.xml = self._xml().replace('type="qcow2"', 'type="raw"')
+        self._backup()
+        dest = self.root / "bad-driver-copy"
+        with self.assertRaisesRegex(ToolError, "INCOMPLETE"):
+            self.service.stage(self.source, dest, "nightglass-wrong-driver", confirmed=True)
+        self.assertTrue((dest / "INCOMPLETE").exists())
+
     def test_inherited_host_channels_are_blocked(self):
         self.xml = self._xml(extra='<channel type="unix"/>')
         self._backup()
