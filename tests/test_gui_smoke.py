@@ -242,6 +242,38 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.assertIn("UNKNOWN", self.window.posture_summary.text())
         self.assertIn("No configuration was changed", self.window.diagnostics.toPlainText())
 
+    def test_running_guest_svirt_observation_requires_user_and_never_starts_vm(self):
+        from types import SimpleNamespace
+        from PySide6.QtWidgets import QPushButton
+        with patch.object(self.window, "check_host"):
+            self.window.goto(2)
+        labels = {
+            button.text()
+            for button in self.window.stack.currentWidget().findChildren(QPushButton)
+        }
+        self.assertIn("Observe running VM sVirt labels", labels)
+        self.assertIn("Save local runtime observation", labels)
+        with patch.object(self.ui.QInputDialog, "getText", return_value=("safevm", True)), \
+             patch.object(self.ui.QInputDialog, "getItem", return_value=("isolated", True)), \
+             patch.object(self.window, "work") as worker:
+            self.window.observe_guest_runtime_labels()
+            worker.assert_called_once()
+            task, success, failure = worker.call_args.args
+            self.assertIn("RuntimeLabelInspector", task.__code__.co_names)
+            observation = SimpleNamespace(
+                guest="safevm",
+                policy="isolated",
+                ok=True,
+                describe=lambda: "RUNTIME SVIRT OBSERVATION: PASS (METADATA ONLY)",
+            )
+            success(observation)
+        self.assertIs(self.window.last_acceptance, observation)
+        self.assertIn("METADATA ONLY", self.window.diagnostics.toPlainText())
+        with patch.object(self.ui.QInputDialog, "getText", return_value=("safevm", False)), \
+             patch.object(self.window, "work") as worker:
+            self.window.observe_guest_runtime_labels()
+            worker.assert_not_called()
+
     def test_actual_offscreen_ui_renders_without_real_display(self):
         self.window.resize(1150, 760)
         self.window.show()
