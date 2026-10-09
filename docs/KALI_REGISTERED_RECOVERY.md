@@ -81,6 +81,16 @@ The report says **PASS (METADATA ONLY — NOT BOOT/RESTORE-PROVEN)** only
 when all of those checks pass. All provided records remain susceptible
 to privileged changes and are not a security attestation.
 
+## After the operator manually starts a benign recovery VM
+
+For a separately authorized, **already running benign** Kali guest,
+`nightglass templates observe-running PLAN.json --backup EXISTING_BACKUP
+--guest NEW_RECOVERY_NAME --disk /absolute/live-recovery.qcow2` performs
+a non-invasive live libvirt and sVirt **metadata-only** check. The GUI
+offers **Observe running Kali recovery**. It never hashes a live writable
+disk or starts a VM; host SELinux/libvirt metadata is not actual process
+or packet-level isolation proof. See [runtime observation](KALI_RUNNING_OBSERVATION.md).
+
 ## Boundaries
 
 This phase does not actually measure guest-to-host or guest-to-Internet
