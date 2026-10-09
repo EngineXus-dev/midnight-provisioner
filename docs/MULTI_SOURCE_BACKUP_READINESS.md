@@ -188,3 +188,14 @@ No activation key belongs in these manifests.
 The new tests are committed but **have not yet passed the complete
 native Windows/isolated Fedora Docker test matrix**. No backups,
 OS installs, USB formatting or PR merges happened in this phase.
+
+## Phase 12: private manifest and backup-root ancestor checks
+
+Each selected source/copy root and the manifest path are checked
+component-by-component for symbolic links or Windows reparse/
+junction ancestors before following the path. A report path's
+parents are also checked, and `..` path spelling is not accepted.
+This is a conservative precaution against silent redirection;
+the validation is **not a race-free sandbox** on actively changing
+or untrusted filesystems. More in
+[backup boundary hardening](BACKUP_PATH_BOUNDARY_HARDENING.md).
