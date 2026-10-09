@@ -376,3 +376,15 @@
 - [ ] Review draft branch ancestry and each diff before any explicit owner-approved PR merge (no automatic merge)
 - [ ] Independently verify real Fedora SELinux/sVirt, KVM, guest networking and recovery before security acceptance
 - [ ] Windows 11 Pro clean install/USB media/BitLocker decisions remain deferred by user; no automatic OS preparation or deployment
+
+## v0.3z — release-candidate evidence audit (draft)
+- [x] Introduce v2 local test evidence binding result to exact Git SHA and original main-ref before/after
+- [x] Compute completed local log SHA256, mark evidence explicitly unauthenticated, refuse release/deployment claims
+- [x] Build read-only offline auditor requiring expected Git SHA, matching log, complete six-check set and unchanged main ref
+- [x] Detect missing, blocked, invalid, duplicate or tampered JSON fields and malformed/oversized evidence files
+- [x] Add synthetic regression fixtures covering stale commits, forged hardware/deployment PASS, edited logs and link/path risks
+- [x] Keep previous report v1 unsupported for latest branch acceptance, to prevent stale false positives
+- [ ] Run the full latest branch AST / Python 3.11–3.13 / Fedora 43 Docker test gate on the user's Windows machine
+- [ ] Independently audit the freshly produced v2 summary and log against the tested SHA
+- [ ] Review stacked PRs explicitly; do NOT merge or deploy based solely on synthetic tests
+- [ ] Real Fedora KVM/SELinux/sVirt/offline-guest/cold-recovery acceptance stays pending
