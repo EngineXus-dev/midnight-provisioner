@@ -26,7 +26,7 @@ against an adversary who can modify the entire report and log together.
 `scripts/Run-Nightglass-Offline-Release-Gate.py` defaults to PLAN
 ONLY and has no host/system effects. An explicitly authorized
 `--run` creates a new sibling detached Git worktree from the single
-`verification/phase16-isolated-import-paths` branch and writes new,
+`verification/phase17-qemu-subset-integrity` branch and writes new,
 non-overwriting private log/JSON files outside the original
 checkout. The branch-specific scripts and tests are parsed on the
 Windows host; actual downloaded branch Python tests execute **only
@@ -79,7 +79,7 @@ From the existing Nightglass Git checkout in Windows PowerShell,
 the commands below fetch just this feature branch and create two
 **new temp files** outside the original checkout:
 
-    git fetch --no-tags origin verification/phase16-isolated-import-paths
+    git fetch --no-tags origin verification/phase17-qemu-subset-integrity
     if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
     $tmp = Join-Path $env:TEMP ("Nightglass-RC-Audit-" + [guid]::NewGuid().ToString("N"))
@@ -88,11 +88,11 @@ the commands below fetch just this feature branch and create two
     $runner = Join-Path $tmp "Run-Nightglass-Offline-Release-Gate.py"
     $audit = Join-Path $tmp "Audit-Nightglass-Release-Evidence.py"
 
-    git show origin/verification/phase16-isolated-import-paths:scripts/Run-Nightglass-Offline-Release-Gate.py |
+    git show origin/verification/phase17-qemu-subset-integrity:scripts/Run-Nightglass-Offline-Release-Gate.py |
         Set-Content -LiteralPath $runner -Encoding UTF8
     if ($LASTEXITCODE -ne 0) { throw "Failed to retrieve runner" }
 
-    git show origin/verification/phase16-isolated-import-paths:scripts/Audit-Nightglass-Release-Evidence.py |
+    git show origin/verification/phase17-qemu-subset-integrity:scripts/Audit-Nightglass-Release-Evidence.py |
         Set-Content -LiteralPath $audit -Encoding UTF8
     if ($LASTEXITCODE -ne 0) { throw "Failed to retrieve auditor" }
 
@@ -112,7 +112,7 @@ missing, timed-out or blocked stage.
 After completion, validate the private evidence (replace placeholders
 only with the actual displayed report and log paths):
 
-    $expected = git rev-parse refs/remotes/origin/verification/phase16-isolated-import-paths
+    $expected = git rev-parse refs/remotes/origin/verification/phase17-qemu-subset-integrity
     if ($LASTEXITCODE -ne 0) { throw "Could not verify commit" }
 
     python $audit --report "C:\path\to\new-summary.json" --log "C:\path\to\matching-local-log.txt" --expected-commit $expected
