@@ -84,7 +84,7 @@ class BackupSetTests(unittest.TestCase):
             roots = self.fixture(home)
             path = self.manifest(home, roots)
             (roots["personal"][1] / ".env").write_text(
-                "FAKE_TEST_SECRET=nope", encoding="utf-8")
+                "FAKE_TEST_SECRET=oops", encoding="utf-8")
             with redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(settool.main([
                     "--mode", "Verify", "--manifest", str(path)]), 1)
@@ -116,7 +116,7 @@ class BackupSetTests(unittest.TestCase):
             roots = self.fixture(home)
             p = self.manifest(home, roots)
             (roots["personal"][1] / ".env").write_text(
-                "FAKE_TEST_SECRET=nope", encoding="utf-8")
+                "FAKE_TEST_SECRET=oops", encoding="utf-8")
             with redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(settool.main(["--mode", "Inspect", "--manifest", str(p)]), 0)
             result = json.loads(output.getvalue())
