@@ -39,8 +39,10 @@ def resource_advice() -> str:
 def collect_checks(runner: Runner | None = None) -> list[Check]:
     runner = runner or Runner()
     checks = [Check("Linux host", platform.system() == "Linux", platform.platform())]
-    checks.append(Check("KVM device", os.path.exists("/dev/kvm"), "/dev/kvm accessible" if os.access("/dev/kvm", os.R_OK | os.W_OK) else "Missing or insufficient permissions to /dev/kvm"))
-    for binary in ["virsh", "virt-manager", "virt-viewer", "podman", "distrobox"]:
+    kvm_exists = os.path.exists("/dev/kvm")
+    kvm_accessible = kvm_exists and os.access("/dev/kvm", os.R_OK | os.W_OK)
+    checks.append(Check("KVM device", kvm_accessible, "/dev/kvm accessible" if kvm_accessible else "Missing or insufficient permissions to /dev/kvm"))
+    for binary in ["virsh", "virt-manager", "virt-install", "virt-viewer", "podman", "distrobox"]:
         loc = shutil.which(binary)
         checks.append(Check(binary, loc is not None, loc or "Not installed"))
     if shutil.which("virsh"):
