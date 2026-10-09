@@ -458,3 +458,14 @@
 - [ ] Execute latest branch Windows/Docker tests before relying on the new backup audit
 - [ ] Independently confirm personal data coverage, actual example backup-drive capacity portable-media identity, full backup and a harmless restore drill
 - [ ] Windows 11 Pro clean install, Fedora boot/partitioning, 16GB USB formatting and any merges remain separately held
+
+## v0.4g — Phase 12 linked-ancestor backup boundary (draft)
+- [x] Reproduce linked-parent root acceptance on disposable filesystem fixture
+- [x] Reject symlinks/Windows reparse points anywhere along selected source, backup, report or manifest path
+- [x] Reject `..` path traversal before lexical absolute-path normalization
+- [x] Add real-repository source/report/manifest regression tests and synthetic Windows reparse metadata test
+- [x] Preserve Preview zero-access, explicit user-selected roots and non-overwriting local reports
+- [x] Extend predecessor PR graph through #46 with #30 explicitly absent
+- [ ] Run all newest-branch tests on native Windows, including actual Windows junction behavior; complete full Python/Fedora Docker matrix
+- [ ] Review remaining concurrent filesystem mutation/path-swap risks; do not claim atomic isolation
+- [ ] No GitHub merges, Windows 11 Pro/Fedora installation, USB formatting or portable-media writes authorized
