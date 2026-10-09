@@ -24,7 +24,7 @@ Kali/offline analysis guests or erase any device.
 | `-ExpectedCommit` | Require exact candidate SHA40 | FAIL if the fetched branch differs |
 
 The execution branch is
-`verification/phase16-isolated-import-paths`. The PR stack
+`verification/phase17-qemu-subset-integrity`. The PR stack
 snapshot now includes **41 predecessor PRs** (#1–29 and #31–42).
 PR #30 is absent. Those predecessor status observations are
 historical and must be refreshed before integration.
@@ -48,7 +48,7 @@ $dir = Join-Path $env:TEMP ("Nightglass-Checks-" + [guid]::NewGuid().ToString("N
 New-Item -ItemType Directory -Path $dir -ErrorAction Stop | Out-Null
 $launcher = Join-Path $dir "Invoke-Nightglass-OfflineChecks.ps1"
 
-$lines = @(git show origin/verification/phase16-isolated-import-paths:scripts/Invoke-Nightglass-OfflineChecks.ps1)
+$lines = @(git show origin/verification/phase17-qemu-subset-integrity:scripts/Invoke-Nightglass-OfflineChecks.ps1)
 if ($LASTEXITCODE -ne 0 -or $lines.Count -eq 0) { throw "Script retrieval failed" }
 $lines | Set-Content -LiteralPath $launcher -Encoding UTF8
 
@@ -139,7 +139,7 @@ See [Phase 9 completeness](OFFLINE_TEST_COMPLETENESS.md).
 
 ## Phase 12: backup-path regression integration
 
-The newest branch `verification/phase16-isolated-import-paths` adds regression
+The newest branch `verification/phase17-qemu-subset-integrity` adds regression
 tests for symlink-parent roots, manifest paths, report destinations,
 parent-traversal inputs and simulated Windows reparse metadata.
 The Windows launcher's default mode is still preview-only and the
