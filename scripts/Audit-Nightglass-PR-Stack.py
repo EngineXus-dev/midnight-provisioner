@@ -57,7 +57,8 @@ def validate_manifest(data: dict) -> list[dict]:
     if data.get("pr30") != "NOT_FOUND":
         raise StackError("PR #30 must not be invented")
     expected_numbers = list(range(1, 30)) + list(range(31, 41))
-    if [x.get("pr") if isinstance(x, dict) else None for x in prs] != expected_numbers:
+    if ([x.get("pr") if isinstance(x, dict) else None for x in prs]
+            != expected_numbers or any(type(x.get("pr")) is not int for x in prs)): 
         raise StackError("Unexpected PR count, order, or IDs")
     prior = "main"
     seen = set()
@@ -65,7 +66,7 @@ def validate_manifest(data: dict) -> list[dict]:
         head, base = pr.get("head"), pr.get("base")
         if not valid_branch(base) or not valid_branch(head):
             raise StackError("Invalid branch name in snapshot")
-        if base != prior or head in seen or head == base:
+        if base != prior or head in seen or head in ("main", CANDIDATE) or head == base:
             raise StackError("PR dependency graph is non-linear or contains repeats")
         seen.add(head)
         prior = head
@@ -74,12 +75,24 @@ def validate_manifest(data: dict) -> list[dict]:
     return prs
 
 
+def reject_duplicate_keys(pairs):
+    result = {}
+    for name, value in pairs:
+        if name in result:
+            raise StackError("Duplicate field in stack JSON")
+        result[name] = value
+    return result
+
+
 def read_manifest(project_root: Path) -> list[dict]:
     p = project_root / "config" / "nightglass-pr-stack-snapshot.json"
     if p.is_symlink() or not p.is_file() or p.stat().st_size > MAX_MANIFEST_BYTES:
         raise StackError("Missing, linked, or oversized stack manifest")
     try:
-        data = json.loads(p.read_text(encoding="utf-8"))
+        data = json.loads(p.read_text(encoding="utf-8"),
+                          object_pairs_hook=reject_duplicate_keys,
+                          parse_constant=lambda _x: (_ for _ in ()).throw(
+                              StackError("Non-finite JSON value rejected")))
     except (UnicodeError, json.JSONDecodeError) as exc:
         raise StackError("Cannot read valid stack JSON") from exc
     return validate_manifest(data)
