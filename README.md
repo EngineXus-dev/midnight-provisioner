@@ -610,3 +610,17 @@ default**. Do not run ApplyCore until a licensed Windows 11 Pro clean
 install, independent backups, an approved SHA256-pinned local
 Win11Debloat.ps1, real Windows parser/integration tests, and separate
 explicit authorization. No Windows settings have yet changed.
+
+### Offline latest-branch release verification (not a deployment)
+
+[Release-candidate integration gate](docs/OFFLINE_RELEASE_CANDIDATE_GATE.md)
+provides a preview-first, opt-in Windows Docker validation of the
+latest stacked code: PowerShell and Python syntax are parsed without
+executing branch code on Windows; Python 3.11–3.13 synthetic suites
+and Fedora 43 actual offscreen Qt/native fixture suites execute in
+isolated nonroot containers without network or host VM devices.
+An explicit run only creates a NEW detached sibling Git worktree and
+new local report; it does not merge PRs or overwrite .env/.venv.
+**New gate results have not yet been collected.** Passing would not
+replace physical Fedora sVirt/KVM/packet/restore evidence or approve
+a Windows 11 Pro clean install, USB formatter or third-party debloater.
