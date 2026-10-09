@@ -631,3 +631,28 @@ snapshot and exact candidate references. See
 [Phase 15 test completeness](PHASE15_PORTABLE_TEST_COMPLETENESS.md).
 
 No PRs merged; Windows/Fedora/USB/portable backup media unchanged.
+
+## Phase 16 — script mode Python package resolution fix (DRAFT)
+
+Actual isolated Python 3.13 reproduction showed that unittest
+discovery launched via `python scripts/runner.py` adds `scripts/`
+and `tests/` but not necessarily the Nightglass package root.
+This results in `ModuleNotFoundError` for legitimate
+`from nightglass import ...` tests. The Windows portable,
+Python Docker matrix and required Fedora GUI/native runners now
+prioritize the exact current source root in `sys.path`.
+
+New `tests/test_isolated_runner_imports.py` copies these
+runner scripts into a disposable project with fake
+`nightglass` test inputs and launches separate processes with
+PYTHONPATH cleared; it detects successes and intentionally
+missing packages. Local representative post-fix fixture tests
+executed 65 / 75 / 5 cases without imports failing.
+**The real latest branch's full tests are still NOT RUN.**
+
+The branch `verification/phase16-isolated-import-paths` is
+aligned across current verifier scripts and docs; the manifest
+covers 49 predecessors (#1–29, #31–50; #30 absent). No merge,
+Windows 11 Pro installation, Fedora host acceptance, USB
+formatting or portable example backup-drive capacity backup-media writes occurred.
+See [Phase 16 evidence](PHASE16_IMPORT_PATH_VERIFICATION.md).
