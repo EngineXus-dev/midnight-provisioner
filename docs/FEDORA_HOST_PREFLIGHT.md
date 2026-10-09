@@ -79,8 +79,9 @@ do not run suspicious samples or untrusted guest disk images as fixtures.
    and baseline remain intact; record a rollback/cleanup result.
 6. Test denial cases: wrong hash, changed NIC XML, VM-name collisions,
    inaccessible /dev/kvm or SELinux not enforcing must not receive
-   trusted approval. The separate Python 3.11–3.13 compatibility
-   matrix also remains to be checked where interpreters are available.
+   trusted approval. The separate headless Python 3.11–3.13
+   compatibility matrix PASSED in Linux Docker containers on 2026-10-09;
+   this does not replace real Fedora host validation.
 
 Never run virsh define --validate as a supposedly read-only check:
 it registers a domain. The safe Nightglass XML validator is
