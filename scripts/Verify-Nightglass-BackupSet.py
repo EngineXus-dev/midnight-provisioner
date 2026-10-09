@@ -133,7 +133,8 @@ def evaluate(entries, module, *, mode: str, max_files: int, max_bytes: int):
         x["verification_succeeded"] for x in reports)
     any_difference = any(
         x["missing_files"] or x["missing_folders"] or x["different_file_sizes"]
-        or (mode == "Verify" and x["different_file_hashes"])
+        or x["same_file_identity_count"]
+        or (mode == "Verify" and not x["verification_succeeded"])
         for x in reports)
     total_extra = sum(x["extra_backup_files"] for x in reports)
     report = {
