@@ -186,3 +186,25 @@ This guide records the verified Fedora container test result on commit
 `d4bf4b9`; it does not establish real-host SELinux/sVirt/KVM, guest isolation,
 packet-level network denial, guest cold restore or Python 3.11–3.13 results.
 Existing draft PRs remain unmerged.
+
+
+## Next draft phase: Fedora host prerequisites and Python compatibility
+
+A new **unmerged** stacked branch, verification/fedora-host-acceptance-preflight,
+starts from the verified Fedora Docker integration branch. It introduces:
+
+- Read-only, nonroot Fedora OS / SELinux / KVM / libvirt prerequisite audit
+  with opt-in, exclusive-create 0600 evidence, and synthetic negative tests
+- A manually supervised real-host acceptance plan; no VM boot is automatic
+- An opt-in Windows Docker Linux headless test matrix for Python 3.11–3.13,
+  with separate read-only containers and no GitHub Actions
+
+**Implementation is NOT evidence that either the real Fedora host audit
+or new 3.11–3.13 matrix has been run.** These remain pending user-run
+verification, alongside benign guest boot, packet-level network
+isolation, effective host SELinux/sVirt contexts, cold recovery and
+explicit integration/merge approval.
+
+Do not merge any draft PR as part of this phase. See
+[Fedora host prerequisite plan](FEDORA_HOST_PREFLIGHT.md) and
+[Python compatibility matrix](PYTHON_COMPATIBILITY_MATRIX.md).
