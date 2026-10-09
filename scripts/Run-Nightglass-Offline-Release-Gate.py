@@ -27,7 +27,7 @@ import sys
 import tempfile
 import time
 
-BRANCH = "verification/remote-ref-stack-audit"
+BRANCH = "verification/windows-one-command-offline-gates"
 ORIGIN = re.compile(
     r"^(?:https://github\.com/|git@github\.com:)"
     r"enginexus-dev/nightglass-workspaces(?:\.git)?/?$",
@@ -141,11 +141,18 @@ def source_ast(checkout: Path) -> int:
     return count
 
 
-def branch_checkout(root: Path) -> tuple[Path, str, Path, Path]:
+def branch_checkout(root: Path, *, expected_sha: str | None = None) -> tuple[Path, str, Path, Path]:
     """Never checkout in place, reuse a folder, reset, clean or merge."""
     git_ref = "refs/remotes/origin/" + BRANCH
+    if expected_sha is not None and not re.fullmatch(r"[0-9a-f]{40}", expected_sha):
+        raise GateError("Expected commit must be a full lowercase SHA40.")
     checked(["git", "-C", str(root), "fetch", "--no-tags", "origin",
              f"refs/heads/{BRANCH}:{git_ref}"], cwd=root, timeout=120)
+    fetched = checked(["git", "-C", str(root), "rev-parse", git_ref], cwd=root)
+    if not re.fullmatch(r"[0-9a-f]{40}", fetched):
+        raise GateError("Fetched candidate ref has invalid SHA.")
+    if expected_sha is not None and fetched != expected_sha:
+        raise GateError("Fetched branch has advanced since approved SHA; no worktree created.")
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     marker = secrets.token_hex(5)
     stem = "Nightglass-RC-" + stamp + "-" + marker
@@ -222,7 +229,8 @@ def summary_file(path: Path, payload: dict) -> None:
         stream.write("\n")
 
 
-def verify(*, root: Path, allow_pull: bool, allow_build: bool) -> int:
+def verify(*, root: Path, allow_pull: bool, allow_build: bool,
+           expected_sha: str | None = None) -> int:
     # Capture main's ref both before and after test worktree preparation.
     # This proves equality of the observed refs, not a claim about all
     # external processes that could modify the repository concurrently.
@@ -230,7 +238,7 @@ def verify(*, root: Path, allow_pull: bool, allow_build: bool) -> int:
                            "refs/heads/main"], cwd=root)
     if not re.fullmatch(r"[0-9a-f]{40}", main_before):
         raise GateError("Cannot verify original main ref before testing.")
-    checkout, sha, log_path, report_path = branch_checkout(root)
+    checkout, sha, log_path, report_path = branch_checkout(root, expected_sha=expected_sha)
     print("New detached read-only test source:", checkout)
     print("Exact tested commit:", sha)
     print("No original tracked/untracked files overwritten; Git worktree metadata added.")
@@ -349,6 +357,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="Explicitly allow first-time official Python image pulls")
     ap.add_argument("--build-fedora-image", action="store_true",
                     help="Explicitly allow Fedora test image build/RPM network")
+    ap.add_argument("--expected-commit", default=None,
+                    help="Optional SHA40 pin: refuse advanced branch before creating a test worktree")
     args = ap.parse_args(argv)
     print("Nightglass release candidate verification — branch:", BRANCH)
     print("Windows 10/11 and original Git checkout will not be modified.")
@@ -364,7 +374,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         root = repo_root(args.repo.resolve())
         return verify(root=root, allow_pull=args.pull_python_images,
-                      allow_build=args.build_fedora_image)
+                      allow_build=args.build_fedora_image,
+                      expected_sha=args.expected_commit)
     except (OSError, ValueError, GateError, subprocess.TimeoutExpired) as exc:
         print("[BLOCKED] Setup:", type(exc).__name__, str(exc), file=sys.stderr)
         return 2
