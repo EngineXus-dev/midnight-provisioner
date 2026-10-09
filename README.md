@@ -688,3 +688,11 @@ and image downloads/builds. The gate checks the exact reviewed Git
 SHA before creating a test worktree. **The latest integration tests
 remain pending**; any synthetic PASS is not approval to merge or
 install Windows 11 Pro/Fedora.
+
+### Phase 9: strict offline integration coverage
+
+[Offline test completeness](docs/OFFLINE_TEST_COMPLETENESS.md)
+adds fail-closed minimum executed-test thresholds for Python 3.11–3.13,
+real Fedora GUI/libvirt fixtures and Bash syntax, and fixes an obsolete
+Git command-order assertion after SHA verification was introduced.
+These are source updates on a draft branch, not verified runtime PASS.
