@@ -771,3 +771,12 @@ Three test runners now prioritize the candidate root before
 unittest discovery. A disposable subprocess fixture regression
 was added to the portable test suite. The full native Windows and
 Fedora/Docker tests still need to run against the pinned draft SHA.
+
+### Phase 17 — complete Windows QEMU synthetic test selection
+
+[Exact QEMU method verification](docs/PHASE17_QEMU_TEST_COVERAGE.md)
+prevents silently passing the Windows synthetic SELinux/QEMU test
+subset if an expected method is absent, duplicated or skipped.
+Seven tests of the exact committed runner passed on disposable
+local fixtures; the complete Windows/Fedora release gate remains
+pending and no installation/merge is approved.
