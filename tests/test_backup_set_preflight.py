@@ -122,6 +122,8 @@ class BackupSetTests(unittest.TestCase):
                 os.link(src, dest)
             except (OSError, NotImplementedError):
                 self.skipTest("Filesystem does not support hardlinks here")
+            if src.stat().st_ino == 0 or src.stat().st_ino != dest.stat().st_ino:
+                self.skipTest("Filesystem does not report stable hardlink file identity")
             path = self.manifest(home, roots)
             with redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(settool.main([
