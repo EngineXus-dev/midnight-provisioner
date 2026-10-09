@@ -736,3 +736,16 @@ personal-file copying, drive formatting or PR merge occurred.
 ### Phase 13: backup hardlink identity across file names and directory groups
 
 [Cross-root identity review](docs/BACKUP_CROSS_ROOT_IDENTITY.md) documents the new checks for backups hardlinked to differently named original files or to originals in another selected directory group. Runtime tests on native Windows are still pending; no deployment is approved.
+
+### Phase 14: release-gate and PR-stack consistency
+
+The newest [offline test gate](docs/OFFLINE_RELEASE_CANDIDATE_GATE.md)
+uses `verification/phase14-release-gate-repair`. The
+`tests/test_candidate_branch_contract.py` portable regression suite
+fails when the Git branch tracked in the manifest disagrees with
+the cumulative Python runner, report auditor, PowerShell launcher
+or current operator guides. This prevents a stale-branch test
+result from being mistaken for latest-candidate evidence.
+The updated suite still needs native Windows/Docker execution.
+All Nightglass PRs remain draft and unmerged; Windows/Fedora
+installation and media writes remain deferred.
