@@ -1,5 +1,7 @@
 # Development roadmap
 
+> Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
+
 ## v0.1 — foundation (this delivery)
 - [x] Standalone project, name/design distinct from unrelated applications
 - [x] Fedora-first GUI, real libvirt status/start/shutdown/managedsave, existing-VM binding
@@ -301,7 +303,7 @@
 - [ ] Review official PC Health Check Windows 11 eligibility, TPM 2.0/Secure Boot capability, encryption status and Windows recovery keys privately
 - [x] Confirm Disk 1 is the user's PORTABLE drive; permanently exclude it from proposed Fedora and multiboot-USB formatting targets
 - [ ] Investigate a safe Fedora storage layout on the actual Windows internal disk after Windows recovery is proven; portable Disk 1 remains off-limits
-- [ ] If Windows 11 chosen: test Windows upgrade and full recovery independently before starting Fedora live-USB validation
+- [ ] If Windows 11 chosen: user-selected clean install must be independently approved, verified and recovered before Fedora live-USB/partitioning
 - [ ] Fedora KDE host/KVM/sVirt isolation/benign guest recovery acceptance remains unverified; never auto-install or merge drafts without owner approval
 
 ## v1 — documented secure workstation deployment
@@ -314,7 +316,17 @@
 - [x] Design one USB with unmodified official Windows 11 x64 and Fedora KDE Plasma 44 Live ISOs and independent boot-menu choices
 - [x] Require THIRD dedicated expendable USB stick; user-confirmed portable Disk 1 MUST be excluded from USB writer and OS installer targets
 - [x] Document Ventoy Secure Boot compatibility and policy risks; permit fallback to separate official USB installers
-- [x] Distinguish Windows 11 supported in-place upgrade initiated inside Windows from data-erasing clean install by booted ISO
+- [x] Distinguish in-place and clean Windows 11 installation; user chose clean-install LATER, after verified portable backups
 - [ ] Obtain and verify signed Fedora checksum and official Windows ISO, test UEFI boot menus without starting any installation
 - [ ] Validate dedicated USB target and its explicitly approved destructive formatting; no automatic Ventoy/partition execution
-- [ ] Windows 11 eligible/backup-protected upgrade and re-baseline before any Fedora install, then physical Fedora security acceptance
+- [ ] User-approved clean Windows 11 installation AFTER verified backups and recovery, then Windows re-baseline and separate Fedora host security acceptance
+
+## v0.3u — deferred clean Windows 11 and 16 GB one-USB readiness (planning)
+- [x] Record user choice: CLEAN Windows 11 later, not an in-place upgrade and not immediate
+- [x] Record user-owned separate 16 GB USB; verify Windows/Fedora ISO cumulative sizes before proposing a multiboot writer
+- [x] Preserve example backup-drive capacity portable Disk 1 for user backups only; do not format/select it for Windows, Fedora or boot USB
+- [x] Add staged data-backup review for local Git/untracked/ignored files, secrets and reproducible project environments
+- [x] Require future backup verification, offline recovery keys as applicable, correct Windows Home edition/licence and later explicit approval
+- [ ] Verify actual copied backups and USB media/ISO checksums; no current execution authorization
+- [ ] Confirm Windows 11 hardware eligibility and clean-install EFI/partition target by physical identity, not existing disk numbers
+- [ ] Do NOT schedule, boot, install, partition, format or merge PRs until user explicitly requests each next stage
