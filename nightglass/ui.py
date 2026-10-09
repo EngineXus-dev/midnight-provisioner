@@ -32,6 +32,7 @@ from .kali_preflight import KaliPreflight
 from .kali_registration import KaliRegistrationInspector
 from .kali_cold_baseline import KaliColdBaselineInspector
 from .kali_recovery_link import KaliRecoveryLink
+from .kali_recovery_registration import KaliRecoveryRegistrationInspector
 from .kali_drift import compare_version_lock_files
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
@@ -727,6 +728,14 @@ class MainWindow(QMainWindow):
         )
         link_button.clicked.connect(self.check_kali_recovery_link)
         controls.addWidget(link_button)
+        registered_recovery = QPushButton("Audit registered Kali recovery")
+        registered_recovery.setToolTip(
+            "Read-only validation of a MANUALLY registered, SHUT-OFF offline Kali "
+            "recovery guest. Checks backup→stage→registered VM identity, libvirt "
+            "autostart, and disk collisions. Does not start or change guests."
+        )
+        registered_recovery.clicked.connect(self.audit_registered_kali_recovery)
+        controls.addWidget(registered_recovery)
         vm_manager = QPushButton("Open virt-manager")
         vm_manager.clicked.connect(lambda: self.open_program(["virt-manager", "--connect", "qemu:///system"]))
         controls.addWidget(vm_manager)
@@ -1058,6 +1067,55 @@ class MainWindow(QMainWindow):
             lambda message: self.provision_result.setPlainText(
                 "KALI RECOVERY LINK: BLOCKED / UNVERIFIED\n" + message +
                 "\nNo VM, disk, backup or network was modified."
+            ),
+        )
+
+    def audit_registered_kali_recovery(self):
+        if self.provision_kind.currentData() != "pentest":
+            self.provision_result.setPlainText(
+                "Recovery registration audits apply to separate benign Kali VM templates only."
+            )
+            return
+        template_id = self.provision_template.currentData()
+        if not template_id:
+            self.provision_result.setPlainText("Choose a curated Kali toolkit first.")
+            return
+        plan, _ = QFileDialog.getOpenFileName(
+            self, "Original curated Kali setup plan", "", "JSON files (*.json)"
+        )
+        if not plan:
+            return
+        backup = QFileDialog.getExistingDirectory(
+            self, "Choose the ORIGINAL hash-verified Kali cold backup"
+        )
+        if not backup:
+            return
+        staged = QFileDialog.getExistingDirectory(
+            self, "Choose the separately staged, MANUALLY REGISTERED recovered guest"
+        )
+        if not staged:
+            return
+        guest = self.provision_name.text().strip()
+        self.provision_result.setPlainText(
+            "Checking original Kali plan, backup, offline recovery copy, "
+            "registered guest policy and autostart (read-only) …"
+        )
+        def check():
+            data = load_setup_plan(Path(plan))
+            if data["guest"] != guest or data["template_id"] != template_id:
+                raise ToolError(
+                    "Original Kali template/guest differs from selected profile; "
+                    "cannot reuse one guest's recovery evidence for another"
+                )
+            return KaliRecoveryRegistrationInspector().inspect(
+                Path(plan), Path(backup), Path(staged)
+            )
+        self.work(
+            check,
+            lambda report: self.provision_result.setPlainText(report.describe()),
+            lambda message: self.provision_result.setPlainText(
+                "KALI REGISTERED RECOVERY: BLOCKED / UNVERIFIED\n" + message +
+                "\nNo registered guest or backup was started, restored, or modified."
             ),
         )
 
