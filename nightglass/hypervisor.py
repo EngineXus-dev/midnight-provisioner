@@ -178,6 +178,12 @@ class Hypervisor:
         return None
 
     def audit(self, domain: str, policy: str) -> Audit:
+        """Inspect current, persistent and saved definitions of restricted VMs.
+
+        A running VM's live XML can differ from its next-boot definition. Both
+        need to pass policy before a future start or managed-save operation.
+        This is still a point-in-time check, not a lock on other libvirt clients.
+        """
         try:
             domain = safe_name(domain)
             live_xml = self._virsh("dumpxml", domain)
@@ -185,32 +191,47 @@ class Hypervisor:
                 return assess_domain(live_xml, policy)
             if policy not in {"lab", "isolated"}:
                 return Audit(False, ("Unsupported VM security policy",), policy)
+
+            # --inactive is an inspection, NOT a define or guest state change.
+            inactive_xml = self._virsh("dumpxml", "--inactive", domain)
             saved_xml = self._managed_save_xml(domain)
-            documents = [("Definition", live_xml)]
+            documents = [
+                ("Current definition", live_xml),
+                ("Inactive definition", inactive_xml),
+            ]
             if saved_xml is not None:
                 documents.append(("Saved session", saved_xml))
+
             lab_xml = None
             if policy == "lab":
-                # Saved state can contain an interface absent from the inactive XML.
                 try:
-                    if any(ET.fromstring(doc).find("./devices/interface") is not None for _, doc in documents):
+                    if any(
+                        ET.fromstring(doc).find("./devices/interface") is not None
+                        for _, doc in documents
+                    ):
                         lab_xml = self._virsh("net-dumpxml", ISOLATED_NETWORK)
                 except ET.ParseError:
-                    pass  # each malformed domain document is rejected below
+                    pass  # malformed documents are rejected in policy checks
             failures = []
+            identities = []
             for label, doc in documents:
-                check = assess_domain(doc, policy, lab_xml)
-                if not check.ok:
-                    failures.extend(f"{label}: {message}" for message in check.warnings)
-            if saved_xml is not None:
+                audit = assess_domain(doc, policy, lab_xml)
+                if not audit.ok:
+                    failures.extend(f"{label}: {warning}" for warning in audit.warnings)
                 try:
-                    current_root, saved_root = (ET.fromstring(doc) for _, doc in documents)
-                    for name in ("name", "uuid"):
-                        current, saved = current_root.findtext(name), saved_root.findtext(name)
-                        if current and saved and current != saved:
-                            failures.append(f"Saved session has a different {name}")
+                    root = ET.fromstring(doc)
+                    name = root.findtext("name")
+                    uuid = root.findtext("uuid")
+                    if name != domain:
+                        failures.append(f"{label}: identity name does not match registered guest")
+                    identities.append((label, name, uuid))
                 except ET.ParseError:
-                    pass  # malformed XML already blocked above
+                    pass  # assess_domain already rejected malformed XML
+            for label, name, uuid in identities[1:]:
+                if name != identities[0][1]:
+                    failures.append(f"{label}: different name from current definition")
+                if uuid and identities[0][2] and uuid != identities[0][2]:
+                    failures.append(f"{label}: different uuid from current definition")
             return Audit(not failures, tuple(dict.fromkeys(failures)), policy, saved_xml is not None)
         except ToolError as exc:
             return Audit(False, (str(exc),), policy)
@@ -244,6 +265,9 @@ class Hypervisor:
             # Include a libvirt saved session's own declared maximum RAM.
             xml_docs = [self._virsh("dumpxml", domain)]
             if policy in {"lab", "isolated"}:
+                # Recheck the actual next-boot definition as well as any
+                # saved session for the memory budget; neither must bypass it.
+                xml_docs.append(self._virsh("dumpxml", "--inactive", domain))
                 saved = self._managed_save_xml(domain)
                 if saved is not None:
                     xml_docs.append(saved)
