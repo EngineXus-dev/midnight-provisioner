@@ -393,3 +393,27 @@ No branch has been merged. The user remains unready to format the
 16 GB stick, change internal 500 GB drive, install Windows 11 Pro
 or Fedora, or make Win11Debloat changes; portable example backup-drive capacity disk stays
 backup-only. See [offline gate](OFFLINE_RELEASE_CANDIDATE_GATE.md).
+
+## Phase 5: latest source release-evidence audit — NOT YET VERIFIED
+
+Stacked branch `verification/rc-evidence-and-stack-audit` adds
+separately inspectable local v2 release-evidence consistency checking.
+The cumulative runner records an exact detached tested SHA, observed
+original `main` ref before and after (must match), and the SHA256 of
+the finished local log. It explicitly labels all physical Fedora and
+Windows/Fedora installation acceptance as NOT_TESTED/NOT_RUN, and
+`release_attested=false` plus `deployment_approved=false`.
+
+The independent read-only auditor requires the exact expected Git SHA
+and matching local log, checks every mandatory stage and refuses
+missing/blocked/failed tests, forged hardware/deployment claims, stale
+SHAs, edited logs and unauthenticated-content confusion.
+`tests/test_release_evidence_audit.py` contains synthetic coverage,
+but **neither those new tests nor a fresh latest cumulative release gate
+has been executed on the Windows host**.
+
+A report's own hash is *not* a digital signature or independent
+proof that tests were run honestly. It is a local engineering record.
+No PR merge, OS install, USB format, user file copy or hardware
+acceptance is authorized. See
+[release evidence audit](RELEASE_EVIDENCE_AUDIT.md).
