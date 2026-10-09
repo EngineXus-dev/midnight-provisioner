@@ -8,7 +8,7 @@ from dataclasses import replace
 from functools import partial
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Qt, QTimer, Signal
 from PySide6.QtWidgets import (
-    QApplication, QComboBox, QFrame, QGridLayout, QHBoxLayout, QInputDialog,
+    QApplication, QCheckBox, QComboBox, QFrame, QGridLayout, QHBoxLayout, QInputDialog,
     QLabel, QMainWindow, QMessageBox, QPushButton, QScrollArea, QStackedWidget,
     QVBoxLayout, QWidget, QPlainTextEdit,
 )
@@ -18,6 +18,10 @@ from .hypervisor import Hypervisor
 from .models import Workspace, WorkspaceError, safe_name
 from .runner import ToolError
 from .settings import load_workspaces, save_workspaces
+from .portability import (
+    MachinePreferences, current_budget, load_machine_preferences, save_machine_preferences,
+)
+from .updates import SourceUpdater
 
 STYLE = """
 QWidget { background: #0b0e13; color: #dce5e9; font-family: 'Noto Sans', 'DejaVu Sans', sans-serif; font-size: 12px; }
@@ -154,6 +158,9 @@ class MainWindow(QMainWindow):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.refresh)
         self.timer.start(30000)
+        # Only contacts GitHub if the user explicitly opted into update notices.
+        if load_machine_preferences().automatic_update_checks:
+            QTimer.singleShot(4000, self.check_updates)
 
     def work(self, function, finished=None, failed=None):
         job = Job(function)
@@ -195,7 +202,7 @@ class MainWindow(QMainWindow):
         side.addWidget(slogan)
         side.addSpacing(26)
         self.stack = QStackedWidget()
-        nav = [("▦  Workspaces", 0), ("◇  Security model", 1), ("✦  Diagnostics", 2)]
+        nav = [("▦  Workspaces", 0), ("◇  Security model", 1), ("✦  Diagnostics", 2), ("⚙  Machine settings", 3)]
         for label, index in nav:
             button = QPushButton(label)
             button.setMinimumHeight(43)
@@ -230,6 +237,7 @@ class MainWindow(QMainWindow):
         self._build_workspaces()
         self._build_security()
         self._build_diagnostics()
+        self._build_machine()
 
     def _build_workspaces(self):
         viewport = QScrollArea()
@@ -303,9 +311,140 @@ class MainWindow(QMainWindow):
         layout.addWidget(run)
         self.stack.addWidget(shell)
 
+    def _build_machine(self):
+        """Machine-local tuning never recreates VMs or touches Windows."""
+        page = QScrollArea()
+        page.setWidgetResizable(True)
+        holder = QWidget()
+        layout = QVBoxLayout(holder)
+        layout.setContentsMargins(4, 5, 4, 10)
+        layout.setSpacing(14)
+
+        description = QLabel(
+            "One installation on every machine. Nightglass detects host RAM and CPUs at runtime, "
+            "then safely clamps these preferences. Your VMs, workspace definitions and data stay intact."
+        )
+        description.setObjectName("SubTitle")
+        description.setWordWrap(True)
+        layout.addWidget(description)
+
+        panel = QFrame()
+        panel.setObjectName("Panel")
+        inner = QVBoxLayout(panel)
+        inner.setSpacing(12)
+        title = QLabel("RESOURCE PROFILE")
+        title.setStyleSheet("color: #70d9d1; font-weight: 700")
+        inner.addWidget(title)
+        self.profile_combo = QComboBox()
+        for label, value in (
+            ("Automatic — recommended", "auto"),
+            ("Compact — low RAM", "compact"),
+            ("Balanced — 16 GB class", "balanced"),
+            ("Performance — 24–32 GB class", "performance"),
+        ):
+            self.profile_combo.addItem(label, value)
+        settings = load_machine_preferences()
+        position = self.profile_combo.findData(settings.preset)
+        self.profile_combo.setCurrentIndex(max(0, position))
+        inner.addWidget(self.profile_combo)
+        self.profile_summary = QLabel("")
+        self.profile_summary.setWordWrap(True)
+        inner.addWidget(self.profile_summary)
+        self.profile_combo.currentIndexChanged.connect(self.preview_machine_profile)
+        save = QPushButton("Save machine profile")
+        save.setObjectName("Primary")
+        save.clicked.connect(self.save_machine_profile)
+        inner.addWidget(save)
+        layout.addWidget(panel)
+
+        update_panel = QFrame()
+        update_panel.setObjectName("Panel")
+        updater = QVBoxLayout(update_panel)
+        head = QLabel("APPLICATION UPDATES")
+        head.setStyleSheet("color: #70d9d1; font-weight: 700")
+        updater.addWidget(head)
+        self.update_opt_in = QCheckBox("Check GitHub for new source versions when Nightglass opens")
+        self.update_opt_in.setChecked(settings.automatic_update_checks)
+        updater.addWidget(self.update_opt_in)
+        caution = QLabel(
+            "Checks are optional; nothing installs automatically. Source updates require "
+            "a clean, official Nightglass main-branch checkout, your confirmation, and an app restart. "
+            "Guest disks and workspace data are never part of this update operation."
+        )
+        caution.setObjectName("SubTitle")
+        caution.setWordWrap(True)
+        updater.addWidget(caution)
+        actions = QHBoxLayout()
+        check = QPushButton("Check for updates")
+        check.clicked.connect(self.check_updates)
+        actions.addWidget(check)
+        apply = QPushButton("Install available update")
+        apply.clicked.connect(self.apply_update)
+        actions.addWidget(apply)
+        updater.addLayout(actions)
+        self.update_message = QLabel("No update check has been run.")
+        self.update_message.setWordWrap(True)
+        updater.addWidget(self.update_message)
+        layout.addWidget(update_panel)
+        layout.addStretch()
+        page.setWidget(holder)
+        self.stack.addWidget(page)
+        self.preview_machine_profile()
+
+    def preview_machine_profile(self, *_):
+        mode = self.profile_combo.currentData() or "auto"
+        prefs = MachinePreferences(preset=mode)
+        self.profile_summary.setText(
+            current_budget(prefs).explain() +
+            "\nLimits apply to future VM starts through Nightglass; existing VM RAM allocations aren't rewritten."
+        )
+
+    def save_machine_profile(self):
+        mode = self.profile_combo.currentData() or "auto"
+        try:
+            prefs = MachinePreferences(
+                preset=mode,
+                automatic_update_checks=self.update_opt_in.isChecked(),
+            )
+            save_machine_preferences(prefs)
+        except (WorkspaceError, OSError) as exc:
+            self.error(str(exc))
+            return
+        self.preview_machine_profile()
+        self.inform("Machine settings saved. Current VM disks, sessions and workspace bindings are unchanged.")
+        self.refresh()
+
+    def check_updates(self):
+        self.update_message.setText("Checking official main branch (read-only working tree) …")
+        def completed(status):
+            if status.behind and not status.ahead:
+                message = f"{status.behind} commit(s) available. Select Install to confirm a clean fast-forward update."
+            elif status.ahead:
+                message = "Local source diverges from main; automatic update is blocked."
+            else:
+                message = "Source is up to date."
+            self.update_message.setText(message)
+        self.work(lambda: SourceUpdater().check(), completed,
+                  lambda msg: self.update_message.setText("Check unavailable: " + msg))
+
+    def apply_update(self):
+        if QMessageBox.question(
+            self, "Confirm Nightglass source update",
+            "Fetch official main and fast-forward ONLY a clean checkout? "
+            "No merge, reset, force-push, or VM changes. Restart Nightglass afterward.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        ) != QMessageBox.StandardButton.Yes:
+            return
+        self.update_message.setText("Verifying clean source checkout …")
+        self.work(
+            lambda: SourceUpdater().apply(confirmed=True),
+            lambda result: self.update_message.setText(result),
+            lambda message: self.update_message.setText("Update blocked: " + message),
+        )
+
     def goto(self, index: int):
         self.stack.setCurrentIndex(index)
-        self.header_title.setText(["Security workspaces", "Trust boundaries", "System diagnostics"][index])
+        self.header_title.setText(["Security workspaces", "Trust boundaries", "System diagnostics", "Machine settings"][index])
         if index == 2:
             self.check_host()
 
