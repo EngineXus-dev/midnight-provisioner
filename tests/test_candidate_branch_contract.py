@@ -88,6 +88,16 @@ class CandidateBranchContractTests(unittest.TestCase):
         self.assertEqual(constant_string(target, "LAST_STACK_HEAD"),
                          self.manifest["pull_requests"][-1]["head"])
 
+    def test_current_operator_runbooks_point_at_same_candidate(self):
+        for path in (
+            "docs/OFFLINE_RELEASE_CANDIDATE_GATE.md",
+            "docs/RELEASE_EVIDENCE_AUDIT.md",
+            "docs/WINDOWS_ONE_COMMAND_OFFLINE_CHECKS.md",
+        ):
+            with self.subTest(path=path):
+                text = (ROOT / path).read_text(encoding="utf-8")
+                self.assertIn(self.branch, text)
+
     def test_synthetic_old_branch_drift_is_rejected_by_contract(self):
         self.assertFalse(pr_chain_is_linear({
             **self.manifest,
