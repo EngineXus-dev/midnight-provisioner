@@ -2,7 +2,7 @@
 
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
-**Status: PLANNED, NOT BUILT OR DEPLOYED.** The user has NOT authorised
+**Status: PLANNED, NOT BUILT OR DEPLOYED.** This plan does NOT authorise modifying the current Windows installation. The user has NOT authorised
 an OS installation or USB erase. The Windows and Fedora plan remains
 deferred, with a separate 16 GB USB for *possible* dual-ISO media and
 the confirmed example backup-drive capacity portable disk reserved for user backups only.
