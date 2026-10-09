@@ -20,6 +20,25 @@ from nightglass.kali_setup import (
 from nightglass.runner import ToolError
 
 
+# Native Windows cannot perform POSIX fchmod. Isolate this capability only
+# while running synthetic module tests; production Linux enforcement is intact.
+_fixture_mode_patch = None
+
+
+def setUpModule():
+    global _fixture_mode_patch
+    if os.name == "nt":
+        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch.start()
+
+
+def tearDownModule():
+    global _fixture_mode_patch
+    if _fixture_mode_patch is not None:
+        _fixture_mode_patch.stop()
+        _fixture_mode_patch = None
+
+
 class KaliSetupTests(unittest.TestCase):
     def setUp(self):
         td = tempfile.TemporaryDirectory()
@@ -67,7 +86,8 @@ class KaliSetupTests(unittest.TestCase):
 
     def test_private_plan_roundtrip_exclusive_no_overwrite(self):
         self.assertEqual(save_setup_plan(self.plan, self.plan_path), self.plan_path)
-        self.assertEqual(self.plan_path.stat().st_mode & 0o777, 0o600)
+        if os.name != "nt":
+            self.assertEqual(self.plan_path.stat().st_mode & 0o777, 0o600)
         self.assertEqual(load_setup_plan(self.plan_path), self.plan)
         data = self.plan_path.read_bytes()
         with self.assertRaisesRegex(ToolError, "already exists"):
@@ -78,7 +98,10 @@ class KaliSetupTests(unittest.TestCase):
         real = self.folder / "keep-data.json"
         real.write_text(json.dumps(self.plan), encoding="utf-8")
         alias = self.folder / "alias.json"
-        alias.symlink_to(real)
+        try:
+            alias.symlink_to(real)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies creation of synthetic symlinks")
         with self.assertRaisesRegex(ToolError, "Symlinked"):
             load_setup_plan(alias)
         with self.assertRaisesRegex(ToolError, "already exists"):
@@ -186,7 +209,8 @@ class KaliSetupTests(unittest.TestCase):
         self.assertEqual(
             save_version_lock(self.plan_path, self.inventory_path, locked), locked
         )
-        self.assertEqual(locked.stat().st_mode & 0o777, 0o600)
+        if os.name != "nt":
+            self.assertEqual(locked.stat().st_mode & 0o777, 0o600)
         body = json.loads(locked.read_text())
         self.assertEqual(body["format"], LOCK_FORMAT)
         self.assertEqual(body["status"], "VERSION_SNAPSHOT_ONLY")
@@ -215,7 +239,10 @@ class KaliSetupTests(unittest.TestCase):
         save_setup_plan(self.plan, self.plan_path)
         self.save_inventory()
         link = self.folder / "linked.json"
-        link.symlink_to(self.inventory_path)
+        try:
+            link.symlink_to(self.inventory_path)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies creation of synthetic symlinks")
         with self.assertRaisesRegex(ToolError, "Symlinked"):
             compare_inventory_files(self.plan_path, link)
         big = self.folder / "huge.json"
