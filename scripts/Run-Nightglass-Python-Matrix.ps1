@@ -80,7 +80,10 @@ try {
             "--security-opt", "no-new-privileges:true",
             "--user", "10001:10001", "--pids-limit", "160",
             "--cpus", "2", "--memory", "1024m",
-            "--tmpfs", "/tmp:rw,nosuid,nodev,size=256m",
+            # Backup/recovery test fixtures require 256 MiB free *reserve*
+            # beyond the small fixture files themselves. A 256m tmpfs
+            # inevitably fails those safe storage-capacity gates.
+            "--tmpfs", "/tmp:rw,nosuid,nodev,size=512m",
             "--mount", ("type=bind,source={0},target=/workspace,readonly" -f $checkout),
             "-w", "/workspace", "-e", "HOME=/tmp", "-e", "XDG_CONFIG_HOME=/tmp/nightglass-config",
             "-e", "PYTHONDONTWRITEBYTECODE=1", "-e", "PYTHONNOUSERSITE=1",
