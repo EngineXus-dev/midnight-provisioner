@@ -38,8 +38,9 @@ From an illustrative read-only Windows review:
 1. **Eligibility and licence.** Confirm Windows 11 support with
    Microsoft's current PC Health Check/Windows Update guidance,
    TPM 2.0, Secure Boot-capable UEFI, drivers and machine model.
-   Keep your licensed edition in mind: current Windows is Home;
-   don't assume Pro activates on a Home digital licence.
+   The old Windows was Home; the user now reports a separate Pro key.
+   Verify that key supports genuine Windows 11 Pro activation without
+   embedding or transmitting the key.
 2. **Inventory intended personal backups.** Record everything you
    actually want to keep before intentionally destroying the old
    Windows installation: documents, photos, browser/bookmark/profile
