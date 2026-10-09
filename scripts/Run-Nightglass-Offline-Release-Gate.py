@@ -27,7 +27,7 @@ import sys
 import tempfile
 import time
 
-BRANCH = "deployment/multi-source-backup-readiness"
+BRANCH = "security/backup-boundary-fix"
 ORIGIN = re.compile(
     r"^(?:https://github\.com/|git@github\.com:)"
     r"enginexus-dev/nightglass-workspaces(?:\.git)?/?$",
