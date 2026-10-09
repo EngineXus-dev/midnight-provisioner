@@ -83,6 +83,24 @@ class FedoraDockerRunnerContractTests(unittest.TestCase):
         self.assertNotIn("docker image inspect $imageTag", runner)
         self.assertIn("if ($ForceImageBuild -or -not $cached)", runner)
 
+    def test_gui_signals_use_callable_adapters_for_pyside_compatibility(self):
+        # Fedora 43 PySide6 6.10 + Python 3.14 crashed in the C++ metaobject
+        # builder while registering an undecorated Python bound method directly.
+        # Keep real GUI offscreen smoke enabled; this is an extra regression
+        # guard, not a substitute for running that integration suite.
+        source = (ROOT / "nightglass" / "ui.py").read_text(encoding="utf-8")
+        self.assertNotRegex(
+            source, r"\\.connect\\(self\\.[A-Za-z_][A-Za-z_0-9]*\\)"
+        )
+        for handler in (
+            "check_host_security",
+            "observe_guest_runtime_labels",
+            "export_acceptance_report",
+            "refresh_resources",
+            "preview_machine_profile",
+        ):
+            self.assertIn(f".connect(lambda *_args: self.{handler}())", source)
+
     def test_runner_does_not_run_guest_vm_commands(self):
         runner = RUNNER.read_text(encoding="utf-8")
         self.assertNotRegex(runner, r"(?im)^\s*&\s*(?:virsh|virt-install|qemu-system)")
