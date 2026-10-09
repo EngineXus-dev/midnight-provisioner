@@ -38,6 +38,17 @@ Saving plans through the GUI is available at
 already exists (including symlinks) is rejected; no existing `.env`,
 virtual environments, VM disks or workspace files are touched.
 
+## Standalone guest inventory helper (source checkout)
+
+A read-only Python 3 helper can query only the curated package set
+**from inside a separately installed, benign Kali VM**, reducing hand-written
+JSON. Use `nightglass templates guest-help PROFILE` or the GUI's
+**Guest inventory instructions** button for guidance. The helper does not
+run from Nightglass's host UI or cross any VM boundary; there is currently
+**no integrated host/guest file-transfer channel**. Do not enable host
+sharing, clipboard or USB passthrough to bypass that limitation. See
+[manual offline guest collection](KALI_GUEST_INVENTORY.md).
+
 ## 2. Collect guest version information manually
 
 After separately and explicitly installing a benign Kali guest with
