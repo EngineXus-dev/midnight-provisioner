@@ -27,6 +27,13 @@ git show origin/chore/offline-integration-verification:scripts/Run-Nightglass-Fe
 powershell -NoProfile -ExecutionPolicy Bypass -File "$env:TEMP\Run-Nightglass-Fedora-Checks.ps1"
 ```
 
+The repository also has `scripts/Start-Nightglass-Fedora-Checks.ps1`
+as a small bootstrap: it fetches the versioned runner into a NEW
+temporary directory and executes it. The independently distributed
+bootstrap is convenient while your original checkout remains on
+`main`. It never checks out `main` or replaces your existing local
+PowerShell scripts.
+
 The PowerShell runner discovers the existing repo (or accepts
 `-RepoPath "C:\path\to\nightglass-workspaces"`), checks that Docker's
 daemon uses **Linux containers**, fetches only the named integration
