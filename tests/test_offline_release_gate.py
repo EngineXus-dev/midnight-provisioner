@@ -103,7 +103,11 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
             with self.assertRaises(SyntaxError):
                 gate.source_ast(root)
             bad.unlink()
-            (root / "tests" / "alias.py").symlink_to(root / "tests" / "fixture_1.py")
+            try:
+                (root / "tests" / "alias.py").symlink_to(root / "tests" / "fixture_1.py")
+            except (OSError, NotImplementedError):
+                # Windows 10 may deny symlink creation without privileges.
+                return
             with self.assertRaises(gate.GateError):
                 gate.source_ast(root)
 
