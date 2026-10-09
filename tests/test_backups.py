@@ -1,5 +1,6 @@
 """Cold backup tests use tiny local fixtures; never contact real libvirt or disks."""
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -127,7 +128,10 @@ class ColdBackupTests(unittest.TestCase):
 
     def test_symlink_source_and_symlinked_backup_rejected(self):
         link = self.root / "link.qcow2"
-        link.symlink_to(self.disk)
+        try:
+            link.symlink_to(self.disk)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies symlink creation in synthetic fixture")
         self.vm.xml = domain_xml(link)
         with self.assertRaisesRegex(ToolError, "non-symlinked"):
             self.service.plan("demo-vm", "isolated")
