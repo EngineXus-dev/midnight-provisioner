@@ -76,10 +76,13 @@ the selected template at the time of inspection. It does **not** prove:
   from authentic signed repositories.
 - That the VM has successfully booted, passes firewall packet-denial tests
   or is actually confined by SELinux/sVirt.
-- That two different image filenames aren't aliases, hardlinks or other
-  references to the same underlying disk. The collision check is **exact
-  registered source-path equality only**; unregistered VMs and other
-  hypervisors are also outside its view.
+- That a differently named path **outside the selected disk folder**
+  isn't a symlink to the selected image; such paths are **not resolved or
+  opened** because other guests' XML is not a trusted host-file access
+  authority. Filesystem hardlinks are blocked by the selected disk's
+  `st_nlink` count, including aliases outside that folder, but bind mounts,
+  volume snapshots, unregistered VMs, other hypervisors and future races
+  remain outside this point-in-time review.
 - That another privileged client won't change the XML or disk immediately
   after the read-only check, or that storage/cold rollback is complete.
 
