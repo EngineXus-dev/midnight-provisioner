@@ -761,3 +761,13 @@ verification loop now requires actual executed passing tests
 for every allowlisted suite, and explicitly reports skipped
 platform-only cases. Seven synthetic local regression tests passed;
 the actual Windows and cumulative Fedora/Docker suite remain pending.
+
+### Phase 16: fixing imports in script-launched tests
+
+The [test import path repair](docs/PHASE16_IMPORT_PATH_VERIFICATION.md)
+addresses a reproduced Python failure: `python scripts/runner.py`
+does not automatically add the Nightglass package root to imports.
+Three test runners now prioritize the candidate root before
+unittest discovery. A disposable subprocess fixture regression
+was added to the portable test suite. The full native Windows and
+Fedora/Docker tests still need to run against the pinned draft SHA.
