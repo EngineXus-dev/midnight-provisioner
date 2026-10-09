@@ -583,3 +583,18 @@ later approval are required before any Windows/Fedora changes.
 
 **Current deployment decision:** preparation only. The user is continuing
 other work before any USB formatting or clean Windows/Fedora install.
+
+### Planned optional Windows 11 Lite variant (not built or deployed)
+
+For the future user-selected **clean** Windows 11 installation, the
+[NTLite Free conservative image profile](docs/WINDOWS11_LITE_IMAGE_PROFILE.md)
+preserves Windows security/servicing and developer features, chooses
+an edition matching an actual Home/Pro licence, and treats a custom
+ISO as optional rather than required to fit the separate 16 GB USB.
+An optional **preview-first, reversible, HKCU-only** post-install
+PowerShell preferences helper is committed to
+`scripts/Set-Nightglass-Windows11-Preferences.ps1`. Its native
+Windows 11 Apply/Undo functionality has NOT been executed or verified.
+Do not run it against current Windows 10 or before deciding to install.
+No remote debloat script downloads or Windows component removal are
+authorized as part of Nightglass.
