@@ -152,5 +152,22 @@ class OfflineProvisioningTests(unittest.TestCase):
         self.assertIn("--noautoconsole", args)
 
 
+
+class HostReadinessTests(unittest.TestCase):
+    @patch("nightglass.diagnostics.shutil.which", return_value=None)
+    @patch("nightglass.diagnostics.os.access", return_value=False)
+    @patch("nightglass.diagnostics.os.path.exists", return_value=True)
+    def test_kvm_device_without_permission_is_warning(self, _exists, _access, _which):
+        from nightglass.diagnostics import collect_checks
+        checks = collect_checks()
+        kvm = next(c for c in checks if c.name == "KVM device")
+        self.assertFalse(kvm.ok)
+        self.assertIn("permissions", kvm.message)
+
+    @patch("nightglass.diagnostics.shutil.which", return_value=None)
+    def test_diagnostics_include_virt_install(self, _which):
+        from nightglass.diagnostics import collect_checks
+        self.assertTrue(any(c.name == "virt-install" for c in collect_checks()))
+
 if __name__ == "__main__":
     unittest.main()
