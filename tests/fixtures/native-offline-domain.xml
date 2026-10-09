@@ -1,0 +1,17 @@
+<domain type="kvm">
+  <name>nightglass-native-fixture</name>
+  <memory unit="MiB">512</memory>
+  <vcpu placement="static">1</vcpu>
+  <os>
+    <type arch="x86_64" machine="pc">hvm</type>
+  </os>
+  <devices>
+    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+    <disk type="file" device="disk">
+      <driver name="qemu" type="qcow2"/>
+      <source file="/var/lib/libvirt/images/nightglass-test.qcow2"/>
+      <target dev="vda" bus="virtio"/>
+    </disk>
+    <graphics type="vnc" listen="127.0.0.1"/>
+  </devices>
+</domain>
