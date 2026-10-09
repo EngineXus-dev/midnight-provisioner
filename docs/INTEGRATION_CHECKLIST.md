@@ -279,6 +279,26 @@ holding independently verified official Windows 11 and Fedora KDE ISO files
 through a multiboot boot menu. Ventoy Secure Boot policy and firmware
 compatibility remain unverified. This is a convenience proposal, not an
 automated Windows+Fedora install, approval to erase USB media, or a
-change to real disks. Windows 11 upgrade (if elected) is performed inside
-Windows first; Fedora remains later manual installation after backups.
+change to real disks. User has subsequently chosen a **future CLEAN Windows 11 installation**,
+not an in-place upgrade; portable backup and recovery must be verified,
+then Fedora remains a later manual installation.
 See [Nightglass one-USB plan](ONE_USB_MULTIBOOT_PLAN.md).
+
+## Deferred clean Windows 11 selection and 16 GB media (2026-10-09)
+
+The user clarified that a separate **16 GB USB** is available and they
+intend a **clean Windows 11 install**, not in-place upgrade. They plan
+to back up desired files to the confirmed **portable example backup-drive capacity Disk 1** and
+have explicitly said they are **NOT installing soon**.
+
+The revised one-USB plan covers combined ISO fit checks for 16 GB,
+mandatory USB identity/erase approval, verified selective and optional
+system-image backups, preserved local Git ignored/untracked files
+(including secure .env/config handling), and disconnection of portable
+Disk 1 before any eventual installer boot.
+
+**No data copy, USB write, Windows clean install, Fedora installation
+or partition operation has been performed by this phase.**
+No prior script should be interpreted as consent to install or wipe
+the Windows internal disk. See
+[clean Windows 11 staged plan](WINDOWS11_CLEAN_INSTALL_STAGED.md).
