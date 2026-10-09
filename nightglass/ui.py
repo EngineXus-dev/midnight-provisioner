@@ -50,6 +50,12 @@ QScrollBar::handle:vertical { background: #34454d; border-radius: 4px; }
 """
 
 
+class NoWheelComboBox(QComboBox):
+    """Prevent incidental wheel scrolling from changing a saved profile."""
+    def wheelEvent(self, event):
+        event.ignore()
+
+
 class WorkSignals(QObject):
     success = Signal(object)
     failure = Signal(str)
@@ -336,7 +342,7 @@ class MainWindow(QMainWindow):
         title = QLabel("RESOURCE PROFILE")
         title.setStyleSheet("color: #70d9d1; font-weight: 700")
         inner.addWidget(title)
-        self.profile_combo = QComboBox()
+        self.profile_combo = NoWheelComboBox()
         for label, value in (
             ("Automatic — recommended", "auto"),
             ("Compact — low RAM", "compact"),
