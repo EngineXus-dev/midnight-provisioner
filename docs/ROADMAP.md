@@ -152,6 +152,17 @@
 - [ ] Independently tested per-guest installation/rollback manifests, template snapshots and manual package setup
 - [ ] Only consider user-confirmed guest-scoped automation after real Fedora isolation testing
 
+## v0.3f — independent Kali guest setup manifests and version drift (draft)
+- [x] Private exclusive-create setup records with catalog fingerprint, small per-guest package set and offline policy
+- [x] Reject catalog/package/guest-policy drift and modified installation/provenance claims when reloading plans
+- [x] Validate bounded user-supplied Kali inventory JSON; report missing packages, wrong VM identity, version drift and dpkg-audit status
+- [x] Optional private untrusted version lock with false/unknown supply-chain and rollback assertions
+- [x] GUI and CLI export, verify, compare and lock workflow; no host libvirt mutations, guest commands or apt installs
+- [x] Synthetic unit and Qt GUI regression coverage for oversize/symlink inputs, plan tampering, and no-overwrite behavior
+- [ ] Validate package availability and dependencies against Kali-signed repos within a benign guest
+- [ ] Integrate real guest attestations, release pinning, rollback tests and supervised Fedora/KVM acceptance
+- [ ] Automatic tool provisioning and VM cloning remain disabled until these guarantees are independently verified
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
