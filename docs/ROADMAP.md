@@ -279,6 +279,18 @@
 - [ ] Polished KDE system tray and per-domain launcher interface
 - [ ] Optional dedicated browser VM for personal isolation on >= 16/32 GB memory
 
+## v0.3r — Windows dual-boot safety gate and rollback preparation (draft)
+- [x] Standalone native Windows read-only firmware, RAM/CPU virtualization, Secure Boot, Fast Startup, OS disk and BitLocker-status inspection
+- [x] Do not collect recovery keys, modify partitions/EFI/BCD/boot entries, disable protection or trigger system restart
+- [x] Treat unknown firmware, encryption, partition or recovery status as HOLD — no automated OS install/shrink decision
+- [x] Document Fedora live-USB hardware checks, Windows recovery USB, verified offline backups and rollback stop conditions
+- [x] Add native Windows PowerShell parser check instructions and static Python no-mutation regression guards
+- [ ] Execute the Windows reviewer on the intended PC and inspect results; no system changes before backup validation
+- [ ] Confirm exact target-disk/EFI plan and recovery strategy before any Fedora graphical installer use
+- [ ] Boot Fedora live USB and verify drivers, input, network, external storage, suspend/resume and return to Windows
+- [ ] Explicit user authorization for installation is still REQUIRED; no automated partitioning or EFI setup
+- [ ] Real Fedora KVM/SELinux/sVirt/live guest/restore gates remain separate and unverified
+
 ## v1 — documented secure workstation deployment
 - [ ] Host support matrix (AMD-V, IOMMU, Secure Boot, LUKS, libvirt, Fedora releases)
 - [ ] Reproducible installation artifact and hardware-specific verification on test machines
