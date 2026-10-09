@@ -58,6 +58,44 @@ class DomainAuditTest(unittest.TestCase):
             with self.subTest(graphic=graphic):
                 self.assertFalse(assess_domain(domain(graphic), 'isolated').ok)
 
+    def test_host_channels_and_qemu_override_denied(self):
+        vectors = [
+            '<serial type="tcp"><source mode="bind" host="0.0.0.0" service="12345"/></serial>',
+            '<parallel type="tcp"/>',
+            '<console type="pty"/>',
+            '<smartcard mode="passthrough"/>',
+            '<tpm model="tpm-tis"><backend type="external"/></tpm>',
+            '<rng model="virtio"><backend model="egd" type="tcp"/></rng>',
+            '<sound model="ich6"/>',
+            '<audio type="pulseaudio"/>',
+        ]
+        for item in vectors:
+            with self.subTest(item=item):
+                self.assertFalse(assess_domain(domain(item, LOOPBACK_VNC), 'isolated').ok)
+                self.assertFalse(assess_domain(domain(item, LOOPBACK_VNC), 'lab').ok)
+        xml = domain(LOOPBACK_VNC).replace(
+            '<domain type="kvm">',
+            '<domain type="kvm" xmlns:qemu="http://libvirt.org/schemas/domain/qemu/1.0">',
+        ).replace('</domain>', '<qemu:commandline><qemu:arg value="-netdev"/></qemu:commandline></domain>')
+        self.assertFalse(assess_domain(xml, 'isolated').ok)
+        self.assertFalse(assess_domain(xml, 'lab').ok)
+        self.assertFalse(assess_domain(xml.replace('commandline', 'override'), 'isolated').ok)
+
+    def test_block_devices_in_cdrom_or_backing_chain_denied(self):
+        devices = [
+            '<disk device="cdrom" type="block"><source dev="/dev/sr0"/></disk>',
+            '<disk device="lun" type="block"><source dev="/dev/sda"/></disk>',
+            '<disk device="disk" type="volume"><source pool="vol-pool" volume="vm"/></disk>',
+            '<disk device="disk" type="file"><source file="/var/lib/libvirt/images/a.qcow2"/><backingStore type="block"><source dev="/dev/sda"/></backingStore></disk>',
+            '<disk device="disk" type="file"><source file="/dev/sda"/></disk>',
+            '<disk device="disk" type="network"><source protocol="rbd" name="pool/volume"/></disk>',
+        ]
+        for item in devices:
+            with self.subTest(item=item):
+                self.assertFalse(assess_domain(domain(item, LOOPBACK_VNC), 'isolated').ok)
+        allowed = '<disk device="cdrom" type="file"><source file="/var/lib/libvirt/images/installer.iso"/></disk>'
+        self.assertTrue(assess_domain(domain(allowed, LOOPBACK_VNC), 'isolated').ok)
+
     def test_raw_block_device_denied(self):
         self.assertFalse(assess_domain(domain('<disk type="block" device="disk"><source dev="/dev/sda"/></disk>', LOOPBACK_VNC), 'isolated').ok)
 
@@ -173,6 +211,18 @@ class MemoryGuardTest(unittest.TestCase):
             virsh('dumpxml', 'safevm'): '<domain><memory unit="GiB">5</memory><devices>' + LOOPBACK_VNC + '</devices></domain>',
         })
         with patch('nightglass.hypervisor.total_ram_gib', return_value=7.7):
-            with self.assertRaisesRegex(ToolError, 'Low-memory guard: VM requests'):
+            with self.assertRaisesRegex(ToolError, 'Low-memory guard: VM declares up to'):
+                Hypervisor(runner).start('safevm', 'isolated')
+        self.assertNotIn((list(virsh('start', 'safevm')), 120), runner.calls)
+
+class HotplugMemoryGuardTest(unittest.TestCase):
+    def test_low_ram_guard_checks_maximum_hotplug_memory(self):
+        xml = domain(LOOPBACK_VNC).replace('<devices>', '<maxMemory unit="GiB" slots="8">8</maxMemory><devices>')
+        runner = FakeRunner({
+            virsh('list', '--all', '--name'): 'safevm\n',
+            virsh('dumpxml', 'safevm'): xml,
+        })
+        with patch('nightglass.hypervisor.total_ram_gib', return_value=7.7):
+            with self.assertRaisesRegex(ToolError, 'Low-memory guard: VM declares up to'):
                 Hypervisor(runner).start('safevm', 'isolated')
         self.assertNotIn((list(virsh('start', 'safevm')), 120), runner.calls)
