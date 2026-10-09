@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import stat
@@ -50,9 +51,11 @@ def safe_file_bytes(path: Path, limit: int) -> bytes:
         raise EvidenceError("Evidence file is missing or inaccessible") from exc
     if not stat.S_ISREG(before.st_mode) or before.st_size > limit:
         raise EvidenceError("Evidence must be a reasonably sized regular file")
-    with path.open("rb") as stream:
+    # O_NOFOLLOW closes a symlink-swap race on POSIX; Windows still
+    # gets before/opened/after file-identity checks below.
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    with os.fdopen(os.open(path, flags), "rb") as stream:
         identity = stream.fileno()
-        import os
         opened = os.fstat(identity)
         if (opened.st_dev, opened.st_ino, opened.st_size) != (
                 before.st_dev, before.st_ino, before.st_size):
@@ -76,6 +79,8 @@ def read_report(path: Path) -> dict:
         document = json.loads(
             safe_file_bytes(path, MAX_REPORT_BYTES).decode("utf-8"),
             object_pairs_hook=reject_duplicates,
+            parse_constant=lambda _value: (_ for _ in ()).throw(
+                EvidenceError("Non-finite JSON numeric value is forbidden")),
         )
     except (UnicodeError, json.JSONDecodeError) as exc:
         raise EvidenceError("Report is not a valid UTF-8 JSON object") from exc
