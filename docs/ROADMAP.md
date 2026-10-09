@@ -250,6 +250,17 @@
 - [ ] Actually boot, exercise and restore a benign Kali VM under supervised Fedora/KVM with packet and SELinux verification
 - [ ] Actual external disk alias resolution, provenance/authenticated backup signatures and automatic guest lifecycle remain out of scope
 
+## v0.3o — read-only running Kali recovery metadata observation (draft)
+- [x] Introduce an opt-in observation for an ALREADY manually started benign recovered Kali guest, separate from the original guest
+- [x] Bind curated original template and SHA-256-verified INACTIVE cold backup to unique live VM UUID, selected disk and current/inactive libvirt definition
+- [x] Reuse existing host SELinux enforcing and sVirt label observation; refuse runtime labels/policy not positively verified
+- [x] Require truly running libvirt state, explicit autostart OFF, no NIC/mounted ISO/host devices, and no managed save
+- [x] Read other registered guest current/inactive/saved XML for known disk path aliases, without opening foreign guest disk images
+- [x] Do NOT hash or use qemu-img on the active writable qcow2; recheck only disk inode identity while rehashing inactive source backup
+- [x] Add CLI/Qt GUI, synthetic fail-closed tests and private metadata-only evidence with no VM lifecycle changes
+- [ ] Verify real QEMU /proc SELinux labels, guest OS boot, packet-level network denial and actual restore on supervised Fedora/KVM
+- [ ] Authenticated guest provenance and resilient protection from privileged libvirt/storage races still unavailable
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
