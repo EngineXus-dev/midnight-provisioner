@@ -33,6 +33,7 @@ from .kali_registration import KaliRegistrationInspector
 from .kali_cold_baseline import KaliColdBaselineInspector
 from .kali_recovery_link import KaliRecoveryLink
 from .kali_recovery_registration import KaliRecoveryRegistrationInspector
+from .kali_running import KaliRunningInspector
 from .kali_drift import compare_version_lock_files
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
@@ -736,6 +737,14 @@ class MainWindow(QMainWindow):
         )
         registered_recovery.clicked.connect(self.audit_registered_kali_recovery)
         controls.addWidget(registered_recovery)
+        runtime_button = QPushButton("Observe running Kali recovery")
+        runtime_button.setToolTip(
+            "Read-only Fedora/libvirt sVirt and no-NIC metadata check for a benign "
+            "recovery VM YOU have already started. Does not start, stop, install "
+            "or access a guest. Does NOT hash an active qcow2 disk."
+        )
+        runtime_button.clicked.connect(self.observe_running_kali_recovery)
+        controls.addWidget(runtime_button)
         vm_manager = QPushButton("Open virt-manager")
         vm_manager.clicked.connect(lambda: self.open_program(["virt-manager", "--connect", "qemu:///system"]))
         controls.addWidget(vm_manager)
@@ -1116,6 +1125,59 @@ class MainWindow(QMainWindow):
             lambda message: self.provision_result.setPlainText(
                 "KALI REGISTERED RECOVERY: BLOCKED / UNVERIFIED\n" + message +
                 "\nNo registered guest or backup was started, restored, or modified."
+            ),
+        )
+
+    def observe_running_kali_recovery(self):
+        if self.provision_kind.currentData() != "pentest":
+            self.provision_result.setPlainText(
+                "Running recovery observations are for benign, independent Kali pentest guests only."
+            )
+            return
+        template_id = self.provision_template.currentData()
+        if not template_id:
+            self.provision_result.setPlainText("Choose a curated Kali VM template first.")
+            return
+        plan, _ = QFileDialog.getOpenFileName(
+            self, "Original Kali template setup plan", "", "JSON files (*.json)"
+        )
+        if not plan:
+            return
+        backup = QFileDialog.getExistingDirectory(
+            self, "Verified original cold backup (inactive files only)"
+        )
+        if not backup:
+            return
+        guest, accepted = QInputDialog.getText(
+            self, "Manually running benign Kali guest",
+            "Enter the NEW recovery VM name already started by the operator:"
+        )
+        if not accepted or not guest.strip():
+            return
+        disk, _ = QFileDialog.getOpenFileName(
+            self, "Exact live recovery guest qcow2 (metadata only — never hashed)",
+            "", "QEMU disk (*.qcow2)"
+        )
+        if not disk:
+            return
+        original_guest = self.provision_name.text().strip()
+        self.provision_result.setPlainText(
+            "Checking host/libvirt runtime metadata without interacting with "
+            "the running Kali guest or hashing its writable disk …"
+        )
+        def check():
+            data = load_setup_plan(Path(plan))
+            if data["guest"] != original_guest or data["template_id"] != template_id:
+                raise ToolError("Selected Kali source guest/template differs from saved setup plan")
+            return KaliRunningInspector().inspect(
+                Path(plan), Path(backup), guest.strip(), Path(disk)
+            )
+        self.work(
+            check,
+            lambda result: self.provision_result.setPlainText(result.describe()),
+            lambda msg: self.provision_result.setPlainText(
+                "KALI RUNNING-GUEST OBSERVATION: BLOCKED / UNVERIFIED\n" + msg +
+                "\nNo VM, guest disk or host network was modified."
             ),
         )
 
