@@ -34,7 +34,7 @@ class StackAuditTests(unittest.TestCase):
         cls.snapshot = json.loads(MANIFEST.read_text(encoding="utf-8"))
         cls.chain = audit.validate_manifest(cls.snapshot)
 
-    def test_exact_observed_39_pr_chain_and_missing_30(self):
+    def test_exact_observed_40_pr_chain_and_missing_30(self):
         self.assertEqual(len(self.chain), 40)
         self.assertEqual(self.chain[0], {
             "pr": 1, "base": "main", "head": "feat/nightglass-phase-01"
@@ -151,6 +151,10 @@ class StackAuditTests(unittest.TestCase):
                 if key.endswith(audit.CANDIDATE):
                     return sha
                 return BASE_SHA
+            if args[0] == "show" and args[1].endswith(
+                    ":" + audit.WORKFLOW_PATH):
+                assert raw is True
+                return (ROOT / audit.WORKFLOW_PATH).read_bytes()
             if args[0] == "rev-list":
                 return f"{main_only} 454"
             if args[0] == "diff":
@@ -181,6 +185,12 @@ class StackAuditTests(unittest.TestCase):
         self.assertEqual(result["changed_path_count"], 2)
         self.assertIn("GITHUB_WORKFLOW_REVIEW",
                       [x["category"] for x in result["review_flags"]])
+        self.assertEqual(result["workflow_policy_review"]["trigger"],
+                         "MANUAL_WORKFLOW_DISPATCH_ONLY")
+        self.assertEqual(result["workflow_policy_review"]["token_permissions"],
+                         "contents: read")
+        self.assertIn("MUTABLE_ACTION_REF_REVIEW",
+                      [x["category"] for x in result["review_flags"]])
         self.assertFalse(any(c and c[0] in ("fetch", "merge", "checkout",
                                             "reset", "clean", "pull", "push")
                              for c in calls))
@@ -195,6 +205,36 @@ class StackAuditTests(unittest.TestCase):
         self.assertFalse(diverged["structure_pass"])
         moved, _ = self.run_fake(main_tail="d" * 40)
         self.assertFalse(moved["structure_pass"])
+
+    def test_workflow_parser_rejects_automatic_triggers_and_write_tokens(self):
+        workflow = (ROOT / audit.WORKFLOW_PATH).read_bytes()
+        baseline = audit.review_manual_workflow(workflow)
+        self.assertEqual(baseline["trigger"], "MANUAL_WORKFLOW_DISPATCH_ONLY")
+        for injected in (
+            workflow.replace(b"  workflow_dispatch:", b"  push:"),
+            workflow.replace(b"  workflow_dispatch:",
+                             b"  workflow_dispatch:\\n  pull_request:"),
+            workflow.replace(b"  contents: read", b"  contents: write"),
+            workflow.replace(b"  contents: read", b"  contents: read\\n  actions: write"),
+            workflow + b"\\npermissions:\\n  contents: write\\n",
+            workflow + b"\\njobs:\\n  test:\\n    permissions: write-all\\n",
+            workflow.replace(b"ubuntu-latest", b"self-hosted"),
+        ):
+            with self.subTest(blob=injected[-90:]):
+                with self.assertRaises(audit.StackError):
+                    audit.review_manual_workflow(injected)
+        with self.assertRaises(audit.StackError):
+            audit.review_manual_workflow(b"x" * (audit.MAX_WORKFLOW_BYTES + 1))
+        with self.assertRaises(audit.StackError):
+            audit.review_manual_workflow(b"")
+
+    def test_diff_paths_must_have_valid_utf8(self):
+        with patch.object(audit, "git", side_effect=lambda args, **kwargs:
+                          b"\\xffbad.py\\0" if args[0] == "diff"
+                          else "unexpected"):
+            with self.assertRaises((audit.StackError, AssertionError, ValueError)):
+                audit.verify(ROOT, manifest=self.chain,
+                             expected_sha=CANDIDATE_SHA)
 
     def test_exclusive_local_report_never_overwrites(self):
         with tempfile.TemporaryDirectory() as folder:
