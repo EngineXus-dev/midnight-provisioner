@@ -22,7 +22,9 @@ rollback plan. If any is missing, **stop before the installer**.
 
 The Windows baseline on 2026-10-09 was Windows 10 Home on **Disk 0**
 (measured system-disk capacity, GPT, UEFI), with Windows ESP/MSR/C:/Recovery partitions.
-**Disk 1 is measured backup-disk capacity GPT but its current contents/bus are unknown**;
+**Disk 1 is measured backup-disk capacity GPT and the user confirmed it is a PORTABLE DRIVE**;
+its contents are not inventoried and it must not be selected for Fedora
+or USB media formatting;
 its size alone does not make it an install target. C: has about measured filesystem free space filesystem space, **not unallocated space**. Fast Startup was
 ENABLED, Secure Boot/drive encryption UNKNOWN, and RAM detected RAM capacity usable.
 
@@ -69,3 +71,9 @@ partitioning, or attempt dual-boot deployment automatically.
 - Verify lab network cannot access Internet and test/deny access to host bridge services separately. Never assume no `<forward>` alone means total isolation.
 - Test from each VM as well as from Fedora host to confirm restrictions. Test startup denial using intentionally insecure **dummy** VM XML in a test environment.
 - Keep regular external backups of VM disks/config, document restore procedure and test it.
+
+A single dedicated bootable USB may carry both *official* Windows 11
+and Fedora KDE ISO installers through a multiboot menu, but OS installation
+and partition decisions remain separate manual steps. The portable Disk 1
+must never be used to create this USB. See
+[one-USB multiboot plan](ONE_USB_MULTIBOOT_PLAN.md).
