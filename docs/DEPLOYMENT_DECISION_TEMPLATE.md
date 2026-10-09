@@ -17,8 +17,9 @@ Store any completed record locally outside the source repository.
       Windows recovery paths still work
 - [ ] If Windows 11 was chosen: **new post-upgrade read-only**
       Windows disk/TPM/encryption/firmware inventory reviewed
-- [ ] Disk 1 identity/bus/current files and backup role inspected and
-      independently identified; size alone cannot select it for Fedora
+- [ ] User-confirmed portable Disk 1 is explicitly protected from
+      Fedora installation, USB formatting, partitioning and overwrites;
+      its data/backup role is reviewed privately if needed
 - [ ] Fedora installation is explicitly on HOLD until all the Windows
       upgrade and recovery checks are complete
 
@@ -74,3 +75,17 @@ Do not write BitLocker passwords or recovery keys, device serials,
 private partitions' GUIDs, disk encryption material, personal paths
 or user data into this template, commit history, chat or GitHub PR.
 See DEPLOYMENT_SAFETY_GATES.md for stop and rollback paths.
+
+## Dedicated installer USB (not Disk 1)
+
+- [ ] A *third*, separate disposable USB is available and independently
+      identified; user authorizes erasing that USB only
+- [ ] Official Windows 11 x64 and Fedora KDE Live ISO sources verified
+- [ ] Multiboot USB Secure Boot behavior tested, or two independent
+      official USB installers used if incompatible
+- [ ] Windows 11 *in-place* upgrade run from Windows, never mistaken for
+      the clean-install action shown by booting the Windows ISO
+- [ ] Fedora Live USB successfully tried without partitioning
+- [ ] Portable Disk 1 never selected as USB writer or OS install target
+
+See ONE_USB_MULTIBOOT_PLAN.md.
