@@ -29,6 +29,29 @@ DEBIAN_VERSION = re.compile(r"^[0-9][A-Za-z0-9.+~:_-]{0,127}$")
 KALI_RELEASE = re.compile(r"^kali-[a-z0-9][a-z0-9.~-]{0,63}$")
 
 
+def guest_inventory_instructions(identifier: str) -> str:
+    """Return manual, non-executable steps for one approved Kali guest."""
+    template = get_template(identifier)
+    return "\\n".join((
+        f"READ-ONLY KALI GUEST INVENTORY — {template.name}",
+        f"Separate guest name: {template.default_name}",
+        "1. On the host, generate and verify a NEW setup plan:",
+        f"   nightglass templates export {template.identifier} /path/to/new-plan.json",
+        "   nightglass templates verify /path/to/new-plan.json",
+        "2. Only for a manually installed BENIGN Kali VM: arrange an independently",
+        "   reviewed one-way transfer of the plan and the standalone source script",
+        "   scripts/kali-guest-inventory.py into that VM.",
+        "   Nightglass does NOT provide host/guest file sharing or transfer.",
+        "3. As a normal user INSIDE Kali, with no network needed, run:",
+        "   python3 kali-guest-inventory.py --plan new-plan.json --output NEW-inventory.json",
+        "4. If a separately validated transfer back to the host is available:",
+        "   nightglass templates compare /path/to/new-plan.json /path/to/NEW-inventory.json",
+        "No package installs, apt update, VM start, networking or host writes are",
+        "performed by the helper. Collected package metadata is untrusted, not a",
+        "verified snapshot, authenticated guest report or proof of Kali provenance.",
+    ))
+
+
 def _canonical(document: dict) -> bytes:
     return json.dumps(
         document, sort_keys=True, separators=(",", ":"), ensure_ascii=True,
