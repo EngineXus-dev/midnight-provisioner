@@ -64,6 +64,17 @@ class FedoraDockerRunnerContractTests(unittest.TestCase):
         self.assertIn("Set-Content -LiteralPath $runner -Encoding UTF8", bootstrap)
         self.assertNotIn("docker run --privileged", runner)
 
+    def test_missing_cached_image_is_normal_first_run(self):
+        runner = RUNNER.read_text(encoding="utf-8")
+        # PowerShell 5.1 turns Docker's expected "No such image" stderr
+        # into a terminating error under ErrorActionPreference=Stop.
+        # A tag-list lookup must instead treat cache misses as normal.
+        self.assertIn("docker image ls --format", runner)
+        self.assertIn("Docker image cache lookup", runner)
+        self.assertIn('$cached = @($imageList | Where-Object', runner)
+        self.assertNotIn("docker image inspect $imageTag", runner)
+        self.assertIn("if ($ForceImageBuild -or -not $cached)", runner)
+
     def test_runner_does_not_run_guest_vm_commands(self):
         runner = RUNNER.read_text(encoding="utf-8")
         self.assertNotRegex(runner, r"(?im)^\s*&\s*(?:virsh|virt-install|qemu-system)")
