@@ -6,7 +6,19 @@
     "license": "User reports owning a Pro key; activation must be verified after clean install",
     "execution": "deferred until explicit future approval",
     "hardware": "target CPU (verify compatibility); detected RAM capacity usable RAM",
-    "storage": "internal measured system-disk capacity is future Windows/Fedora target only after review; portable measured backup-disk capacity never installer target; separate 16GB USB only after confirmation"
+    "storage": "internal measured system-disk capacity is future Windows/Fedora target only after review; portable measured backup-disk capacity never installer target; separate 16GB USB only after confirmation",
+    "activation": {
+      "default": "activate_later",
+      "options": [
+        "activate_during_setup",
+        "activate_later"
+      ],
+      "license_note": "The user reports owning a valid Windows Pro key; confirm Pro entitlement independently. The setup workflow must not require entering it immediately if official Setup offers the skip-key choice.",
+      "during_setup": "Enter the existing Pro key only through Microsoft's genuine Windows Setup when ready; never embed it in NTLite presets, image or USB.",
+      "activate_later": "Use Microsoft's 'I don't have a product key' choice if displayed; ensure Windows 11 Pro (not OEM Home) is selected; after installation activate through Settings > System > Activation > Change product key.",
+      "security": "No key field, no automatic slmgr/activation commands, no unsupported activation workarounds; keep the 25-character key private and offline.",
+      "status": "PLAN_ONLY_NOT_INSTALLED"
+    }
   },
   "modeMeanings": {
     "debloat_reviewed": "Win11Debloat reviewed candidate switches, still require dry run and user authorization",
