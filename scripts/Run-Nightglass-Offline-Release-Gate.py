@@ -27,7 +27,7 @@ import sys
 import tempfile
 import time
 
-BRANCH = "deployment/readonly-backup-integrity"
+BRANCH = "deployment/multi-source-backup-readiness"
 ORIGIN = re.compile(
     r"^(?:https://github\.com/|git@github\.com:)"
     r"enginexus-dev/nightglass-workspaces(?:\.git)?/?$",
