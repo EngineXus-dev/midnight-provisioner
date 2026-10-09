@@ -75,6 +75,14 @@
 - [ ] Fedora/KVM physical-host audit and observed guest boot/network-denial test results
 - [ ] Controlled automatic import remains disabled until those results exist
 
+## v0.2.5 — native libvirt/QEMU fixture verification (draft)
+- [x] Real libvirt schema validation on a benign offline KVM XML fixture in GitHub CI
+- [x] Real qemu-img metadata checks using temporary qcow2/raw images
+- [x] Native QCOW2 backing-file chain refusal and schema-valid NIC policy denial
+- [x] Separate native-tools CI job alongside mocked Python unit tests
+- [ ] Confirm test results on Fedora KDE with the distribution's installed utilities
+- [ ] Real KVM boot, packet-level isolation and snapshot/restore tests remain unverified
+
 ## v0.3 — defense in depth
 - [ ] Polkit actions and minimal privileged policy service, no trusted XML audit from user-editable settings
 - [ ] SELinux device/volume access review; stronger VM security architecture tests
