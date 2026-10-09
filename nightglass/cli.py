@@ -18,6 +18,7 @@ from .provisioning import OfflineProvisioner, build_plan
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
+from .acceptance import RegisteredGuestAuditor, save_acceptance
 import os
 
 
@@ -76,9 +77,20 @@ def main(argv: list[str] | None = None) -> int:
     recover_verify.add_argument("directory")
     recover_preflight = recover_actions.add_parser("preflight", help="Read-only Fedora/KVM import readiness check")
     recover_preflight.add_argument("directory")
+    accept = sub.add_parser("accept", help="Read-only inspection of an ACTUAL registered libvirt guest")
+    accept.add_argument("guest", help="Exact libvirt domain name")
+    accept.add_argument("--policy", choices=("isolated", "lab"), default="isolated")
+    accept.add_argument("--report", type=Path, help="Save private evidence to a NEW local JSON file")
     args = parser.parse_args(argv)
     cmd = args.command or "gui"
     try:
+        if cmd == "accept":
+            audit = RegisteredGuestAuditor().inspect(args.guest, args.policy)
+            print(audit.describe())
+            if args.report:
+                target = save_acceptance(audit, args.report)
+                print(f"Read-only evidence saved locally: {target}")
+            return 0 if audit.ok else 2
         if cmd == "recover":
             if args.recover_action == "preflight":
                 print(RecoveryReadiness().check(Path(args.directory)).describe())
