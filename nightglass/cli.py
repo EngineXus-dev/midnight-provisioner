@@ -26,6 +26,7 @@ from .kali_registration import KaliRegistrationInspector, save_registration_repo
 from .kali_cold_baseline import KaliColdBaselineInspector, save_cold_baseline_report
 from .kali_recovery_link import KaliRecoveryLink, save_kali_recovery_link
 from .kali_recovery_registration import KaliRecoveryRegistrationInspector, save_registered_recovery
+from .kali_running import KaliRunningInspector, save_kali_running_observation
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -134,6 +135,18 @@ def main(argv: list[str] | None = None) -> int:
     registered_recovery.add_argument("--staged", type=Path, required=True)
     registered_recovery.add_argument("--report", type=Path,
                                      help="Optional NEW private recovery handoff evidence")
+    runtime_observe = template_commands.add_parser(
+        "observe-running",
+        help="Read-only sVirt/device observation for a manually running benign Kali recovery guest"
+    )
+    runtime_observe.add_argument("plan", type=Path)
+    runtime_observe.add_argument("--backup", type=Path, required=True)
+    runtime_observe.add_argument("--guest", required=True,
+                                 help="Different manually started recovery VM guest name")
+    runtime_observe.add_argument("--disk", type=Path, required=True,
+                                 help="Exact selected running guest qcow2 path (NOT hashed)")
+    runtime_observe.add_argument("--report", type=Path,
+                                 help="Optional NEW private observation JSON report")
     wizard = sub.add_parser("provision", help="Read-only VM ISO integrity and guest XML preflight")
     wizard.add_argument("kind", choices=("pentest", "analysis"))
     wizard.add_argument("--iso", required=True)
@@ -183,6 +196,14 @@ def main(argv: list[str] | None = None) -> int:
     cmd = args.command or "gui"
     try:
         if cmd == "templates":
+            if args.template_action == "observe-running":
+                report = KaliRunningInspector().inspect(
+                    args.plan, args.backup, args.guest, args.disk
+                )
+                print(report.describe())
+                if args.report:
+                    print("NEW private metadata observation:", save_kali_running_observation(report, args.report))
+                return 0 if report.ok else 2
             if args.template_action == "recovery-registered":
                 report = KaliRecoveryRegistrationInspector().inspect(
                     args.plan, args.backup, args.staged
@@ -256,7 +277,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 print("PLANS ONLY: each template uses a separate, disconnected Kali VM.")
                 return 0
-            parser.error("Choose templates list, show, export, verify, compare, lock, drift, preflight, registered, baseline, recovery-link, recovery-registered or guest-help")
+            parser.error("Choose templates list, show, export, verify, compare, lock, drift, preflight, registered, baseline, recovery-link, recovery-registered, observe-running or guest-help")
         if cmd == "runtime-label":
             report = RuntimeLabelInspector().inspect(args.guest, args.policy)
             print(report.describe())
