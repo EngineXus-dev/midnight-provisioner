@@ -35,6 +35,23 @@ References:
 - https://libvirt.org/manpages/virsh.html
 - https://www.qemu.org/docs/master/tools/qemu-img.html
 
+## After *manual* registration — audit actual libvirt state
+
+Once a human authorizes importing a **separate** guest on a disposable
+test system, run:
+
+```bash
+nightglass accept new-recovered-vm --policy isolated
+nightglass accept new-recovered-vm --policy isolated --report ~/guest-audit-new.json
+```
+
+Or select **Backup & verify → Audit registered VM**. The audit compares
+current, next-boot, and any saved-state XML. Reports are written locally,
+not uploaded. A passing XML result does NOT establish that a guest boots,
+has no network reachability, or is safe for malware execution.
+
+See [registered-guest acceptance details](REGISTERED_GUEST_AUDIT.md).
+
 ## Separate supervised live acceptance (not automated by Nightglass)
 
 | Check | Expected observation |
