@@ -4,6 +4,8 @@ from __future__ import annotations
 from contextlib import redirect_stdout
 from io import StringIO
 import json
+import ntpath
+import os
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -16,6 +18,31 @@ from nightglass.kali_recovery_registration import (
 )
 from nightglass.kali_setup import build_setup_plan, save_setup_plan
 from nightglass.runner import ToolError
+
+# Windows fixtures contain native C:\\... paths and lack POSIX fchmod.
+# The Linux production implementation remains unchanged and fail-closed.
+_fixture_mode_patch = None
+_fixture_path_patch = None
+
+
+def setUpModule():
+    global _fixture_mode_patch, _fixture_path_patch
+    if os.name == "nt":
+        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch.start()
+        _fixture_path_patch = patch("nightglass.kali_registration.posixpath", ntpath)
+        _fixture_path_patch.start()
+
+
+def tearDownModule():
+    global _fixture_mode_patch, _fixture_path_patch
+    if _fixture_path_patch is not None:
+        _fixture_path_patch.stop()
+        _fixture_path_patch = None
+    if _fixture_mode_patch is not None:
+        _fixture_mode_patch.stop()
+        _fixture_mode_patch = None
+
 
 OLD = "nightglass-kali-recon"
 RESTORED = "nightglass-kali-recon-restore-test"
@@ -224,7 +251,10 @@ class Tests(unittest.TestCase):
         self.assertFalse(r.ok)
         self.assertIn("lexical path alias", r.describe())
         symlink = self.disk.parent / "another-name.qcow2"
-        symlink.symlink_to(self.disk)
+        try:
+            symlink.symlink_to(self.disk)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies synthetic symlink creation")
         self.hv.other_inactive = xml(OLD, str(symlink), uuid=OLD_UUID)
         r = self.audit()
         self.assertFalse(r.ok)
@@ -252,7 +282,8 @@ class Tests(unittest.TestCase):
         result = self.audit()
         target = self.root / "new-registered-recovery-report.json"
         self.assertEqual(save_registered_recovery(result, target), target)
-        self.assertEqual(target.stat().st_mode & 0o777, 0o600)
+        if os.name != "nt":
+            self.assertEqual(target.stat().st_mode & 0o777, 0o600)
         data = json.loads(target.read_text(encoding="utf-8"))
         self.assertEqual(data["recovered_guest"], RESTORED)
         self.assertFalse(data["actual_guest_boot_verified"])
