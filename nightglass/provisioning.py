@@ -52,6 +52,7 @@ class GuestPlan:
             "--network", "none", "--graphics", "vnc,listen=127.0.0.1",
             "--serial", "none", "--console", "none", "--channel", "none",
             "--sound", "none", "--tpm", "none", "--rng", "none",
+            "--smartcard", "none", "--redirdev", "none",
             "--boot", "uefi",
             "--osinfo", "detect=on,require=off",
             "--noautoconsole",
