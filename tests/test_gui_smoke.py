@@ -191,6 +191,33 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.assertIn("UNKNOWN", self.window.resource_status.text())
         self.assertIn("Permission denied", self.window.resource_details.toPlainText())
 
+    def test_read_only_fedora_host_posture_action(self):
+        from PySide6.QtWidgets import QPushButton
+        from nightglass.host_posture import HostPosture, PostureCheck
+        self.window.goto(2)
+        controls = {button.text() for button in self.window.stack.currentWidget().findChildren(QPushButton)}
+        self.assertIn("Audit Fedora host security", controls)
+        with patch.object(self.window, "work") as background:
+            self.window.check_host_security()
+            background.assert_called_once()
+            function, success, failure = background.call_args.args
+            # The requested job has not executed on any real host.
+            self.assertIs(function, self.ui.inspect_host_posture)
+            report = HostPosture((
+                PostureCheck("SELinux", "WARN", "Permissive"),
+                PostureCheck("firewalld", "INFO", "Not proof of filtering"),
+            ))
+            success(report)
+            self.assertIn("attention required", self.window.posture_summary.text())
+            self.assertIn("SELinux", self.window.diagnostics.toPlainText())
+            self.assertIn("READ-ONLY", self.window.diagnostics.toPlainText())
+        with patch.object(self.window, "work") as background:
+            self.window.check_host_security()
+            _, _, failure = background.call_args.args
+            failure("Permission denied")
+        self.assertIn("UNKNOWN", self.window.posture_summary.text())
+        self.assertIn("No configuration was changed", self.window.diagnostics.toPlainText())
+
     def test_actual_offscreen_ui_renders_without_real_display(self):
         self.window.resize(1150, 760)
         self.window.show()
