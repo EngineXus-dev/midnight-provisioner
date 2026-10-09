@@ -35,7 +35,9 @@ backup/recovery route is available, Windows 11 successfully boots with
 data/driver/encryption state checked, and this host's read-only disk
 inventory is run again. The reported target CPU (verify compatibility) is on Microsoft's
 supported-processor list, but TPM 2.0, Secure Boot capability and
-device-specific Windows 11 eligibility still need validation.
+device-specific Windows 11 eligibility still need validation. The user
+reports owning a Windows Pro key; after licensing verification the
+future clean-install target may be **Windows 11 Pro** instead of Home.
 
 See [deferred clean Windows 11 plan](WINDOWS11_CLEAN_INSTALL_STAGED.md).
 the example uses a separate installer USB, which may be sufficient for two
@@ -86,3 +88,7 @@ The user selected a future **clean** Windows 11 installation rather
 than in-place upgrade. No files have yet been backed up through this
 project and no bootable media has been written. Verify chosen portable
 backup copies and project secrets before any destructive operation.
+
+All post-install preferences have been recorded in the
+[Windows 11 Pro 32-point configuration](WINDOWS11_PRO_32_POINT_PROFILE.md).
+No settings, apps or Windows optional features are being changed now.
