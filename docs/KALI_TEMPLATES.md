@@ -100,6 +100,16 @@ RAM and temporary qcow2 storage headroom; it does not reserve space,
 install the VM or prove isolation. See
 [Kali template host readiness](KALI_TEMPLATE_PREFLIGHT.md).
 
+## Audit a separately installed Kali template (read-only)
+
+After a human manually installs and shuts off a unique Kali guest,
+`nightglass templates registered PLAN.json --disk /absolute/guest.qcow2`
+compares its registered libvirt definitions with the curated plan and the
+user-selected independent disk, and checks for **exact-path** disk sharing
+with other registered VMs. The GUI offers **Audit installed Kali template VM**.
+This is static configuration inspection only, not a guest boot or trust
+certification. See [registered Kali template checks](KALI_REGISTERED_TEMPLATES.md).
+
 ## Next phase planned (not enabled)
 
 A supervised, reproducible **per-guest setup manifest** could track selected
