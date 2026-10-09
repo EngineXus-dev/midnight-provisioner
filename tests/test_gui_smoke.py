@@ -555,6 +555,72 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.window.check_kali_recovery_link()
             dialog.assert_not_called()
 
+    def test_kali_registered_recovery_gui_is_read_only_bound_and_cancelable(self):
+        from types import SimpleNamespace
+        from PySide6.QtWidgets import QPushButton
+        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        self.window.prepare_space("pentest")
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("recon")
+        )
+        controls = {
+            btn.text() for btn in
+            self.window.stack.currentWidget().findChildren(QPushButton)
+        }
+        self.assertIn("Audit registered Kali recovery", controls)
+        plan = Path(self.temp.name) / "recon-plan.json"
+        save_setup_plan(build_setup_plan("recon"), plan)
+        backup = Path(self.temp.name) / "cold-backup"
+        stage = Path(self.temp.name) / "recovery-stage"
+        backup.mkdir()
+        stage.mkdir()
+        report = SimpleNamespace(
+            ok=True, describe=lambda:
+            "KALI REGISTERED RECOVERY: PASS (METADATA ONLY — NOT BOOT/RESTORE-PROVEN)"
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName", return_value=(str(plan), "JSON"),
+        ), patch.object(
+            self.ui.QFileDialog, "getExistingDirectory",
+            side_effect=[str(backup), str(stage)],
+        ), patch.object(self.ui, "KaliRecoveryRegistrationInspector") as checker, \
+             patch.object(self.window, "work") as worker:
+            checker.return_value.inspect.return_value = report
+            self.window.audit_registered_kali_recovery()
+            worker.assert_called_once()
+            task, success, failure = worker.call_args.args
+            self.assertIs(task(), report)
+            checker.return_value.inspect.assert_called_once_with(plan, backup, stage)
+            success(report)
+            self.assertIn("NOT BOOT/RESTORE-PROVEN",
+                          self.window.provision_result.toPlainText())
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("web-audit")
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName", return_value=(str(plan), "JSON"),
+        ), patch.object(
+            self.ui.QFileDialog, "getExistingDirectory",
+            side_effect=[str(backup), str(stage)],
+        ), patch.object(self.ui, "KaliRecoveryRegistrationInspector") as checker, \
+             patch.object(self.window, "work") as worker:
+            self.window.audit_registered_kali_recovery()
+            task, success, failure = worker.call_args.args
+            with self.assertRaisesRegex(Exception, "differs from selected profile"):
+                task()
+            checker.assert_not_called()
+            failure("Kali setup plan/profile mismatch")
+        self.assertIn("BLOCKED", self.window.provision_result.toPlainText())
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName", return_value=("", ""),
+        ), patch.object(self.window, "work") as worker:
+            self.window.audit_registered_kali_recovery()
+            worker.assert_not_called()
+        self.window.prepare_space("analysis")
+        with patch.object(self.ui.QFileDialog, "getOpenFileName") as dialog:
+            self.window.audit_registered_kali_recovery()
+            dialog.assert_not_called()
+
     def test_analysis_profile_cannot_save_running_memory(self):
         with patch.object(self.window, "error") as error, \
              patch.object(self.window, "work") as background:
