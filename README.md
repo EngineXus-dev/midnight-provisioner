@@ -134,6 +134,23 @@ permissions and XML before a manual import on an isolated test host. This
 is not one-click rollback, a hypervisor security guarantee or a proven
 bootable restore. See [recovery staging instructions](docs/RECOVERY_STAGING.md).
 
+## Fedora import-readiness check (read-only)
+
+Before registering a restored VM, Nightglass can verify its staged file hashes,
+offline XML, installed libvirt schema, QEMU image headers, KVM availability,
+RAM budget and a unique guest name. This is available as **Backup & verify →
+Check Fedora import readiness**, or:
+
+```bash
+nightglass recover preflight /path/to/NEW-dir
+bash scripts/fedora-recovery-smoke.sh /path/to/NEW-dir
+```
+
+**Neither operation imports, boots, converts, deletes, defines or modifies a
+guest.** A passing check is not proof of boot success or runtime isolation.
+Complete the [supervised Fedora/KVM acceptance guide](docs/FEDORA_ACCEPTANCE.md)
+before introducing any automatic import or rollback behavior.
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
