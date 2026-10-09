@@ -564,3 +564,24 @@ is provided; its drives/paths are intentionally nonfunctional.
 No backups have been copied or checked on the user's computer.
 No Windows/USB/Fedora installation, GitHub Actions or PR merging
 has been performed. See [backup-set guide](MULTI_SOURCE_BACKUP_READINESS.md).
+
+## Phase 12 — backup linked-parent security fix (draft)
+
+The Phase 10/11 backup tools had a path-boundary bug: a normal final
+directory beneath a symlink or Windows reparse/junction parent could
+pass a final-component `lstat()` check. Report and private-manifest
+paths had comparable exposure.
+
+`security/backup-boundary-fix` adds
+`reject_linked_ancestors()` and calls it before source/backup path
+resolution, report path normalization/writing, and manifest opening.
+Parent-traversal `..` is rejected. Tests cover linked parents,
+symlinked report destinations, manifest redirection and synthetic
+Windows reparse metadata. The previous Phase 12 disposable Linux
+fixture PASS does NOT imply that these latest GitHub sources passed.
+
+**Native Windows junction and cumulative Windows/Docker/Fedora
+tests remain NOT RUN**. The guard is a conservative preflight,
+not an atomic directory-handle sandbox; concurrent attackers may
+still swap paths. No PR merge or deployment has occurred.
+See [boundary hardening details](BACKUP_PATH_BOUNDARY_HARDENING.md).
