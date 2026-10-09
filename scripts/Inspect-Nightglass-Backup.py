@@ -125,7 +125,12 @@ def inventory(root: Path, *, max_files: int, max_bytes: int) -> Inventory:
             if len(canonical) > max_files:
                 raise BackupError("Entry count limit exceeded; narrow the selected tree or increase --max-files")
             try:
-                info = entry.stat(follow_symlinks=False)
+                # On Windows, DirEntry.stat() may expose cached or incomplete
+                # file identity metadata (notably st_ino) unlike fstat() on
+                # the opened handle. Collect a fresh path lstat() snapshot
+                # so inventory and hash verification use comparable data.
+                # Never resolve/follow reparse points.
+                info = Path(entry.path).lstat()
             except OSError as exc:
                 raise BackupError("A source or backup entry cannot be inspected") from exc
             path = Path(entry.path)
