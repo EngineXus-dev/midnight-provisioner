@@ -197,9 +197,15 @@ class MainWindow(QMainWindow):
         logo.setObjectName("Brand")
         side.addWidget(logo)
         slogan = QLabel("ISOLATE  /  CREATE  /  RESTORE")
-        slogan.setObjectName("SubTitle")
+        slogan.setObjectName("Tagline")
         side.addWidget(slogan)
-        side.addSpacing(26)
+        side.addSpacing(8)
+        accent_rail = QFrame()
+        accent_rail.setObjectName("AccentRail")
+        accent_rail.setFixedHeight(2)
+        accent_rail.setAccessibleName("Subtle pink and purple accent divider")
+        side.addWidget(accent_rail)
+        side.addSpacing(16)
         self.stack = QStackedWidget()
         nav = [("▦  Workspaces", 0), ("◇  Security model", 1), ("✦  Diagnostics", 2), ("⚙  Machine settings", 3), ("⬡  Prepare VM", 4), ("↺  Backup & verify", 5)]
         self.nav_buttons = []
