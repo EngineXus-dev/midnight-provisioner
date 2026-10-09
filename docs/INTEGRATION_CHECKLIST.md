@@ -535,3 +535,32 @@ synthetic temporary data and is included in the portable suite.
 **It has NOT yet been run on the target Windows laptop**, and no
 live backups, operating systems or install media have been touched.
 See [backup verification guide](BACKUP_INTEGRITY_PREFLIGHT.md).
+
+## Phase 11 — multiple private backup-root validation (DRAFT)
+
+Phase 10 verified one source/copied directory pair. A Windows 11
+clean install could still destroy local-only files from *other*
+repositories, Desktop, Documents, app-specific folders or datasets.
+Phase 11 therefore adds `scripts/Verify-Nightglass-BackupSet.py`:
+a pure Python, Preview-only-by-default tool that accepts a separate
+PRIVATE local JSON catalog of source/backup directory pairs.
+
+One Verify run hashes all regular files in every selected pair
+and fails the full catalog when any required copy is missing,
+different or an original hardlink rather than independent file
+data. All roots must be nonoverlapping, and empty sources are
+blocked. It reports aggregate counts and labels, not path names
+or sensitive content. A matching report never proves the manifest
+covers everything, that media is physically separate or that an
+actual recovery test passed.
+
+The tool and regression tests are staged in the newest
+`deployment/multi-source-backup-readiness` draft; native Windows/
+Fedora Docker execution remains PENDING. Private catalog filenames
+are ignored by Git when they follow the documented suffixes, but
+should be stored **outside the repo**. A synthetic example catalog
+is provided; its drives/paths are intentionally nonfunctional.
+
+No backups have been copied or checked on the user's computer.
+No Windows/USB/Fedora installation, GitHub Actions or PR merging
+has been performed. See [backup-set guide](MULTI_SOURCE_BACKUP_READINESS.md).
