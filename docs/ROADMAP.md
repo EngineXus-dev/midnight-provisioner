@@ -479,3 +479,13 @@
 - [ ] Run the exact candidate suite on the real Windows laptop and in isolated Docker; no runtime PASS claimed from static analysis alone
 - [ ] Review private evidence report and log SHA/commit match, original main unchanged and mandatory no-skip results
 - [ ] Keep all PRs unmerged, Windows 11 Pro install, Fedora host acceptance and USB/backup-media operations deferred
+
+## Phase 15 — Windows-portable test completeness (draft)
+- [x] Fix zero-test/all-skipped false PASS in the Windows-portable per-file verification loop
+- [x] Restrict patterns to the existing explicit portable suite allowlist and reject missing or linked test sources
+- [x] Require at least one actually executed passing test per suite and disclose optional skipped cases
+- [x] Run 7 synthetic fixture regressions successfully; demonstrate all-skipped and unknown-pattern nonzero exits
+- [x] Include the contract suite in Windows-portable checks; refresh 48 predecessor PRs (#30 absent) and current branch references
+- [ ] Run all Windows-portable tests on native Windows and inspect actual execution counts per pattern
+- [ ] Run full pinned commit Python/Fedora offline gate, evidence audit and physical Fedora acceptance separately
+- [ ] No system installation, GitHub Actions, merges or backup-drive operations until explicitly authorized
