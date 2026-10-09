@@ -157,6 +157,15 @@ def compare(source: Inventory, backup: Inventory, *, verify: bool,
     missing_dirs = sorted(source.folders - backup.folders)
     changed_sizes = sorted(key for key in source.files.keys() & backup.files.keys()
                            if source.files[key].size != backup.files[key].size)
+    # A same-volume hard link is not a separately recoverable backup.
+    # Only compare nonzero inode identifiers; some Windows mounts report
+    # unavailable/zero IDs and therefore remain unverified by this test.
+    aliases = sorted(
+        key for key in source.files.keys() & backup.files.keys()
+        if source.files[key].device == backup.files[key].device
+        and source.files[key].inode != 0
+        and source.files[key].inode == backup.files[key].inode
+    )
     modified: list[str] = []
     common = sorted(source.files.keys() & backup.files.keys())
     if verify:
@@ -165,10 +174,12 @@ def compare(source: Inventory, backup: Inventory, *, verify: bool,
         a = {name: fingerprint(item) for name, item in sorted(source.files.items())}
         b = {name: fingerprint(item) for name, item in sorted(backup.files.items())}
         modified = [name for name in common if a[name] != b[name]]
-    complete = not (missing or missing_dirs or changed_sizes or modified)
+    complete = not (missing or missing_dirs or changed_sizes or modified or aliases)
     if verify:
         status = ("CONTENT_MATCH_EXTRAS_REVIEW" if extras else "CONTENT_MATCH")
-        if not complete:
+        if aliases:
+            status = "NOT_INDEPENDENT_FILE_COPY"
+        elif not complete:
             status = "BACKUP_CONTENT_MISMATCH"
     else:
         status = "INVENTORY_ONLY_NOT_CONTENT_VERIFIED"
@@ -184,6 +195,7 @@ def compare(source: Inventory, backup: Inventory, *, verify: bool,
         "missing_folders": len(missing_dirs),
         "different_file_sizes": len(changed_sizes),
         "different_file_hashes": len(modified),
+        "same_file_identity_count": len(aliases),
         "extra_backup_files": len(extras),
         "source_markers_present": source.markers,
         "backup_markers_present": backup.markers,
@@ -198,7 +210,7 @@ def compare(source: Inventory, backup: Inventory, *, verify: bool,
         "usb_format_authorized": False,
         "verification_succeeded": bool(verify and complete),
     }
-    return result, missing[:12] + missing_dirs[:12] + changed_sizes[:12] + modified[:12]
+    return result, missing[:12] + missing_dirs[:12] + changed_sizes[:12] + modified[:12] + aliases[:12]
 
 
 def write_report_new(path: Path, payload: dict, roots: tuple[Path, Path]) -> None:
@@ -264,7 +276,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.report:
             write_report_new(args.report, result, (original, replica))
         # Missing copied content is a blocker even for metadata-only Inspect.
-        if result["missing_files"] or result["missing_folders"] or result["different_file_sizes"]:
+        if (result["missing_files"] or result["missing_folders"]
+                or result["different_file_sizes"] or result["same_file_identity_count"]):
             return 1
         if args.mode == "Verify" and not result["verification_succeeded"]:
             return 1
