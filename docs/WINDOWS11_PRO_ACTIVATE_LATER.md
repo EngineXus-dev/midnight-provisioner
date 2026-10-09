@@ -114,3 +114,12 @@ has explicitly deferred all operating-system and USB actions.
 See WINDOWS11_CLEAN_INSTALL_STAGED.md,
 WINDOWS11_PRO_32_POINT_PROFILE.md, ONE_USB_MULTIBOOT_PLAN.md and
 OFFLINE_RELEASE_CANDIDATE_GATE.md.
+
+## Backup verification before activating or installing Windows
+
+The optional [backup integrity preflight](BACKUP_INTEGRITY_PREFLIGHT.md)
+is completely separate from Windows activation. It never asks for a
+product key, and `Verify` checks a copied directory's regular-file
+hashes without copying or changing it. A successful comparison is
+not permission to wipe Windows or install Fedora. The Pro key can
+still be used later in Windows Settings (default), as preferred.
