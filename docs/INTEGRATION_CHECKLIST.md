@@ -68,7 +68,7 @@ Python synthetic unit suite (and bash syntax when bash is available):
 python3 -B scripts/verify_local.py
 \`\`\`
 
-On **Windows 10/11**, the same command deliberately runs only five
+On **Windows 10/11**, the same command deliberately runs only six
 portable unit modules plus selected synthetic QEMU process-label tests.
 It does **not** claim the full suite passed: Windows cannot reproduce
 Linux chmod 0600 permissions, Linux symlink semantics, SELinux,
@@ -111,6 +111,29 @@ can legitimately fail because tools or libraries are missing, and the
 report must say that plainly. A local green result does **not** change
 the PR's GitHub checks, validate actual Fedora hardware behavior or
 prove malicious guest isolation.
+
+## Fedora Docker verification from the Windows workstation
+
+For fuller **Linux test semantics** without hosted Actions minutes, an
+additional PowerShell runner is now available:
+`scripts/Run-Nightglass-Fedora-Checks.ps1` and its standalone
+`scripts/Start-Nightglass-Fedora-Checks.ps1` bootstrap.
+It fetches a clean **new git worktree**, builds Fedora 43 test tools
+using an empty-source Docker build context and runs
+`python3 -B scripts/verify_local.py --all` in a **nonroot, read-only,
+network-disabled container**. This includes the complete Linux unit
+suite, actual PySide6 offscreen Qt widgets and native QEMU/libvirt
+fixture validators. The initial image build may download packages,
+while test execution itself has no network connectivity.
+
+No Docker engine is available in this assistant's container, so this
+path is **implemented and statically inspected but not yet executed on
+the user's Docker Desktop**. No claim of full Fedora container PASS
+exists until the user supplies that run's output.
+
+See [Fedora Docker verification instructions](FEDORA_DOCKER_VERIFICATION.md).
+This still cannot certify an actual running Fedora/KVM guest, host
+SELinux/sVirt, packet isolation or cold recovery on physical hardware.
 
 ## 4. What remains blocked
 
