@@ -17,7 +17,7 @@ import subprocess
 import sys
 
 SCHEMA = "nightglass.stack.audit.v1"
-CANDIDATE = "verification/phase15-portable-suite-coverage"
+CANDIDATE = "verification/phase16-isolated-import-paths"
 EXPECTED_REPOSITORY = "EngineXus-dev/nightglass-workspaces"
 REPO_URL = re.compile(
     r"^(?:https://github\.com/|git@github\.com:)"
@@ -29,7 +29,7 @@ MAX_MANIFEST_BYTES = 32 * 1024
 MANIFEST_PATH = "config/nightglass-pr-stack-snapshot.json"
 WORKFLOW_PATH = ".github/workflows/verify.yml"
 MAX_WORKFLOW_BYTES = 32 * 1024
-LAST_STACK_HEAD = "verification/phase14-release-gate-repair"
+LAST_STACK_HEAD = "verification/phase15-portable-suite-coverage"
 
 
 class StackError(ValueError):
@@ -56,11 +56,11 @@ def validate_manifest(data: dict) -> list[dict]:
     if data.get("default_branch") != "main" or data.get("candidate_branch") != CANDIDATE:
         raise StackError("Unexpected default or candidate branch")
     prs = data.get("pull_requests")
-    if not isinstance(prs, list) or len(prs) != 48:
-        raise StackError("The snapshot must contain 48 observed draft PRs")
+    if not isinstance(prs, list) or len(prs) != 49:
+        raise StackError("The snapshot must contain 49 observed draft PRs")
     if data.get("pr30") != "NOT_FOUND":
         raise StackError("PR #30 must not be invented")
-    expected_numbers = list(range(1, 30)) + list(range(31, 50))
+    expected_numbers = list(range(1, 30)) + list(range(31, 51))
     if ([x.get("pr") if isinstance(x, dict) else None for x in prs]
             != expected_numbers or any(type(x.get("pr")) is not int for x in prs)): 
         raise StackError("Unexpected PR count, order, or IDs")
@@ -327,7 +327,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.report or args.expected_candidate_sha:
             parser.error("--report and --expected-candidate-sha require --verify")
         print("NIGHTGLASS STACK AUDIT — PLAN ONLY")
-        print("48 observed unmerged draft PRs: #1–29, #31–49; #30 not found.")
+        print("49 observed unmerged draft PRs: #1–29, #31–50; #30 not found.")
         print("No Git, network, Docker, OS, filesystem or installer activity.")
         print("Use --verify to inspect already-fetched LOCAL Git refs and the candidate Git blob only.")
         print("Even a successful chain audit NEVER authorizes PR merge or deployment.")
