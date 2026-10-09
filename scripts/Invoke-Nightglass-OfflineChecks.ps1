@@ -26,7 +26,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$branch = 'verification/test-gate-reliability-hardening'
+$branch = 'deployment/readonly-backup-integrity'
 $requiredConsent = 'RUN NIGHTGLASS OFFLINE TESTS'
 $repoUrlPattern = '^(?:https://github\.com/|git@github\.com:)EngineXus-dev/nightglass-workspaces(?:\.git)?/?$'
 
