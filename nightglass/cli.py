@@ -18,7 +18,7 @@ from .provisioning import OfflineProvisioner, build_plan
 from .kali_templates import get_template, list_templates, plan_template
 from .kali_setup import (
     build_setup_plan, save_setup_plan, load_setup_plan,
-    compare_inventory_files, save_version_lock,
+    compare_inventory_files, save_version_lock, guest_inventory_instructions,
 )
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
@@ -75,6 +75,8 @@ def main(argv: list[str] | None = None) -> int:
     template_lock.add_argument("plan", type=Path)
     template_lock.add_argument("inventory", type=Path)
     template_lock.add_argument("destination", type=Path)
+    template_guest = template_commands.add_parser("guest-help", help="Show safe manual offline inventory collection steps for one Kali VM")
+    template_guest.add_argument("identifier")
     wizard = sub.add_parser("provision", help="Read-only VM ISO integrity and guest XML preflight")
     wizard.add_argument("kind", choices=("pentest", "analysis"))
     wizard.add_argument("--iso", required=True)
@@ -124,6 +126,9 @@ def main(argv: list[str] | None = None) -> int:
     cmd = args.command or "gui"
     try:
         if cmd == "templates":
+            if args.template_action == "guest-help":
+                print(guest_inventory_instructions(args.identifier))
+                return 0
             if args.template_action == "export":
                 plan = build_setup_plan(
                     args.identifier, guest=args.guest, iso_sha256=args.iso_sha256
@@ -158,7 +163,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 print("PLANS ONLY: each template uses a separate, disconnected Kali VM.")
                 return 0
-            parser.error("Choose templates list, show, export, verify, compare or lock")
+            parser.error("Choose templates list, show, export, verify, compare, lock or guest-help")
         if cmd == "runtime-label":
             report = RuntimeLabelInspector().inspect(args.guest, args.policy)
             print(report.describe())
