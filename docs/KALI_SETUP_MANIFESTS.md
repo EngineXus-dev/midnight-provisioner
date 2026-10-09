@@ -118,6 +118,21 @@ repository signature verified, dependency closure verified and rollback
 snapshot verified. The snapshot hash is of the *submitted JSON*, **not**
 an attestation of installed guest packages.
 
+## Offline comparison against a previous saved version lock
+
+The next phase can review a newer guest-reported package inventory against
+an earlier `VERSION_SNAPSHOT_ONLY` record:
+
+```bash
+nightglass templates drift plan.json previous-lock.json new-inventory.json
+```
+
+The corresponding GUI action is **Review package version drift**. It
+only reads the three local JSON files; no guest commands or downloads
+run. A changed version is not automatically classified as upgraded or
+downgraded. The lock is not cryptographically authenticated. See
+[Kali version drift policy](KALI_VERSION_DRIFT.md).
+
 ## 4. Future gating before automated guest-side provisioning
 
 - Test each profile inside a benign, supervised Fedora/KVM Kali guest.
