@@ -70,6 +70,15 @@ is not a signature or publisher attestation. The live VM's disk contents may
 have changed since the backup. The auditor does not read or hash live disk
 contents, and never copies or restores any source.
 
+## Check a separately staged recovery copy
+
+With an **independently created**, NEW offline staging folder, run
+`nightglass templates recovery-link PLAN.json --backup EXISTING_BACKUP
+--staged EXISTING_STAGING` or **Prepare VM → Verify Kali recovery copy**.
+It rehashes source and copied disk/NVRAM and verifies the expected exact
+offline XML transformation. No actual VM restore or boot occurs. See
+[Kali recovery-copy linkage](KALI_RECOVERY_LINK.md).
+
 ## Required next safety gates
 
 A real baseline isn't recovery-tested until a human independently stages
