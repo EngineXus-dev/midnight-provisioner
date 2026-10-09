@@ -466,7 +466,8 @@ user has confirmed is a **PORTABLE DRIVE**. Nightglass explicitly excludes
 Disk 1 from Fedora target selection and USB formatting. The Windows 10 boot, encrypted recovery, Fast Startup,
 second-disk and upgrade prerequisites require human confirmation.
 
-If Windows 11 is chosen, **complete it and revalidate Windows first**.
+If the user later chooses the recorded **clean Windows 11 install**, complete
+it and revalidate Windows before Fedora, after independently verified backups.
 The read-only native Windows reviewer now includes non-secret TPM
 presence/readiness/version and additional-disk bus/partition
 observations. Microsoft PC Health Check, separate backup, Windows
@@ -475,7 +476,8 @@ are required before *any* Fedora graphical installation is considered.
 The reported target CPU (verify compatibility) is a supported Windows 11 processor, but
 the whole device's eligibility remains unverified.
 
-See [Windows 11-first route](docs/WINDOWS11_UPGRADE_FIRST.md).
+See [deferred clean Windows 11 plan](docs/WINDOWS11_CLEAN_INSTALL_STAGED.md)
+and [Windows 11-first route](docs/WINDOWS11_UPGRADE_FIRST.md).
 No Windows/Fedora installer, partition tool or compatibility bypass
 is automatically run. All changes are on draft stacked branches,
 with `main` and original local files untouched.
@@ -574,6 +576,10 @@ python -m compileall -q nightglass tests
 No root access, VM images, lab connectivity, or malware samples are needed for these tests. They test policy logic and process argument construction, not the security of a hypervisor itself. SPDX license: MIT.
 
 See [Nightglass one-USB multiboot plan](docs/ONE_USB_MULTIBOOT_PLAN.md): a
-separate blank USB can contain official Windows 11 and Fedora KDE ISO files,
-but a supported Windows upgrade must be completed within Windows first,
-and later Fedora partitioning requires backup verification and explicit approval.
+separate 16 GB USB may contain official Windows 11 and Fedora KDE ISO files
+if they fit. The user chose a **future CLEAN Windows 11 installation**,
+not an in-place upgrade; portable-drive backup verification and explicit
+later approval are required before any Windows/Fedora changes.
+
+**Current deployment decision:** preparation only. The user is continuing
+other work before any USB formatting or clean Windows/Fedora install.
