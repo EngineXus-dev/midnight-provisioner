@@ -309,7 +309,9 @@ A new stacked draft branch documents the NTLite Free conservative
 two-stage process for the **currently official Windows 11 26H2 ISO**
 and removes the community post's outdated default to 25H2.
 **Windows 10 Home licence** must be respected; a trimmed Pro-only
-ISO is inappropriate without independent Pro activation rights.
+ISO can be considered following the user's report of a separate Pro
+key, but its legitimacy and Windows 11 Pro activation must first be
+verified; the pre-existing Windows 10 Home licence is not sufficient.
 
 A preview-first, local HKCU-only PowerShell preference helper and
 static safety tests are added. Its Apply/Undo functionality is NOT
@@ -324,3 +326,25 @@ independently verifiable Windows/Fedora ISOs. The optional Lite image
 is not needed merely to fit the user's separate 16 GB USB. All
 Windows clean install and hardware integration gates remain ON HOLD.
 See [Lite build profile](WINDOWS11_LITE_IMAGE_PROFILE.md).
+
+## User-requested Windows 11 Pro post-install profile — staged
+
+the selected edition requires a valid Windows Pro key and requests removal of
+OneDrive, Xbox/Game Bar, Widgets/promotional apps, Copilot/Recall/Click
+to Do plus a detailed 32-item list of privacy, update, Explorer, UI,
+location, AI and virtualization settings. The plan has been encoded in
+`config/windows11-pro-custom.json` (35 grouped requests) and documented
+in [Windows 11 Pro profile](WINDOWS11_PRO_32_POINT_PROFILE.md).
+
+`Invoke-Nightglass-Win11ProCustom.ps1` is read-only Preview by default;
+optional future ApplyCore requires Windows 11 Pro, explicit consent,
+backup flag and locally reviewed, SHA256-pinned actual Win11Debloat.ps1.
+The uploaded **Get.ps1** is a remote downloader/elevated launcher;
+the supplied WinUtil ZIP has broad presets, and neither is executed.
+The core excludes OneDrive/Appx uninstalls, automatic-encryption setting,
+Sandbox/WSL installation and Start pinned-layout deletion.
+
+**Not run/verified:** new Windows 11 Pro PowerShell AST parse, `ApplyCore`
+execution, Win11Debloat sourced version compatibility, actual ISO
+customization, app removals, new OS installation, USB writing, or Fedora
+hardware acceptance. Existing local Windows and main remain untouched.
