@@ -40,6 +40,14 @@
 - [ ] Network diagnostics including measured denial of lab to host/Internet reachability
 - [ ] Read/write policy validation for live XML changes
 
+## v0.2.1 — cold backup and integrity verification (draft)
+- [x] User-confirmed cold backup of inactive, file-backed, non-layered restricted guests
+- [x] Copy virtual disks, NVRAM and inactive libvirt XML into a NEW private backup directory
+- [x] Per-file SHA-256 manifest, failed-copy INCOMPLETE marker and read-only verifier
+- [x] KDE backup/verify actions and CLI equivalents without automatic restore or deletion
+- [ ] Fedora/KVM live backup/boot/restore drills, firmware handling and SELinux review
+- [ ] Dedicated rollback workflow only after reproducible end-to-end restore tests
+
 ## v0.3 — defense in depth
 - [ ] Polkit actions and minimal privileged policy service, no trusted XML audit from user-editable settings
 - [ ] SELinux device/volume access review; stronger VM security architecture tests
