@@ -151,3 +151,25 @@ network and cold recovery tests. Do not use malware as a fixture.
   https://learn.microsoft.com/en-us/troubleshoot/windows-client/setup-upgrade-and-drivers/fast-startup-causes-system-hibernation-shutdown-fail
 
 See also INSTALL_PLAN.md, FEDORA_HOST_PREFLIGHT.md and SECURITY_MODEL.md.
+
+## First native Windows parser attempt — 2026-10-09
+
+The user's actual Windows PowerShell AST parser rejected the initial
+draft reviewer as **SYNTAX ERROR**: UnexpectedToken `) {` at line
+184 and an unexpected `else`. Inspection of the committed file
+confirmed 49 unintended duplicate trailing lines after the intended
+final read-only checkpoint summary. No hardware queries or system
+changes occurred during the attempted script execution because
+PowerShell refused to parse it.
+
+The trailing duplicate has been removed on this draft branch. The
+new regression tests require one unique terminal checkpoint summary,
+one OS-partition inspection block, and on **native Windows**, execute
+the real PowerShell AST parser before considering the reviewer valid.
+
+**Corrected script has NOT YET passed the user's native PowerShell
+parser or produced a Windows hardware readout.** The next run must
+fetch the updated branch and use the parser as a hard execution gate.
+Do not execute the file at all if any parser error is returned.
+Installation and disk-write permission remain **ON HOLD** regardless
+of the reviewer output.
