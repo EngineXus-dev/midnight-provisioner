@@ -19,6 +19,7 @@ from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
 from .acceptance import RegisteredGuestAuditor, save_acceptance
+from .handoff import RecoveryHandoff, save_handoff
 from .resources import collect_resources
 from .host_posture import inspect_host_posture
 import os
@@ -81,6 +82,9 @@ def main(argv: list[str] | None = None) -> int:
     recover_verify.add_argument("directory")
     recover_preflight = recover_actions.add_parser("preflight", help="Read-only Fedora/KVM import readiness check")
     recover_preflight.add_argument("directory")
+    recover_handoff = recover_actions.add_parser("handoff", help="Read-only comparison of a registered VM with its verified recovery staging")
+    recover_handoff.add_argument("directory")
+    recover_handoff.add_argument("--report", type=Path, help="Save private evidence to a NEW local JSON file")
     accept = sub.add_parser("accept", help="Read-only inspection of an ACTUAL registered libvirt guest")
     accept.add_argument("guest", help="Exact libvirt domain name")
     accept.add_argument("--policy", choices=("isolated", "lab"), default="isolated")
@@ -104,6 +108,12 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"Read-only evidence saved locally: {target}")
             return 0 if audit.ok else 2
         if cmd == "recover":
+            if args.recover_action == "handoff":
+                handoff = RecoveryHandoff().inspect(Path(args.directory))
+                print(handoff.describe())
+                if args.report:
+                    print(f"Private local evidence: {save_handoff(handoff, args.report)}")
+                return 0 if handoff.ok else 2
             if args.recover_action == "preflight":
                 print(RecoveryReadiness().check(Path(args.directory)).describe())
                 return 0
@@ -113,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
                 print("Staged files and offline XML verified. VM is NOT defined or boot-tested.")
                 return 0
             if args.recover_action not in {"plan", "stage"}:
-                parser.error("Choose recover plan, recover stage, recover verify or recover preflight")
+                parser.error("Choose recover plan, recover stage, recover verify, recover preflight or recover handoff")
             worker = RecoveryStager()
             plan = worker.plan(
                 Path(args.backup), Path(args.destination), args.new_name
