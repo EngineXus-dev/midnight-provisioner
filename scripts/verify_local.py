@@ -36,6 +36,7 @@ WINDOWS_PORTABLE_SUITES = (
     "test_python_matrix_runner.py",
     "test_windows_dualboot_review.py",
     "test_windows11_lite_profile.py",
+    "test_windows11_pro_custom.py",
 )
 
 # Cross-platform synthetic /proc process checks only: excludes the strict
