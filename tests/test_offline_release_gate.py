@@ -36,7 +36,7 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
         self.assertIn("No GitHub Actions or merges", out.getvalue())
 
     def test_authorized_branch_and_origin_only(self):
-        self.assertEqual(gate.BRANCH, "deployment/windows11-pro-activation-media-preflight")
+        self.assertEqual(gate.BRANCH, "verification/rc-evidence-and-stack-audit")
         self.assertTrue(gate.ORIGIN.fullmatch(
             "https://github.com/EngineXus-dev/nightglass-workspaces.git"))
         self.assertTrue(gate.ORIGIN.fullmatch(
@@ -177,6 +177,15 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
         self.assertIn('"physical_fedora_kvm_svirt_network_restore": "NOT_TESTED"', source)
         self.assertIn('passed = all(results[k] == "PASS" for k in CHECKS)', source)
         self.assertIn("summary_file(report_path, report)", source)
+        self.assertIn('"nightglass-offline-rc-gate-v2"', source)
+        self.assertIn('"original_main_before": main_before', source)
+        self.assertIn('"original_main_after": main_after', source)
+        self.assertIn('"local_log_sha256": log_digest', source)
+        self.assertIn('"report_authentication": "LOCAL_UNAUTHENTICATED"', source)
+        self.assertIn('"deployment_approved": False', source)
+        self.assertIn('"release_attested": False', source)
+        self.assertIn("if main_after != main_before:", source)
+        self.assertIn("hashlib.sha256(log_path.read_bytes())", source)
         self.assertNotRegex(source, r"(?m)^\s*os\.system\(")
         self.assertNotIn("shell=True", source)
         self.assertNotIn('["git", "merge"', source)
