@@ -17,7 +17,7 @@ import subprocess
 import sys
 
 SCHEMA = "nightglass.stack.audit.v1"
-CANDIDATE = "verification/stack-integration-readiness"
+CANDIDATE = "verification/remote-ref-stack-audit"
 EXPECTED_REPOSITORY = "EngineXus-dev/nightglass-workspaces"
 REPO_URL = re.compile(
     r"^(?:https://github\.com/|git@github\.com:)"
@@ -26,6 +26,8 @@ REPO_URL = re.compile(
 SAFE_BRANCH = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]*\Z")
 HEX_SHA = re.compile(r"[0-9a-f]{40}\Z")
 MAX_MANIFEST_BYTES = 32 * 1024
+MANIFEST_PATH = "config/nightglass-pr-stack-snapshot.json"
+LAST_STACK_HEAD = "verification/stack-integration-readiness"
 
 
 class StackError(ValueError):
@@ -52,11 +54,11 @@ def validate_manifest(data: dict) -> list[dict]:
     if data.get("default_branch") != "main" or data.get("candidate_branch") != CANDIDATE:
         raise StackError("Unexpected default or candidate branch")
     prs = data.get("pull_requests")
-    if not isinstance(prs, list) or len(prs) != 39:
-        raise StackError("The snapshot must contain 39 observed draft PRs")
+    if not isinstance(prs, list) or len(prs) != 40:
+        raise StackError("The snapshot must contain 40 observed draft PRs")
     if data.get("pr30") != "NOT_FOUND":
         raise StackError("PR #30 must not be invented")
-    expected_numbers = list(range(1, 30)) + list(range(31, 41))
+    expected_numbers = list(range(1, 30)) + list(range(31, 42))
     if ([x.get("pr") if isinstance(x, dict) else None for x in prs]
             != expected_numbers or any(type(x.get("pr")) is not int for x in prs)): 
         raise StackError("Unexpected PR count, order, or IDs")
@@ -70,7 +72,7 @@ def validate_manifest(data: dict) -> list[dict]:
             raise StackError("PR dependency graph is non-linear or contains repeats")
         seen.add(head)
         prior = head
-    if CANDIDATE in seen or prior != "verification/rc-evidence-and-stack-audit":
+    if CANDIDATE in seen or prior != LAST_STACK_HEAD:
         raise StackError("Wrong terminal PR or candidate already in snapshot")
     return prs
 
@@ -84,18 +86,31 @@ def reject_duplicate_keys(pairs):
     return result
 
 
-def read_manifest(project_root: Path) -> list[dict]:
-    p = project_root / "config" / "nightglass-pr-stack-snapshot.json"
-    if p.is_symlink() or not p.is_file() or p.stat().st_size > MAX_MANIFEST_BYTES:
-        raise StackError("Missing, linked, or oversized stack manifest")
+def parse_manifest_bytes(contents: bytes) -> list[dict]:
+    """Parse a small pinned Git blob, rejecting ambiguous JSON fields."""
+    if not isinstance(contents, bytes) or not contents or len(contents) > MAX_MANIFEST_BYTES:
+        raise StackError("Missing or oversized Git manifest content")
     try:
-        data = json.loads(p.read_text(encoding="utf-8"),
+        data = json.loads(contents.decode("utf-8"),
                           object_pairs_hook=reject_duplicate_keys,
                           parse_constant=lambda _x: (_ for _ in ()).throw(
                               StackError("Non-finite JSON value rejected")))
     except (UnicodeError, json.JSONDecodeError) as exc:
         raise StackError("Cannot read valid stack JSON") from exc
     return validate_manifest(data)
+
+
+def read_manifest_at_ref(root: Path, *, candidate_sha: str) -> list[dict]:
+    """Read the candidate's MANIFEST GIT BLOB, not the original worktree.
+
+    The user is on main: the manifest does NOT exist there yet. Fetching
+    branches only updates remote-tracking Git metadata. The content here
+    is accessed from one verified immutable SHA through a fixed path.
+    """
+    if not isinstance(candidate_sha, str) or not HEX_SHA.fullmatch(candidate_sha):
+        raise StackError("Manifest Git object needs exact SHA40")
+    contents = git(["show", candidate_sha + ":" + MANIFEST_PATH], root=root, raw=True)
+    return parse_manifest_bytes(contents)
 
 
 def git(args: list[str], *, root: Path, timeout: int = 30,
@@ -209,6 +224,7 @@ def verify(root: Path, *, manifest: list[dict],
         "candidate_sha": refs[CANDIDATE],
         "main_sha": original_head,
         "observed_pr_count": len(manifest),
+        "manifest_source": "PINNED_CANDIDATE_GIT_BLOB_NOT_WORKTREE",
         "missing_pr_30": True,
         "main_only_commits": behind,
         "candidate_only_commits": ahead,
@@ -247,16 +263,20 @@ def main(argv: list[str] | None = None) -> int:
         if args.report or args.expected_candidate_sha:
             parser.error("--report and --expected-candidate-sha require --verify")
         print("NIGHTGLASS STACK AUDIT — PLAN ONLY")
-        print("39 observed unmerged draft PRs: #1–29, #31–40; #30 not found.")
+        print("40 observed unmerged draft PRs: #1–29, #31–41; #30 not found.")
         print("No Git, network, Docker, OS, filesystem or installer activity.")
-        print("Use --verify to inspect already-fetched LOCAL Git refs only.")
+        print("Use --verify to inspect already-fetched LOCAL Git refs and the candidate Git blob only.")
         print("Even a successful chain audit NEVER authorizes PR merge or deployment.")
         return 0
     try:
         root = args.repo.resolve()
-        manifest = read_manifest(root)
+        candidate_sha = git_ref(root, "refs/remotes/origin/" + CANDIDATE)
+        if (args.expected_candidate_sha is not None
+                and candidate_sha != args.expected_candidate_sha):
+            raise StackError("Expected candidate SHA differs from remote-tracking ref")
+        manifest = read_manifest_at_ref(root, candidate_sha=candidate_sha)
         result = verify(root, manifest=manifest,
-                        expected_sha=args.expected_candidate_sha)
+                        expected_sha=candidate_sha)
         print(json.dumps(result, indent=2, sort_keys=True))
         if args.report:
             create_report(args.report, result)
