@@ -611,3 +611,23 @@ are separate required gates before a user-approved merge.
 No changes to user-installed Windows, local files, USB, backup
 disk or Fedora host. See
 [offline release gate](OFFLINE_RELEASE_CANDIDATE_GATE.md).
+
+## Phase 15 — false-positive Windows-portable tests blocked
+
+`verify_local.py` previously called plain unittest discovery for
+each Windows-portable module. Python may exit with code 0 for
+**zero discovered or all-skipped cases**. The new
+`scripts/run_portable_suite.py` checks each allowlisted module
+against an actual executed-test count and refuses empty/missing,
+unexpected, all-skipped, import-failed and incomplete runs. Some
+platform-specific skips are allowed only when other tests actually
+executed, and are disclosed as unverified.
+
+The new `tests/test_portable_suite_coverage.py` was executed on an
+isolated synthetic fixture (**7/7 PASS**); the actual Nightglass
+Windows/Fedora test suites have **not** yet been run for the newest
+GitHub commit. The branch also updates the 48-PR predecessor
+snapshot and exact candidate references. See
+[Phase 15 test completeness](PHASE15_PORTABLE_TEST_COMPLETENESS.md).
+
+No PRs merged; Windows/Fedora/USB/portable backup media unchanged.
