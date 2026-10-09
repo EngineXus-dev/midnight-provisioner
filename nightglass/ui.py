@@ -30,32 +30,7 @@ from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
 from .acceptance import RegisteredGuestAuditor, save_acceptance
-
-STYLE = """
-QWidget { background: #0b0e13; color: #dce5e9; font-family: 'Noto Sans', 'DejaVu Sans', sans-serif; font-size: 12px; }
-QMainWindow { background: #0b0e13; }
-QFrame#Sidebar { background: #10151c; border-right: 1px solid #253038; }
-QFrame#WorkspaceCard { background: #121a22; border: 1px solid #293944; border-radius: 16px; }
-QFrame#WorkspaceCard:hover { border-color: #3b6472; }
-QFrame#Panel { background: #121a22; border: 1px solid #293944; border-radius: 14px; }
-QPushButton { background: #1a2833; color: #d6e8ed; border: 1px solid #33505d; padding: 9px 12px; border-radius: 8px; }
-QPushButton:hover { border-color: #57d5ce; background: #223642; }
-QPushButton:disabled { color: #61717a; background: #141b22; border-color: #222c32; }
-QPushButton#Primary { color: #091718; background: #5bd9cf; border: none; font-weight: 700; }
-QPushButton#Primary:hover { background: #83efe6; }
-QPushButton#Danger { color: #f5b8b5; border-color: #6c3c48; }
-QLabel#Title { color: #f2f7f8; font-size: 24px; font-weight: 750; }
-QLabel#Brand { color: #68e0d8; font-size: 23px; font-weight: 800; letter-spacing: 2px; }
-QLabel#SubTitle { color: #88a3b0; font-size: 12px; }
-QLabel#CardTitle { color: #f1fafb; font-size: 16px; font-weight: 700; }
-QLabel#Badge { background: #18323b; border: 1px solid #315563; color: #8ce5df; padding: 4px 8px; border-radius: 7px; }
-QPlainTextEdit { background: #101820; color: #bed5db; border: 1px solid #334952; border-radius: 9px; padding: 8px; font-family: 'Monospace'; }
-QComboBox { background: #1a2833; color: #dce5e9; padding: 8px; border: 1px solid #34505d; border-radius: 8px; }
-QScrollArea { border: none; }
-QScrollBar:vertical { background: #11191f; width: 10px; }
-QScrollBar::handle:vertical { background: #34454d; border-radius: 4px; }
-"""
-
+from .theme import apply_theme, COLORS
 
 class NoWheelComboBox(QComboBox):
     """Prevent incidental wheel scrolling from changing a saved profile."""
@@ -104,7 +79,7 @@ class SpaceCard(QFrame):
         self.details.setMinimumHeight(37)
         outer.addWidget(self.details)
         self.state = QLabel("● Checking availability …")
-        self.state.setStyleSheet("color: #8daab5")
+        self.state.setStyleSheet("color: " + COLORS["text_muted"])
         outer.addWidget(self.state)
         self.policy = QLabel("Local-only controller · no cloud link")
         self.policy.setObjectName("SubTitle")
@@ -149,7 +124,7 @@ class SpaceCard(QFrame):
 
     def update_status(self, status: str, explanation: str, can_start: bool, running: bool):
         self.state.setText("● " + status)
-        self.state.setStyleSheet("color: " + ("#72ddb8" if running else ("#e0b27e" if not can_start else "#a2c5d2")))
+        self.state.setStyleSheet("color: " + (COLORS["success"] if running else (COLORS["warning"] if not can_start else COLORS["text_muted"])))
         self.policy.setText(explanation[:220])
         self.launch.setEnabled((can_start and not running) if self.space.kind == "vm" else can_start)
         if self.stop:
@@ -222,16 +197,21 @@ class MainWindow(QMainWindow):
         logo.setObjectName("Brand")
         side.addWidget(logo)
         slogan = QLabel("ISOLATE  /  CREATE  /  RESTORE")
-        slogan.setStyleSheet("color: #67818e; font-size: 9px; letter-spacing: 0.7px")
+        slogan.setObjectName("SubTitle")
         side.addWidget(slogan)
         side.addSpacing(26)
         self.stack = QStackedWidget()
         nav = [("▦  Workspaces", 0), ("◇  Security model", 1), ("✦  Diagnostics", 2), ("⚙  Machine settings", 3), ("⬡  Prepare VM", 4), ("↺  Backup & verify", 5)]
+        self.nav_buttons = []
         for label, index in nav:
             button = QPushButton(label)
+            button.setCheckable(True)
+            button.setAutoExclusive(True)
+            button.setChecked(index == 0)
             button.setMinimumHeight(43)
             button.clicked.connect(partial(self.goto, index))
             side.addWidget(button)
+            self.nav_buttons.append(button)
         side.addStretch()
         side.addWidget(QLabel("LOCAL FIRST  •  v0.1.0"))
         main.addWidget(rail)
@@ -254,7 +234,7 @@ class MainWindow(QMainWindow):
         right.addSpacing(14)
         right.addWidget(self.stack, 1)
         footer = QLabel("PROTECTED BY SEPARATION, NOT BY THEME  ·  Launch checks are guardrails, not a substitute for hypervisor hardening")
-        footer.setStyleSheet("color: #607681; font-size: 10px")
+        footer.setObjectName("AppFooter")
         footer.setWordWrap(True)
         right.addWidget(footer)
         main.addWidget(pages, 1)
@@ -311,7 +291,7 @@ class MainWindow(QMainWindow):
             panel.setObjectName("Panel")
             inner = QVBoxLayout(panel)
             head = QLabel(name)
-            head.setStyleSheet("color: #70d9d1; font-weight: 700; letter-spacing: 1px")
+            head.setObjectName("SectionHeading")
             inner.addWidget(head)
             copy = QLabel(desc)
             copy.setWordWrap(True)
@@ -359,7 +339,7 @@ class MainWindow(QMainWindow):
         inner = QVBoxLayout(panel)
         inner.setSpacing(12)
         title = QLabel("RESOURCE PROFILE")
-        title.setStyleSheet("color: #70d9d1; font-weight: 700")
+        title.setObjectName("SectionHeading")
         inner.addWidget(title)
         self.profile_combo = NoWheelComboBox()
         for label, value in (
@@ -412,7 +392,7 @@ class MainWindow(QMainWindow):
         update_panel.setObjectName("Panel")
         updater = QVBoxLayout(update_panel)
         head = QLabel("APPLICATION UPDATES")
-        head.setStyleSheet("color: #70d9d1; font-weight: 700")
+        head.setObjectName("SectionHeading")
         updater.addWidget(head)
         self.update_opt_in = QCheckBox("Check GitHub for new source versions when Nightglass opens")
         self.update_opt_in.setChecked(settings.automatic_update_checks)
@@ -902,6 +882,7 @@ class MainWindow(QMainWindow):
 
     def goto(self, index: int):
         self.stack.setCurrentIndex(index)
+        self.nav_buttons[index].setChecked(True)
         self.header_title.setText(["Security workspaces", "Trust boundaries", "System diagnostics", "Machine settings", "Offline VM preparation", "VM backups"][index])
         if index == 2:
             self.check_host()
@@ -1053,7 +1034,7 @@ def run_gui() -> int:
         print("Nightglass must run as an unprivileged desktop user, never as root.")
         return 2
     app = QApplication.instance() or QApplication([])
-    app.setStyleSheet(STYLE)
+    apply_theme(app)
     try:
         window = MainWindow()
     except (WorkspaceError, OSError) as exc:
