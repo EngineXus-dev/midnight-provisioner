@@ -27,6 +27,7 @@ from .portability import (
 from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
 from .kali_templates import get_template, list_templates, plan_template
+from .kali_setup import build_setup_plan, save_setup_plan, compare_inventory_files
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -646,6 +647,23 @@ class MainWindow(QMainWindow):
         view_template.clicked.connect(self.show_kali_template)
         template_info.addWidget(view_template)
         layout.addLayout(template_info)
+        plan_actions = QHBoxLayout()
+        save_plan = QPushButton("Save private Kali setup plan")
+        save_plan.clicked.connect(self.save_kali_setup_plan)
+        save_plan.setToolTip(
+            "Write a NEW private JSON record of a selected template and separate VM; "
+            "package versions are unknown and no software is installed."
+        )
+        plan_actions.addWidget(save_plan)
+        compare_plan = QPushButton("Compare guest inventory")
+        compare_plan.clicked.connect(self.compare_kali_guest_inventory)
+        compare_plan.setToolTip(
+            "Read a setup plan and manually exported guest package inventory JSON. "
+            "No VM or guest commands are executed; supplied metadata is untrusted."
+        )
+        plan_actions.addWidget(compare_plan)
+        plan_actions.addStretch()
+        layout.addLayout(plan_actions)
 
         controls = QHBoxLayout()
         self.provision_preview_button = QPushButton("Verify ISO + preview VM")
@@ -697,6 +715,61 @@ class MainWindow(QMainWindow):
             self.provision_cpus.clear()
             self.provision_disk.setText(str(template.disk_gib))
         self.provision_result.clear()
+
+    def save_kali_setup_plan(self):
+        if self.provision_kind.currentData() != "pentest":
+            self.error("Setup plans are for independently installed Kali guests, not malware analysis VMs.")
+            return
+        template_id = self.provision_template.currentData()
+        if not template_id:
+            self.error("Choose a curated Kali toolkit first.")
+            return
+        guest = self.provision_name.text().strip()
+        filename, _ = QFileDialog.getSaveFileName(
+            self, "Save NEW Kali setup plan (not an installer)",
+            str(Path.home() / (guest + "-setup-plan.json")),
+            "JSON files (*.json)",
+        )
+        if not filename:
+            return
+        try:
+            plan = build_setup_plan(
+                template_id, guest=guest,
+                iso_sha256=self.provision_sha.text().strip() or None,
+            )
+            target = save_setup_plan(plan, Path(filename))
+        except (WorkspaceError, ToolError, ValueError, OSError) as exc:
+            self.error(str(exc))
+            return
+        self.provision_result.setPlainText(
+            f"Saved NEW private Kali template plan: {target}\n"
+            "All package versions are UNKNOWN. Guest installation, disk creation, "
+            "network connectivity and dependency auditing were NOT performed."
+        )
+
+    def compare_kali_guest_inventory(self):
+        plan, _ = QFileDialog.getOpenFileName(
+            self, "Select existing Kali setup plan JSON", "", "JSON files (*.json)"
+        )
+        if not plan:
+            return
+        inventory, _ = QFileDialog.getOpenFileName(
+            self, "Select manually exported guest package inventory JSON", "",
+            "JSON files (*.json)"
+        )
+        if not inventory:
+            return
+        self.provision_result.setPlainText(
+            "Comparing two local JSON files without contacting or running any VM …"
+        )
+        self.work(
+            lambda: compare_inventory_files(Path(plan), Path(inventory)),
+            lambda report: self.provision_result.setPlainText(report.describe()),
+            lambda message: self.provision_result.setPlainText(
+                "GUEST INVENTORY UNVERIFIED — " + message +
+                "\nNo software, guest or system settings were modified."
+            ),
+        )
 
     def show_kali_template(self):
         if self.provision_kind.currentData() != "pentest":
