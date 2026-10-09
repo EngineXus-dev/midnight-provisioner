@@ -276,9 +276,16 @@ class BackupSetTests(unittest.TestCase):
             try:
                 link.symlink_to(p)
             except (OSError, NotImplementedError):
-                return
-            with self.assertRaises(settool.SetError):
+                self.skipTest("File symlink creation unavailable")
+            # The companion path-preflight runs before schema validation
+            # and raises BackupError, rather than the later SetError.
+            # Verify rejection by both the library and public CLI.
+            with self.assertRaisesRegex(self.base.BackupError, "linked or reparsed"):
                 settool.read_manifest(link, self.base)
+            with redirect_stderr(io.StringIO()), redirect_stdout(io.StringIO()):
+                self.assertEqual(settool.main([
+                    "--mode", "Verify", "--manifest", str(link),
+                ]), 2)
 
     def test_manifest_with_linked_parent_is_rejected(self):
         with tempfile.TemporaryDirectory() as home:
