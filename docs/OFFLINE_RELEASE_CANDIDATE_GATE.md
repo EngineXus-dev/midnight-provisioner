@@ -194,3 +194,17 @@ The latest cumulative candidate includes new path-boundary tests in
 `tests/test_backup_set_preflight.py`. They must pass as part of the
 same pinned SHA release gate; the prior isolated fixture test cannot
 substitute for a native Windows junction acceptance.
+
+## Phase 16 — Python runner module import reliability
+
+All `scripts/`-launched unittest helpers now place the exact
+checkout root at the front of sys.path before discovery. Without
+this, discovered test modules which import `nightglass` may
+fail to load on an otherwise complete checkout. The new synthetic
+subprocess test `tests/test_isolated_runner_imports.py` is
+part of the Windows portable and headless Docker discovery paths.
+
+The source-level fix was reproduced in a disposable local
+Python 3.13 fixture; the actual current GitHub candidate remains
+unverified on native Windows and the Docker/Fedora test matrix.
+See [Phase 16](PHASE16_IMPORT_PATH_VERIFICATION.md).
