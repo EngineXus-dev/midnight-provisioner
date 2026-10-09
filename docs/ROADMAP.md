@@ -218,6 +218,17 @@
 - [ ] Paths outside the selected storage directory may still refer to the disk via symlink, bind mounts or storage indirection, and are NOT automatically resolved
 - [ ] Real Fedora/KVM isolation, cold backup/restore, package provenance and controlled guest execution acceptance remain pending
 
+## v0.3l — independently verified Kali template cold backup baseline (draft)
+- [x] Link a registered shut-off Kali VM, its selected independent disk and an existing cold backup to the same curated template
+- [x] Rehash all backup assets before using archived XML, NVRAM, manifest disk sources or QEMU metadata
+- [x] Refuse guest-name/UUID mismatches, unexpected NIC, ISO, extra disk, absent or wrong UEFI NVRAM copy
+- [x] Refuse hardlinked/shared backup disk, invalid qcow2 header, backing layers or differing guest disk virtual size
+- [x] Recheck VM shutdown state and archived image inode after inspection; flag backups stored on the same filesystem as the guest
+- [x] Opt-in CLI/GUI read-only baseline audit with optional NEW private metadata evidence and synthetic test coverage
+- [ ] Independently stage, import, boot and restore a benign Kali guest on supervised Fedora/KVM
+- [ ] Signed backup manifest and effective guest/host network/SELinux verification remain unavailable
+- [ ] Do not automate Kali package installs or in-place rollback based on hash matches alone
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
