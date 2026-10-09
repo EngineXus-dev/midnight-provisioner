@@ -19,6 +19,7 @@ from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
 from .acceptance import RegisteredGuestAuditor, save_acceptance
+from .runtime_labels import RuntimeLabelInspector, save_runtime_observation
 from .handoff import RecoveryHandoff, save_handoff
 from .resources import collect_resources
 from .host_posture import inspect_host_posture
@@ -85,6 +86,10 @@ def main(argv: list[str] | None = None) -> int:
     recover_handoff = recover_actions.add_parser("handoff", help="Read-only comparison of a registered VM with its verified recovery staging")
     recover_handoff.add_argument("directory")
     recover_handoff.add_argument("--report", type=Path, help="Save private evidence to a NEW local JSON file")
+    runtime = sub.add_parser("runtime-label", help="Observe libvirt sVirt label metadata of an ALREADY-running guest (read-only)")
+    runtime.add_argument("guest", help="Exact registered VM name; never starts guest")
+    runtime.add_argument("--policy", choices=("isolated", "lab"), default="isolated")
+    runtime.add_argument("--report", type=Path, help="Save private evidence to a NEW local JSON file")
     accept = sub.add_parser("accept", help="Read-only inspection of an ACTUAL registered libvirt guest")
     accept.add_argument("guest", help="Exact libvirt domain name")
     accept.add_argument("--policy", choices=("isolated", "lab"), default="isolated")
@@ -92,6 +97,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     cmd = args.command or "gui"
     try:
+        if cmd == "runtime-label":
+            report = RuntimeLabelInspector().inspect(args.guest, args.policy)
+            print(report.describe())
+            if args.report:
+                print(f"Private local metadata evidence: {save_runtime_observation(report, args.report)}")
+            return 0 if report.ok else 2
         if cmd == "host-security":
             posture = inspect_host_posture()
             print(posture.describe())
