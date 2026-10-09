@@ -663,3 +663,16 @@ may have changed since the snapshot and the **new tests are pending**.
 A future cumulative integration review must include independent
 workflow inspection, current GitHub status and exact-commit offline
 test evidence before a separate user-approved merge decision.
+
+### Safe integration audit from the original Windows `main` checkout
+
+[Phase 7 pinned-source stack audit](docs/REMOTE_REF_STACK_AUDIT.md)
+fixes the earlier local-checkout mismatch: the 40-PR snapshot was
+not present in `main`, so the auditor now reads that JSON from
+the exact SHA of the fetched candidate in the local Git object
+database. No branch checkout, forced reset, merge or overwrite of
+untracked files is needed. A strict workflow policy review permits
+only manually dispatched CI with read-only token scope and flags
+mutable action version tags for human review. **Tests for the
+newest cumulative branch are still pending** and the audit cannot
+authorize integration or Windows/Fedora deployment.
