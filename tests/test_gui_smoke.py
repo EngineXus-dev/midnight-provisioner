@@ -134,6 +134,33 @@ class OffscreenMainWindowTests(unittest.TestCase):
         error.assert_called_once()
         background.assert_not_called()
 
+    def test_kali_templates_are_independent_and_not_installed_by_gui(self):
+        from nightglass.kali_templates import get_template, list_templates
+        with patch.object(self.window, "work") as background:
+            self.window.prepare_space("pentest")
+            self.assertEqual(self.window.stack.currentIndex(), 4)
+            self.assertTrue(self.window.provision_template.isEnabled())
+            self.assertEqual(self.window.provision_template.count(), len(list_templates()) + 1)
+            entry = self.window.provision_template.findData("web-audit")
+            self.assertGreater(entry, 0)
+            self.window.provision_template.setCurrentIndex(entry)
+            self.assertEqual(
+                self.window.provision_name.text(), get_template("web-audit").default_name,
+            )
+            self.assertEqual(self.window.provision_disk.text(), "48")
+            self.window.show_kali_template()
+            output = self.window.provision_result.toPlainText()
+            self.assertIn("Web Application Assessment", output)
+            self.assertIn("DISCONNECTED", output)
+            self.assertIn("sudo apt install", output)
+            background.assert_not_called()
+            self.window.prepare_space("analysis")
+            self.assertFalse(self.window.provision_template.isEnabled())
+            self.assertEqual(self.window.provision_name.text(), "nightglass-malware")
+            self.window.show_kali_template()
+            self.assertIn("must not be attached", self.window.provision_result.toPlainText())
+            background.assert_not_called()
+
     def test_analysis_profile_cannot_save_running_memory(self):
         with patch.object(self.window, "error") as error, \
              patch.object(self.window, "work") as background:
