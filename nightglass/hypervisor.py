@@ -47,6 +47,15 @@ def assess_domain(xml_text: str, policy: str, lab_net_xml: str | None = None) ->
     if policy == "trusted":
         # Trusted means development guests only: not an audit for hostile code.
         return Audit(True, ("Trusted VM: no strict network/device isolation enforced",), policy)
+    # An explicit opt-out from sVirt/SELinux relabeling undermines the
+    # restricted-guest host boundary even when its NIC inventory is empty.
+    # Absence of a seclabel is not by itself proof of a problem: libvirt may
+    # supply dynamic labels at domain definition/launch time.
+    for label in [*root.findall("seclabel"), *devices.findall(".//seclabel")]:
+        if label.get("type") == "none":
+            issues.append("Guest or disk explicitly disables security labeling")
+        if label.get("relabel") == "no":
+            issues.append("Guest or disk explicitly disables security relabeling")
     # Namespaced QEMU extensions can redefine ordinary devices, create host
     # channels or inject extra command arguments. Reject all such extensions.
     if any(node.tag.startswith("{http://libvirt.org/schemas/domain/qemu/1.0}") for node in root.iter()):
