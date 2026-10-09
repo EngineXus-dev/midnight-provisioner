@@ -123,12 +123,15 @@ class OfflineProvisioningTests(unittest.TestCase):
         little.write_bytes(b"not a real ISO")
         with self.assertRaises(ToolError):
             build_plan("analysis", little, self.expected, budget=self.budget)
-        link = Path(self.temp.name) / "symlink.iso"
-        link.symlink_to(self.iso)
-        with self.assertRaises(ToolError):
-            build_plan("analysis", link, self.expected, budget=self.budget)
         with self.assertRaises(ToolError):
             build_plan("analysis", Path(self.temp.name) / "missing.iso", self.expected, budget=self.budget)
+        link = Path(self.temp.name) / "symlink.iso"
+        try:
+            link.symlink_to(self.iso)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies synthetic symlink creation")
+        with self.assertRaises(ToolError):
+            build_plan("analysis", link, self.expected, budget=self.budget)
 
     def test_pentest_is_offline_even_before_lab_network_setup(self):
         plan = self.make(kind="pentest")
