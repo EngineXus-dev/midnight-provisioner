@@ -48,6 +48,15 @@ It also refuses to stage a new folder inside the original backup.
 No original disk, guest definition, firmware variable image or Windows file
 is overwritten. Staged assets are created with private file permissions.
 
+## Fedora import-readiness check (read-only)
+
+After staging and hash-verifying a recovery on the destination Fedora host,
+run `nightglass recover preflight /path/to/NEW-folder`, or use the GUI
+**Backup & verify → Check Fedora import readiness**. It uses
+`virt-xml-validate` and `qemu-img info` without changing the guest,
+and checks host KVM permissions, capacity and new-name availability.
+See [Fedora acceptance matrix](FEDORA_ACCEPTANCE.md).
+
 ## What this does *not* prove
 
 - **No boot test:** file hashes show consistency, not that the VM will boot.
