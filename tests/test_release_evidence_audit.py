@@ -107,6 +107,16 @@ class LocalReleaseEvidenceTests(unittest.TestCase):
             with self.assertRaises(audit_module.EvidenceError):
                 audit_module.read_report(f)
 
+    def test_reject_nonstandard_nan_infinity_even_in_extra_fields(self):
+        with tempfile.TemporaryDirectory() as folder:
+            for token in ("NaN", "Infinity", "-Infinity"):
+                path = Path(folder) / "nonstandard.json"
+                path.write_text('{"test_gate_passed": ' + token + '}',
+                                encoding="utf-8")
+                with self.subTest(token=token):
+                    with self.assertRaises(audit_module.EvidenceError):
+                        audit_module.read_report(path)
+
     def test_file_cannot_be_overlarge_or_directory(self):
         with tempfile.TemporaryDirectory() as folder:
             p = Path(folder) / "huge.json"
