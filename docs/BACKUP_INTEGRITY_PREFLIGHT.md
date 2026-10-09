@@ -170,3 +170,5 @@ Native Windows junction testing remains pending.
 ## Phase 13 identity check
 
 The backup checker now rejects a backup hardlink to any source file in its selected source tree, even when filenames differ. Physical drive independence remains unverified.
+
+Phase 13 now rejects hardlinks across **all file names** in a selected source/copy pair, including extra backup files. Comparing only corresponding filenames could miss a backup that was hardlinked to a differently named source file. See [cross-root identity review](BACKUP_CROSS_ROOT_IDENTITY.md).
