@@ -30,6 +30,7 @@ from .kali_templates import get_template, list_templates, plan_template
 from .kali_setup import build_setup_plan, save_setup_plan, load_setup_plan, compare_inventory_files, guest_inventory_instructions
 from .kali_preflight import KaliPreflight
 from .kali_registration import KaliRegistrationInspector
+from .kali_cold_baseline import KaliColdBaselineInspector
 from .kali_drift import compare_version_lock_files
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
@@ -709,6 +710,14 @@ class MainWindow(QMainWindow):
         )
         registered.clicked.connect(self.audit_registered_kali_template)
         controls.addWidget(registered)
+        baseline = QPushButton("Verify Kali cold backup")
+        baseline.setToolTip(
+            "Read-only binding of a manually installed, shut-off Kali VM and "
+            "its independent qcow2 disk to an existing hash-verified cold backup. "
+            "Does not make a backup, restore or boot."
+        )
+        baseline.clicked.connect(self.verify_kali_cold_baseline)
+        controls.addWidget(baseline)
         vm_manager = QPushButton("Open virt-manager")
         vm_manager.clicked.connect(lambda: self.open_program(["virt-manager", "--connect", "qemu:///system"]))
         controls.addWidget(vm_manager)
@@ -950,6 +959,52 @@ class MainWindow(QMainWindow):
             lambda message: self.provision_result.setPlainText(
                 "REGISTERED KALI TEMPLATE: BLOCKED / UNVERIFIED\n" + message +
                 "\nNo VM or disk was started, changed or registered."
+            ),
+        )
+
+    def verify_kali_cold_baseline(self):
+        if self.provision_kind.currentData() != "pentest":
+            self.provision_result.setPlainText(
+                "Cold baseline checks are restricted to separately installed benign Kali guests."
+            )
+            return
+        template_id = self.provision_template.currentData()
+        if not template_id:
+            self.provision_result.setPlainText("Choose a curated Kali VM profile first.")
+            return
+        plan_file, _ = QFileDialog.getOpenFileName(
+            self, "Choose private Kali VM setup plan", "", "JSON files (*.json)"
+        )
+        if not plan_file:
+            return
+        disk_file, _ = QFileDialog.getOpenFileName(
+            self, "Choose the registered SHUT-OFF Kali VM disk", "", "QEMU disks (*.qcow2)"
+        )
+        if not disk_file:
+            return
+        backup_folder = QFileDialog.getExistingDirectory(
+            self, "Choose existing independent Nightglass cold backup folder"
+        )
+        if not backup_folder:
+            return
+        expected_guest = self.provision_name.text().strip()
+        self.provision_result.setPlainText(
+            "Hash-checking an existing cold Kali backup and comparing offline "
+            "VM/disk/NVRAM metadata; no guest files will be changed …"
+        )
+        def run():
+            data = load_setup_plan(Path(plan_file))
+            if data["guest"] != expected_guest or data["template_id"] != template_id:
+                raise ToolError("Cold baseline plan does not match the selected Kali VM/template")
+            return KaliColdBaselineInspector().inspect(
+                Path(plan_file), Path(disk_file), Path(backup_folder)
+            )
+        self.work(
+            run,
+            lambda report: self.provision_result.setPlainText(report.describe()),
+            lambda message: self.provision_result.setPlainText(
+                "KALI COLD BASELINE: BLOCKED / UNVERIFIED\n" + message +
+                "\nNo backup or VM was created, restored, or modified."
             ),
         )
 
