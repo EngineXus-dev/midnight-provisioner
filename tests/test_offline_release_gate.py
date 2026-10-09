@@ -58,7 +58,7 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
                      "--memory 1024m"):
             self.assertIn(flag, text)
         for forbidden in ("--privileged", "/dev/kvm", "/var/run/docker.sock",
-                          "--network host", "type=bind,source=/"):
+                          "--network host", "--mount type=bind,source=/,target=/"):
             self.assertNotIn(forbidden, text)
 
     def test_version_matrix_and_fedora_image_are_explicit(self):
@@ -112,7 +112,7 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
 
             def fake_checked(argv, *, cwd, timeout=30):
                 calls.append(argv)
-                if argv[-3:] == ["rev-parse", "HEAD"] or (
+                if argv[-2:] == ["rev-parse", "HEAD"] or (
                         "rev-parse" in argv and argv[-1].startswith("refs/remotes")):
                     return "a" * 40
                 return ""
