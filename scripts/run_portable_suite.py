@@ -33,8 +33,11 @@ def run_pattern(pattern: str, *, root: Path = ROOT) -> int:
     # to scripts/, NOT to the project root. Discovery adds tests/ only;
     # it does not make 'import nightglass' available. Add the trusted
     # checked-out root explicitly before loading test modules.
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
+    # Place the pinned checkout first, even when an inherited PYTHONPATH
+    # already lists it after another potentially conflicting package root.
+    if str(root) in sys.path:
+        sys.path.remove(str(root))
+    sys.path.insert(0, str(root))
     loader = unittest.TestLoader()
     suite = loader.discover(str(tests), pattern=pattern)
     collected = suite.countTestCases()
