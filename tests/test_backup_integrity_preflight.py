@@ -10,9 +10,11 @@ import importlib.util
 import io
 import json
 import os
+import stat
 from pathlib import Path
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -160,6 +162,15 @@ class BackupIntegrityTests(unittest.TestCase):
                 backup.inventory(src, max_files=100, max_bytes=1024**2)
             with self.assertRaises(backup.BackupError):
                 backup.checked_root(link)
+
+    def test_windows_reparse_attribute_is_a_hard_block_even_without_symlink_mode(self):
+        # Synthetic junction/reparse attributes; real native Windows
+        # junction creation and check remain a separate acceptance step.
+        fake_dir = SimpleNamespace(st_mode=stat.S_IFDIR,
+                                   st_file_attributes=0x400)
+        with patch.object(backup.stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400,
+                          create=True):
+            self.assertTrue(backup.is_link_or_reparse(Path("fake"), fake_dir))
 
     def test_linked_parent_of_selected_root_is_rejected(self):
         with tempfile.TemporaryDirectory() as home:
