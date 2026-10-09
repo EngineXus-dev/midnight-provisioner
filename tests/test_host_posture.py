@@ -40,7 +40,7 @@ class HostPostureTests(unittest.TestCase):
             return mapping[str(path)]
         with patch.object(posture, "_read_value", side_effect=read), \
              patch.object(posture.platform, "system", return_value="Linux"), \
-             patch.object(posture.os, "geteuid", return_value=root_uid), \
+             patch.object(posture.os, "geteuid", return_value=root_uid, create=True), \
              patch.object(posture.KVM_DEVICE.__class__, "is_symlink", return_value=False), \
              patch.object(posture.KVM_DEVICE.__class__, "exists", return_value=kvm_exists), \
              patch.object(posture.KVM_DEVICE.__class__, "is_char_device", return_value=True), \
