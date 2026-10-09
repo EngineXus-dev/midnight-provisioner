@@ -89,6 +89,17 @@ inventory and optionally saved as a self-reported version lock. See
 [per-guest Kali setup manifests](KALI_SETUP_MANIFESTS.md) for examples
 and explicitly unverified software provenance and rollback assumptions.
 
+## Host and installer preflight (implemented, not VM creation)
+
+A private setup plan can now be combined with the actual local Kali installer
+ISO and a designated existing host storage directory using
+`nightglass templates preflight PLAN.json --iso LOCAL.iso --storage-dir EXISTING_DIR`.
+The GUI offers **Check Kali VM readiness**. This checks the ISO checksum,
+two offline libvirt XML stages, current system-libvirt guest cap, available
+RAM and temporary qcow2 storage headroom; it does not reserve space,
+install the VM or prove isolation. See
+[Kali template host readiness](KALI_TEMPLATE_PREFLIGHT.md).
+
 ## Next phase planned (not enabled)
 
 A supervised, reproducible **per-guest setup manifest** could track selected
