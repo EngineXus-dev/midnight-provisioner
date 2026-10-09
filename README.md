@@ -233,6 +233,18 @@ disks, changed NVRAM, managed-save state or mismatched registered UUIDs.
 It does not prove runtime confinement, guest boot or network isolation.
 See [verified recovery handoff](docs/RECOVERY_HANDOFF.md).
 
+## Running guest sVirt metadata (read-only)
+
+With a **benign VM already running**, use **Diagnostics → Observe running VM
+sVirt labels** or `nightglass runtime-label SAFE_GUEST --policy isolated`.
+The check requires SELinux Enforcing, libvirt's SELinux security model and
+matching dynamic sVirt process/image labels reported in current libvirt XML.
+Shut-off guests and unverifiable values do not pass.
+
+This **does not start a guest or inspect the actual QEMU process or image
+inode's effective labels**. It does not demonstrate network packet isolation.
+See [runtime sVirt observation](docs/RUNTIME_SVIRT_OBSERVATION.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
