@@ -43,21 +43,42 @@ def assess_domain(xml_text: str, policy: str, lab_net_xml: str | None = None) ->
     if policy == "trusted":
         # Trusted means development guests only: not an audit for hostile code.
         return Audit(True, ("Trusted VM: no strict network/device isolation enforced",), policy)
+    # Namespaced QEMU extensions can redefine ordinary devices, create host
+    # channels or inject extra command arguments. Reject all such extensions.
+    if any(node.tag.startswith("{http://libvirt.org/schemas/domain/qemu/1.0}") for node in root.iter()):
+        issues.append("QEMU extension bypasses the restricted device policy")
     for tag, explanation in (
         ("filesystem", "Host filesystem passthrough is configured"),
         ("hostdev", "Physical host device passthrough is configured"),
         ("redirdev", "USB redirection is configured"),
         ("shmem", "Shared memory device is configured"),
         ("vsock", "Host/guest vsock communication is configured"),
+        ("serial", "Serial console can provide a host communication channel"),
+        ("parallel", "Parallel port can provide a host communication channel"),
+        ("console", "Guest console can provide a host communication channel"),
+        ("smartcard", "Smartcard host passthrough is configured"),
+        ("tpm", "TPM device requires separate isolation assessment"),
+        ("rng", "RNG backend requires separate host-integration assessment"),
+        ("sound", "Host audio output is not approved for restricted VMs"),
+        ("audio", "Host audio backend is not approved for restricted VMs"),
     ):
         if devices.find(tag) is not None:
             issues.append(explanation)
     for disk in devices.findall("disk"):
-        if disk.get("device", "disk") == "disk" and disk.get("type") not in {"file", "volume"}:
-            issues.append("Disk uses an unapproved backing type (block devices forbidden)")
-        source = disk.find("source")
-        if source is not None and source.get("dev"):
-            issues.append("Direct host block device attached")
+        # A block/network-backed CD-ROM or floppy is still a host-device escape
+        # from the declared policy. Libvirt volume pools may also be block-backed.
+        if disk.get("type") != "file" or disk.get("device", "disk") not in {"disk", "cdrom"}:
+            issues.append("Disk/CD-ROM uses an unapproved device or storage type")
+        for storage in [disk, *disk.findall(".//backingStore")]:
+            if storage is not disk and storage.get("type") not in {None, "file"}:
+                issues.append("Disk backing chain uses an unapproved storage type")
+            source = storage.find("source")
+            if source is not None:
+                if any(source.get(attr) for attr in ("dev", "protocol", "name", "pool", "volume")):
+                    issues.append("Disk or backing chain references host device, network or storage pool")
+                path = source.get("file", "")
+                if path.startswith(("/dev/", "/proc/", "/sys/")):
+                    issues.append("Disk image path is a special host filesystem")
     for channel in devices.findall("channel"):
         issues.append("Guest agent or SPICE channel may provide host integration")
     for graphics in devices.findall("graphics"):
@@ -149,18 +170,28 @@ class Hypervisor:
                     raise ToolError("Low-memory guard: another VM is already active. Stop or save it before starting a second VM.")
             try:
                 xml = ET.fromstring(self._virsh("dumpxml", domain))
-                mem = xml.find("memory")
-                if mem is None or not mem.text:
-                    raise ValueError("VM RAM declaration missing")
                 units = {"kib": 1024, "mib": 1024 ** 2, "gib": 1024 ** 3, "b": 1}
-                unit = (mem.get("unit") or "KiB").lower()
-                if unit not in units:
-                    raise ValueError("Unsupported VM memory unit")
-                vm_gib = int(mem.text.strip()) * units[unit] / (1024 ** 3)
+                declared_gib = []
+                for name in ("memory", "currentMemory", "maxMemory"):
+                    mem = xml.find(name)
+                    if mem is None:
+                        if name == "memory":
+                            raise ValueError("VM RAM declaration missing")
+                        continue
+                    if not mem.text:
+                        raise ValueError(f"{name} size is missing")
+                    unit = (mem.get("unit") or "KiB").lower()
+                    if unit not in units:
+                        raise ValueError(f"Unsupported {name} memory unit")
+                    amount = int(mem.text.strip())
+                    if amount <= 0:
+                        raise ValueError(f"Invalid {name} memory value")
+                    declared_gib.append(amount * units[unit] / (1024 ** 3))
+                vm_gib = max(declared_gib)
             except (ET.ParseError, ValueError, TypeError) as exc:
                 raise ToolError(f"Low-memory guard: cannot verify VM RAM size ({exc})") from exc
             if vm_gib > 3.5:
-                raise ToolError(f"Low-memory guard: VM requests {vm_gib:.1f} GiB; limit this 8-GB-class host to <=3.5 GiB per guest.")
+                raise ToolError(f"Low-memory guard: VM declares up to {vm_gib:.1f} GiB; limit this 8-GB-class host to <=3.5 GiB per guest.")
         return self._virsh("start", domain, timeout=120).strip() or "VM started"
 
     def shutdown(self, domain: str) -> str:
