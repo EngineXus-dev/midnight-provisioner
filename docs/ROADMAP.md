@@ -10,6 +10,12 @@
 - [x] Mock-based policy/lifecycle/metadata tests and CI definition
 - [ ] Live testing with Fedora KDE, actual libvirt domains, guest networking, and no-root permission paths
 
+## v0.1.2 — saved session audit and safe resume
+- [x] Fail-closed managed-save XML verification (both saved and inactive VM configurations)
+- [x] Memory pressure guard covers the saved VM memory allocation, not only the inactive definition
+- [x] Disable managed-save for disposable analysis profiles; saved-session status in the UI and CLI
+- [ ] Fedora/KVM end-to-end tests for resumed Kali sessions and manual out-of-band changes
+
 ## v0.2 — workspace provisioning
 - [ ] Installer-assisted Kali and disposable analysis VM templates from verified checksummed images
 - [ ] Dynamic RAM-pressure and swap indicator, VM runtime resource controls and external launch detection
