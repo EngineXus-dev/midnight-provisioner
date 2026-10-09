@@ -308,7 +308,8 @@ def verify_backup(directory: Path) -> list[str]:
         disk_count += kind == "disk"
         xml_count += kind == "xml"
         path = directory / name
-        if path.is_symlink() or not path.is_file():
+        if ((path.parent != directory and path.parent.is_symlink())
+                or path.is_symlink() or not path.is_file()):
             raise ToolError(f"Missing or symlinked backup file: {name}")
         try:
             actual_bytes, actual_hash = _hash_file(path)
