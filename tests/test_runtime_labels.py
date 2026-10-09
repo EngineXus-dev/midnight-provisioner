@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -11,6 +12,24 @@ from nightglass.host_posture import HostPosture, PostureCheck
 from nightglass.portability import budget_for
 from nightglass.runtime_labels import RuntimeLabelInspector, save_runtime_observation
 from nightglass.runner import ToolError
+
+# Windows synthetic runtime-evidence tests do not provide POSIX fchmod.
+_fixture_mode_patch = None
+
+
+def setUpModule():
+    global _fixture_mode_patch
+    if os.name == "nt":
+        _fixture_mode_patch = patch("nightglass.acceptance.os.fchmod", create=True)
+        _fixture_mode_patch.start()
+
+
+def tearDownModule():
+    global _fixture_mode_patch
+    if _fixture_mode_patch is not None:
+        _fixture_mode_patch.stop()
+        _fixture_mode_patch = None
+
 
 UUID = "01234567-89ab-cdef-0123-456789abcdef"
 MCS = "c101,c209"
@@ -209,7 +228,8 @@ class RuntimeLabelTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             destination = Path(folder) / "new-private-runtime.json"
             save_runtime_observation(report, destination)
-            self.assertEqual(destination.stat().st_mode & 0o777, 0o600)
+            if os.name != "nt":
+                self.assertEqual(destination.stat().st_mode & 0o777, 0o600)
             self.assertNotIn(MCS, destination.read_text())
             with self.assertRaisesRegex(ToolError, "already exists"):
                 save_runtime_observation(report, destination)
