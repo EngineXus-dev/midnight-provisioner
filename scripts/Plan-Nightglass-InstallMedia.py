@@ -49,7 +49,7 @@ def iso_info(path: Path, minimum: int, *, hash_file: bool) -> dict:
     if path.is_symlink():
         raise PreflightError("Symlinked ISO is unsupported")
     try:
-        before = path.stat(follow_symlinks=False)
+        before = path.lstat()
     except OSError as exc:
         raise PreflightError("ISO source unreadable") from exc
     if not stat.S_ISREG(before.st_mode):
@@ -75,7 +75,7 @@ def iso_info(path: Path, minimum: int, *, hash_file: bool) -> dict:
                     break
                 digest.update(chunk)
             after_open = os.fstat(stream.fileno())
-        after = path.stat(follow_symlinks=False)
+        after = path.lstat()
         identity = (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns)
         if identity != (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns):
             raise PreflightError("ISO was modified during inspection")
