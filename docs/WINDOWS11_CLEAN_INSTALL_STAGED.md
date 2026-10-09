@@ -120,3 +120,23 @@ https://support.microsoft.com/en-us/windows/deployment/install-upgrade/reinstall
 
 See ONE_USB_MULTIBOOT_PLAN.md, WINDOWS11_UPGRADE_FIRST.md,
 DEPLOYMENT_SAFETY_GATES.md and DEPLOYMENT_DECISION_TEMPLATE.md.
+
+## Optional lightweight Windows 11 image — conservative profile
+
+A future custom ISO can be built from an **untouched official Windows
+11 26H2 ISO** using NTLite Free's edition-management, basic app removal,
+ESD compression and ISO creation features. Do NOT remove all editions
+except Pro by default: the previously verified Windows licence is
+Home, and Pro needs its own valid licence. Never strip servicing,
+Defender/firewall, TPM/Secure Boot, WinRE, drivers, Store/WebView2 or
+Windows virtualization/WSL/Docker dependencies for a numeric size goal.
+
+NTLite and post-install debloat tools are not required just to
+fit Windows and Fedora official ISOs on the user's separate 16 GB USB;
+check actual ISO sizes first. Avoid executing WinUtil, Win11Debloat
+and RemoveWindowsAI in a chain. User-only, preview-first preferences
+are an optional *post*-installation script, not a bootable ISO builder.
+
+This is still a **deferred clean installation**, with no USB format,
+image build or Windows system changes performed here.
+See [safe Windows 11 Lite build profile](WINDOWS11_LITE_IMAGE_PROFILE.md).
