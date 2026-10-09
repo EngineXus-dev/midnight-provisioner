@@ -45,6 +45,7 @@ WINDOWS_PORTABLE_SUITES = (
     "test_required_integration_suites.py",
     "test_headless_matrix_coverage.py",
     "test_backup_integrity_preflight.py",
+    "test_backup_set_preflight.py",
 )
 
 # Cross-platform synthetic /proc process checks only: excludes the strict
