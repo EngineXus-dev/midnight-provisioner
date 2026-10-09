@@ -7,7 +7,9 @@ installation, intends to back up desired data to the example backup-drive capaci
 drive, owns a separate 16 GB USB, and is **not installing soon**.
 
 This supersedes earlier *in-place Windows 11 upgrade* wording for this
-user's current plan. Do not run setup, alter firmware, install an OS,
+user's current plan. the selected edition requires a valid **Windows
+Pro key**, so the intended future target is Windows 11 **Pro**, after
+independent validation of that key and activation rights. Do not run setup, alter firmware, install an OS,
 delete partitions, image any USB or copy user files automatically.
 
 ## Machine and storage identity
@@ -140,3 +142,10 @@ are an optional *post*-installation script, not a bootable ISO builder.
 This is still a **deferred clean installation**, with no USB format,
 image build or Windows system changes performed here.
 See [safe Windows 11 Lite build profile](WINDOWS11_LITE_IMAGE_PROFILE.md).
+
+**Requested post-install profile:** all 32 preferences, OneDrive,
+Xbox/Game Bar, Widgets/promotions and Copilot/Recall/Click to Do are
+staged in [Windows 11 Pro configuration](WINDOWS11_PRO_32_POINT_PROFILE.md).
+Privacy/AI toggles are distinct from app uninstall, automatic-encryption
+security choice, Windows Sandbox and WSL feature enablement.
+No changes have been applied to current Windows 10.
