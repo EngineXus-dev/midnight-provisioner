@@ -4,9 +4,9 @@
   "repository": "EngineXus-dev/nightglass-workspaces",
   "default_branch": "main",
   "note": "Stored on newest candidate branch, read via verified origin/<branch> Git object; do NOT depend on this file existing in main working tree.",
-  "snapshot_status": "Historical precursor PR metadata: #1–29 and #31–46 were draft/unmerged at observation, #30 missing. Refresh live GitHub status before any merge.",
+  "snapshot_status": "Historical predecessor observation: PRs #1–29 and #31–47 draft/unmerged; #30 absent. Refresh live GitHub status independently before merger.",
   "pr30": "NOT_FOUND",
-  "candidate_branch": "security/backup-boundary-fix",
+  "candidate_branch": "security/backup-cross-root-alias-guard",
   "review_requires": [
     "full_current_GitHub_PR_status_refresh",
     "all_source_diffs_independent_review",
@@ -239,6 +239,11 @@
       "pr": 46,
       "base": "deployment/readonly-backup-integrity",
       "head": "deployment/multi-source-backup-readiness"
+    },
+    {
+      "pr": 47,
+      "base": "deployment/multi-source-backup-readiness",
+      "head": "security/backup-boundary-fix"
     }
   ]
 }
