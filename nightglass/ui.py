@@ -29,6 +29,7 @@ from .provisioning import OfflineProvisioner, build_plan
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
+from .acceptance import RegisteredGuestAuditor, save_acceptance
 
 STYLE = """
 QWidget { background: #0b0e13; color: #dce5e9; font-family: 'Noto Sans', 'DejaVu Sans', sans-serif; font-size: 12px; }
@@ -175,6 +176,7 @@ class MainWindow(QMainWindow):
         self._jobs = set()
         self.cards = {}
         self._busy = False
+        self.last_acceptance = None
         self._build()
         self.refresh()
         self.timer = QTimer(self)
@@ -669,6 +671,15 @@ class MainWindow(QMainWindow):
         row.addWidget(host_check)
         row.addStretch()
         layout.addLayout(row)
+        acceptance_row = QHBoxLayout()
+        inspect = QPushButton("Audit registered VM")
+        inspect.clicked.connect(self.inspect_registered_guest)
+        acceptance_row.addWidget(inspect)
+        export = QPushButton("Save local audit report")
+        export.clicked.connect(self.export_acceptance_report)
+        acceptance_row.addWidget(export)
+        acceptance_row.addStretch()
+        layout.addLayout(acceptance_row)
         self.stack.addWidget(area)
 
     def backup_space(self, key: str):
@@ -811,6 +822,64 @@ class MainWindow(QMainWindow):
                 "FEDORA IMPORT PREFLIGHT BLOCKED: " + message +
                 "\nNo VM was registered, started, or changed."
             ),
+        )
+
+    def inspect_registered_guest(self):
+        guest, ok = QInputDialog.getText(
+            self, "Read-only registered guest audit", "Exact registered VM name:"
+        )
+        if not ok:
+            return
+        try:
+            guest = safe_name(guest.strip())
+        except WorkspaceError as exc:
+            self.error(str(exc))
+            return
+        policy, policy_ok = QInputDialog.getItem(
+            self, "Choose audit policy", "Inspect registered guest as:",
+            ["isolated", "lab"], 0, False
+        )
+        if not policy_ok:
+            return
+        self.last_acceptance = None
+        self.recovery_log.setPlainText(
+            "Inspecting registered guest (current, inactive and saved-state XML only) …"
+        )
+        def received(report):
+            self.last_acceptance = report
+            self.recovery_log.setPlainText(
+                report.describe() +
+                "\n\nYou may save this evidence locally. Unperformed network and boot tests "
+                "remain explicitly marked NOT VERIFIED."
+            )
+        self.work(
+            lambda: RegisteredGuestAuditor().inspect(guest, policy),
+            received,
+            lambda message: self.recovery_log.setPlainText(
+                "VM AUDIT UNAVAILABLE: " + message +
+                "\nNo VM was started or modified."
+            ),
+        )
+
+    def export_acceptance_report(self):
+        if self.last_acceptance is None:
+            self.error("Run Audit registered VM before saving evidence.")
+            return
+        filename, _ = QFileDialog.getSaveFileName(
+            self, "Choose a NEW local audit report",
+            str(Path.home() / ("nightglass-" + self.last_acceptance.guest + "-audit.json")),
+            "JSON files (*.json)",
+        )
+        if not filename:
+            return
+        try:
+            target = save_acceptance(self.last_acceptance, Path(filename))
+        except (ToolError, OSError) as exc:
+            self.error(str(exc))
+            return
+        self.inform(
+            "Evidence saved locally: " + str(target) +
+            "\nNo information was uploaded. Existing reports are never overwritten."
         )
 
     def verify_backup_folder(self):
