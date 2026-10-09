@@ -171,10 +171,10 @@ class MainWindow(QMainWindow):
         self._build()
         self.refresh()
         self.timer = QTimer(self)
-        self.timer.timeout.connect(self.refresh)
+        self.timer.timeout.connect(lambda *_args: self.refresh())
         self.timer.start(30000)
         self.resource_timer = QTimer(self)
-        self.resource_timer.timeout.connect(self.refresh_resources)
+        self.resource_timer.timeout.connect(lambda *_args: self.refresh_resources())
         self.resource_timer.start(20000)
         # Only contacts GitHub if the user explicitly opted into update notices.
         if load_machine_preferences().automatic_update_checks:
@@ -253,7 +253,7 @@ class MainWindow(QMainWindow):
         title_area.addWidget(subtitle)
         header.addLayout(title_area, 1)
         refresh = QPushButton("↻ Refresh")
-        refresh.clicked.connect(self.refresh)
+        refresh.clicked.connect(lambda *_args: self.refresh())
         header.addWidget(refresh)
         right.addLayout(header)
         right.addSpacing(14)
@@ -380,18 +380,18 @@ class MainWindow(QMainWindow):
             "Read SELinux enforcement, KVM access, firewalld status and IPv4/IPv6 "
             "forwarding. No sudo, guest startup, firewall or SELinux changes."
         )
-        posture_button.clicked.connect(self.check_host_security)
+        posture_button.clicked.connect(lambda *_args: self.check_host_security())
         posture_layout.addWidget(posture_button)
         observe = QPushButton("Observe running VM sVirt labels")
         observe.setToolTip(
             "Observe SELinux and libvirt label metadata of an ALREADY-running, "
             "registered restricted VM. Never starts the guest or verifies actual process confinement."
         )
-        observe.clicked.connect(self.observe_guest_runtime_labels)
+        observe.clicked.connect(lambda *_args: self.observe_guest_runtime_labels())
         posture_layout.addWidget(observe)
         save_observation = QPushButton("Save local runtime observation")
         save_observation.setToolTip("Save the last metadata report privately without overwriting files.")
-        save_observation.clicked.connect(self.export_acceptance_report)
+        save_observation.clicked.connect(lambda *_args: self.export_acceptance_report())
         posture_layout.addWidget(save_observation)
         layout.addWidget(posture_panel)
         self.diagnostics = QPlainTextEdit()
@@ -399,7 +399,7 @@ class MainWindow(QMainWindow):
         self.diagnostics.setPlaceholderText("Select 'Run host checks' to inspect host readiness")
         layout.addWidget(self.diagnostics, 1)
         run = QPushButton("Run host checks")
-        run.clicked.connect(self.check_host)
+        run.clicked.connect(lambda *_args: self.check_host())
         layout.addWidget(run)
         page.setWidget(shell)
         self.stack.addWidget(page)
@@ -463,15 +463,15 @@ class MainWindow(QMainWindow):
         )):
             controls.addWidget(QLabel(label), index, 0)
             controls.addWidget(widget, index, 1)
-            widget.textChanged.connect(self.preview_machine_profile)
+            widget.textChanged.connect(lambda *_args: self.preview_machine_profile())
         inner.addLayout(controls)
         self.profile_summary = QLabel("")
         self.profile_summary.setWordWrap(True)
         inner.addWidget(self.profile_summary)
-        self.profile_combo.currentIndexChanged.connect(self.preview_machine_profile)
+        self.profile_combo.currentIndexChanged.connect(lambda *_args: self.preview_machine_profile())
         save = QPushButton("Save machine profile")
         save.setObjectName("Primary")
-        save.clicked.connect(self.save_machine_profile)
+        save.clicked.connect(lambda *_args: self.save_machine_profile())
         inner.addWidget(save)
         layout.addWidget(panel)
 
@@ -494,10 +494,10 @@ class MainWindow(QMainWindow):
         updater.addWidget(caution)
         actions = QHBoxLayout()
         check = QPushButton("Check for updates")
-        check.clicked.connect(self.check_updates)
+        check.clicked.connect(lambda *_args: self.check_updates())
         actions.addWidget(check)
         apply = QPushButton("Install available update")
-        apply.clicked.connect(self.apply_update)
+        apply.clicked.connect(lambda *_args: self.apply_update())
         actions.addWidget(apply)
         updater.addLayout(actions)
         self.update_message = QLabel("No update check has been run.")
@@ -613,7 +613,7 @@ class MainWindow(QMainWindow):
         iso_row = QHBoxLayout()
         iso_row.addWidget(self.provision_iso, 1)
         browse = QPushButton("Browse")
-        browse.clicked.connect(self.choose_provision_iso)
+        browse.clicked.connect(lambda *_args: self.choose_provision_iso())
         iso_row.addWidget(browse)
         self.provision_sha = QLineEdit()
         self.provision_sha.setPlaceholderText("64-character official ISO SHA-256 checksum")
@@ -626,8 +626,8 @@ class MainWindow(QMainWindow):
         self.provision_disk = QLineEdit()
         self.provision_disk.setPlaceholderText("Auto (GiB)")
         self.provision_disk.setValidator(QIntValidator(20, 256, self))
-        self.provision_kind.currentIndexChanged.connect(self.provision_kind_changed)
-        self.provision_template.currentIndexChanged.connect(self.provision_template_changed)
+        self.provision_kind.currentIndexChanged.connect(lambda *_args: self.provision_kind_changed())
+        self.provision_template.currentIndexChanged.connect(lambda *_args: self.provision_template_changed())
         specs = [
             ("Workspace type", self.provision_kind),
             ("Kali toolkit (one VM per template)", self.provision_template),
@@ -652,19 +652,19 @@ class MainWindow(QMainWindow):
         self.kali_template_note.setWordWrap(True)
         template_info.addWidget(self.kali_template_note, 1)
         view_template = QPushButton("View toolkit details")
-        view_template.clicked.connect(self.show_kali_template)
+        view_template.clicked.connect(lambda *_args: self.show_kali_template())
         template_info.addWidget(view_template)
         layout.addLayout(template_info)
         plan_actions = QHBoxLayout()
         save_plan = QPushButton("Save private Kali setup plan")
-        save_plan.clicked.connect(self.save_kali_setup_plan)
+        save_plan.clicked.connect(lambda *_args: self.save_kali_setup_plan())
         save_plan.setToolTip(
             "Write a NEW private JSON record of a selected template and separate VM; "
             "package versions are unknown and no software is installed."
         )
         plan_actions.addWidget(save_plan)
         compare_plan = QPushButton("Compare guest inventory")
-        compare_plan.clicked.connect(self.compare_kali_guest_inventory)
+        compare_plan.clicked.connect(lambda *_args: self.compare_kali_guest_inventory())
         compare_plan.setToolTip(
             "Read a setup plan and manually exported guest package inventory JSON. "
             "No VM or guest commands are executed; supplied metadata is untrusted."
@@ -675,7 +675,7 @@ class MainWindow(QMainWindow):
             "Show manual read-only Kali package inventory steps. "
             "No host/guest transfer, commands or packages run."
         )
-        guest_help.clicked.connect(self.show_guest_inventory_instructions)
+        guest_help.clicked.connect(lambda *_args: self.show_guest_inventory_instructions())
         plan_actions.addWidget(guest_help)
         plan_actions.addStretch()
         layout.addLayout(plan_actions)
@@ -685,7 +685,7 @@ class MainWindow(QMainWindow):
             "Compare an existing Kali setup plan, previously saved version lock, "
             "and a newly supplied guest inventory. No guest operations or file writes."
         )
-        drift_button.clicked.connect(self.review_kali_version_drift)
+        drift_button.clicked.connect(lambda *_args: self.review_kali_version_drift())
         drift_actions.addWidget(drift_button)
         drift_note = QLabel("Three local JSON files · self-reported metadata, not attestation")
         drift_note.setObjectName("SubTitle")
@@ -696,7 +696,7 @@ class MainWindow(QMainWindow):
         controls = QHBoxLayout()
         self.provision_preview_button = QPushButton("Verify ISO + preview VM")
         self.provision_preview_button.setObjectName("Primary")
-        self.provision_preview_button.clicked.connect(self.preview_provision)
+        self.provision_preview_button.clicked.connect(lambda *_args: self.preview_provision())
         controls.addWidget(self.provision_preview_button)
         kali_actions = QGridLayout()
         kali_actions.setHorizontalSpacing(8)
@@ -707,7 +707,7 @@ class MainWindow(QMainWindow):
             "host RAM, other running VMs and a chosen storage volume. "
             "No guest, disk, VM definition or network is created."
         )
-        self.kali_preflight_button.clicked.connect(self.check_kali_template_readiness)
+        self.kali_preflight_button.clicked.connect(lambda *_args: self.check_kali_template_readiness())
         kali_actions.addWidget(self.kali_preflight_button, 0, 0)
         registered = QPushButton("Audit installed Kali template VM")
         registered.setToolTip(
@@ -715,7 +715,7 @@ class MainWindow(QMainWindow):
             "Kali VM against its saved template and separate qcow2 disk. "
             "No guest starts or file changes."
         )
-        registered.clicked.connect(self.audit_registered_kali_template)
+        registered.clicked.connect(lambda *_args: self.audit_registered_kali_template())
         kali_actions.addWidget(registered, 0, 1)
         baseline = QPushButton("Verify Kali cold backup")
         baseline.setToolTip(
@@ -723,7 +723,7 @@ class MainWindow(QMainWindow):
             "its independent qcow2 disk to an existing hash-verified cold backup. "
             "Does not make a backup, restore or boot."
         )
-        baseline.clicked.connect(self.verify_kali_cold_baseline)
+        baseline.clicked.connect(lambda *_args: self.verify_kali_cold_baseline())
         kali_actions.addWidget(baseline, 0, 2)
         link_button = QPushButton("Verify Kali recovery copy")
         link_button.setToolTip(
@@ -731,7 +731,7 @@ class MainWindow(QMainWindow):
             "against the original Kali cold backup and saved template. "
             "Does not restore, define, import or boot any guest."
         )
-        link_button.clicked.connect(self.check_kali_recovery_link)
+        link_button.clicked.connect(lambda *_args: self.check_kali_recovery_link())
         kali_actions.addWidget(link_button, 1, 0)
         registered_recovery = QPushButton("Audit registered Kali recovery")
         registered_recovery.setToolTip(
@@ -739,7 +739,7 @@ class MainWindow(QMainWindow):
             "recovery guest. Checks backup→stage→registered VM identity, libvirt "
             "autostart, and disk collisions. Does not start or change guests."
         )
-        registered_recovery.clicked.connect(self.audit_registered_kali_recovery)
+        registered_recovery.clicked.connect(lambda *_args: self.audit_registered_kali_recovery())
         kali_actions.addWidget(registered_recovery, 1, 1)
         runtime_button = QPushButton("Observe running Kali recovery")
         runtime_button.setToolTip(
@@ -747,7 +747,7 @@ class MainWindow(QMainWindow):
             "recovery VM YOU have already started. Does not start, stop, install "
             "or access a guest. Does NOT hash an active qcow2 disk."
         )
-        runtime_button.clicked.connect(self.observe_running_kali_recovery)
+        runtime_button.clicked.connect(lambda *_args: self.observe_running_kali_recovery())
         kali_actions.addWidget(runtime_button, 1, 2)
         label_button = QPushButton("Inspect effective QEMU sVirt label")
         label_button.setToolTip(
@@ -756,7 +756,7 @@ class MainWindow(QMainWindow):
             "and compare actual process context to libvirt. Never use sudo, "
             "start a VM, read guest files or hash the writable disk."
         )
-        label_button.clicked.connect(self.check_kali_qemu_process_label)
+        label_button.clicked.connect(lambda *_args: self.check_kali_qemu_process_label())
         kali_actions.addWidget(label_button, 2, 0)
         vm_manager = QPushButton("Open virt-manager")
         vm_manager.clicked.connect(lambda: self.open_program(["virt-manager", "--connect", "qemu:///system"]))
@@ -1325,22 +1325,22 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.recovery_log)
         row = QHBoxLayout()
         verify = QPushButton("Verify saved backup")
-        verify.clicked.connect(self.verify_backup_folder)
+        verify.clicked.connect(lambda *_args: self.verify_backup_folder())
         row.addWidget(verify)
         stage = QPushButton("Recover into NEW folder")
-        stage.clicked.connect(self.stage_backup_folder)
+        stage.clicked.connect(lambda *_args: self.stage_backup_folder())
         row.addWidget(stage)
         stage_verify = QPushButton("Verify staged recovery")
-        stage_verify.clicked.connect(self.verify_recovery_folder)
+        stage_verify.clicked.connect(lambda *_args: self.verify_recovery_folder())
         row.addWidget(stage_verify)
         host_check = QPushButton("Check Fedora import readiness")
-        host_check.clicked.connect(self.preflight_recovery_folder)
+        host_check.clicked.connect(lambda *_args: self.preflight_recovery_folder())
         row.addWidget(host_check)
         row.addStretch()
         layout.addLayout(row)
         acceptance_row = QHBoxLayout()
         inspect = QPushButton("Audit registered VM")
-        inspect.clicked.connect(self.inspect_registered_guest)
+        inspect.clicked.connect(lambda *_args: self.inspect_registered_guest())
         acceptance_row.addWidget(inspect)
         handoff = QPushButton("Verify registered handoff")
         handoff.setToolTip(
@@ -1348,10 +1348,10 @@ class MainWindow(QMainWindow):
             "NVRAM paths, identity and disk formats in a verified recovery folder. "
             "Does not start, register or change the VM."
         )
-        handoff.clicked.connect(self.verify_registered_handoff)
+        handoff.clicked.connect(lambda *_args: self.verify_registered_handoff())
         acceptance_row.addWidget(handoff)
         export = QPushButton("Save local audit report")
-        export.clicked.connect(self.export_acceptance_report)
+        export.clicked.connect(lambda *_args: self.export_acceptance_report())
         acceptance_row.addWidget(export)
         acceptance_row.addStretch()
         layout.addLayout(acceptance_row)
