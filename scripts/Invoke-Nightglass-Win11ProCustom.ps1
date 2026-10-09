@@ -36,7 +36,7 @@ if ($profile.schema -cne 'nightglass.windows11.pro.custom.v1') {
 $entries = @($profile.items)
 if ($entries.Count -ne 35) { throw 'Incomplete customization catalog.' }
 $expectedIds = @(1..35)
-if ((Compare-Object -ReferenceObject $expectedIds -DifferenceObject @($entries | ForEach-Object { [int]$_.id })).Count -ne 0) {
+if (@(Compare-Object -ReferenceObject $expectedIds -DifferenceObject @($entries | ForEach-Object { [int]$_.id })).Count -ne 0) {
   throw 'Catalog IDs were edited, repeated or omitted.'
 }
 
@@ -64,6 +64,9 @@ $requested = @()
 foreach ($item in $entries) {
   if ([int]$item.id -in $coreIds) {
     foreach ($flag in @($item.switches)) {
+      # Actual gaming application uninstallation must remain a separately
+      # authorized non-reversible operation, never part of core tweaks.
+      if ($flag -eq 'RemoveGamingApps') { continue }
       if ($flag -notin $approvedSwitches) {
         throw ('Catalog attempted an unapproved core switch: ' + $flag)
       }
