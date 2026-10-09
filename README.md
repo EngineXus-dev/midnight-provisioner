@@ -299,6 +299,23 @@ transfer mechanism is required; do not enable shared folders or clipboard
 to work around its absence. The output is untrusted self-reported data.
 See [guest inventory helper workflow](docs/KALI_GUEST_INVENTORY.md).
 
+## Offline Kali template package drift checks
+
+After creating a per-VM Kali setup plan and recording a **self-reported
+version lock**, Nightglass can compare a newer inventory without running
+commands inside a guest:
+
+```bash
+nightglass templates drift ./kali-plan.json ./old-versions.json ./new-inventory.json
+```
+
+Or use **Prepare VM → Review package version drift**. It flags
+missing tools, version changes, package/release mismatches and
+unverified dpkg audit status, but does not install anything or enable
+host/guest file transfers. The input reports are **untrusted metadata**,
+not cryptographic proof of a clean VM or signed packages. See the
+[version drift review guide](docs/KALI_VERSION_DRIFT.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
