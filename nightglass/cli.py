@@ -16,6 +16,10 @@ from .portability import (
 from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
 from .kali_templates import get_template, list_templates, plan_template
+from .kali_setup import (
+    build_setup_plan, save_setup_plan, load_setup_plan,
+    compare_inventory_files, save_version_lock,
+)
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -57,6 +61,20 @@ def main(argv: list[str] | None = None) -> int:
     template_list.add_argument("--category", choices=("white-hat", "red-team"))
     template_show = template_commands.add_parser("show", help="Show exact packages and offline resource defaults")
     template_show.add_argument("identifier")
+    template_export = template_commands.add_parser("export", help="Create a NEW private offline guest setup plan (no installation)")
+    template_export.add_argument("identifier")
+    template_export.add_argument("destination", type=Path)
+    template_export.add_argument("--guest", help="Independent registered VM name; no VM is created")
+    template_export.add_argument("--iso-sha256", help="Optional user-claimed publisher digest (NOT reverified here)")
+    template_verify = template_commands.add_parser("verify", help="Check a setup plan for catalog/policy drift")
+    template_verify.add_argument("plan", type=Path)
+    template_compare = template_commands.add_parser("compare", help="Compare plan to manually supplied guest package inventory JSON")
+    template_compare.add_argument("plan", type=Path)
+    template_compare.add_argument("inventory", type=Path)
+    template_lock = template_commands.add_parser("lock", help="Record guest-reported version snapshot in a NEW private file")
+    template_lock.add_argument("plan", type=Path)
+    template_lock.add_argument("inventory", type=Path)
+    template_lock.add_argument("destination", type=Path)
     wizard = sub.add_parser("provision", help="Read-only VM ISO integrity and guest XML preflight")
     wizard.add_argument("kind", choices=("pentest", "analysis"))
     wizard.add_argument("--iso", required=True)
@@ -106,6 +124,29 @@ def main(argv: list[str] | None = None) -> int:
     cmd = args.command or "gui"
     try:
         if cmd == "templates":
+            if args.template_action == "export":
+                plan = build_setup_plan(
+                    args.identifier, guest=args.guest, iso_sha256=args.iso_sha256
+                )
+                print("NEW private offline-only Kali setup plan:", save_setup_plan(plan, args.destination))
+                print("Package versions are UNKNOWN; no guest or host software was installed.")
+                return 0
+            if args.template_action == "verify":
+                plan = load_setup_plan(args.plan)
+                print(
+                    f"PLANNED ONLY — catalog and offline defaults match: "
+                    f"{plan['template_id']} for {plan['guest']}. No installation verified."
+                )
+                return 0
+            if args.template_action == "compare":
+                report = compare_inventory_files(args.plan, args.inventory)
+                print(report.describe())
+                return 0 if report.complete else 2
+            if args.template_action == "lock":
+                target = save_version_lock(args.plan, args.inventory, args.destination)
+                print("NEW private version snapshot (UNTRUSTED GUEST EXPORT):", target)
+                print("Not a proof of installed package origin, dependencies or rollback.")
+                return 0
             if args.template_action == "show":
                 print(get_template(args.identifier).describe())
                 return 0
@@ -117,7 +158,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 print("PLANS ONLY: each template uses a separate, disconnected Kali VM.")
                 return 0
-            parser.error("Choose templates list or templates show")
+            parser.error("Choose templates list, show, export, verify, compare or lock")
         if cmd == "runtime-label":
             report = RuntimeLabelInspector().inspect(args.guest, args.policy)
             print(report.describe())
