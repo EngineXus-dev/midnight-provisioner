@@ -110,6 +110,15 @@ with other registered VMs. The GUI offers **Audit installed Kali template VM**.
 This is static configuration inspection only, not a guest boot or trust
 certification. See [registered Kali template checks](KALI_REGISTERED_TEMPLATES.md).
 
+## Verify each independent Kali VM's cold baseline (no restore)
+
+After manually installing and shutting off a benign Kali template VM,
+`nightglass templates baseline PLAN.json --disk /absolute/guest.qcow2
+--backup /path/to/existing-cold-backup` validates the archived hashes,
+guest identity, disk/NVRAM bindings and native qcow2 metadata. The GUI adds
+**Verify Kali cold backup**. This cannot prove actual restore, boot, Kali
+package provenance or runtime isolation. See [Kali cold baselines](KALI_COLD_BASELINES.md).
+
 ## Next phase planned (not enabled)
 
 A supervised, reproducible **per-guest setup manifest** could track selected
