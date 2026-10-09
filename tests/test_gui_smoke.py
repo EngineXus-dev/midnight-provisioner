@@ -420,6 +420,74 @@ class OffscreenMainWindowTests(unittest.TestCase):
             picker.assert_not_called()
         self.assertIn("do not apply", self.window.provision_result.toPlainText())
 
+    def test_kali_cold_baseline_gui_requires_matching_profile_and_can_cancel(self):
+        from types import SimpleNamespace
+        from PySide6.QtWidgets import QPushButton
+        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        self.window.prepare_space("pentest")
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("recon")
+        )
+        labels = {
+            widget.text() for widget in
+            self.window.stack.currentWidget().findChildren(QPushButton)
+        }
+        self.assertIn("Verify Kali cold backup", labels)
+        plan = Path(self.temp.name) / "recon-plan.json"
+        save_setup_plan(build_setup_plan("recon"), plan)
+        disk = Path(self.temp.name) / "unchanged-recon.qcow2"
+        disk.write_bytes(b"synthetic-not-changed")
+        report = SimpleNamespace(
+            ok=True, describe=lambda: (
+                "KALI COLD BASELINE: HASHES/DEFINITIONS MATCH (NOT RESTORE-PROVEN)"
+            ),
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName",
+            side_effect=[(str(plan), "JSON"), (str(disk), "QEMU")],
+        ), patch.object(
+            self.ui.QFileDialog, "getExistingDirectory",
+            return_value=self.temp.name,
+        ), patch.object(self.ui, "KaliColdBaselineInspector") as inspector, \
+             patch.object(self.window, "work") as worker:
+            inspector.return_value.inspect.return_value = report
+            self.window.verify_kali_cold_baseline()
+            worker.assert_called_once()
+            task, success, failure = worker.call_args.args
+            self.assertIs(task(), report)
+            inspector.return_value.inspect.assert_called_once_with(
+                plan, disk, Path(self.temp.name),
+            )
+            success(report)
+            self.assertIn("NOT RESTORE-PROVEN", self.window.provision_result.toPlainText())
+        self.assertEqual(disk.read_bytes(), b"synthetic-not-changed")
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("web-audit")
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName",
+            side_effect=[(str(plan), "JSON"), (str(disk), "QEMU")],
+        ), patch.object(
+            self.ui.QFileDialog, "getExistingDirectory",
+            return_value=self.temp.name,
+        ), patch.object(self.ui, "KaliColdBaselineInspector") as inspector, \
+             patch.object(self.window, "work") as worker:
+            self.window.verify_kali_cold_baseline()
+            task, success, failure = worker.call_args.args
+            with self.assertRaisesRegex(Exception, "does not match"):
+                task()
+            inspector.assert_not_called()
+            failure("mismatch")
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName", return_value=("", "")
+        ), patch.object(self.window, "work") as worker:
+            self.window.verify_kali_cold_baseline()
+            worker.assert_not_called()
+        self.window.prepare_space("analysis")
+        with patch.object(self.ui.QFileDialog, "getOpenFileName") as picker:
+            self.window.verify_kali_cold_baseline()
+            picker.assert_not_called()
+
     def test_analysis_profile_cannot_save_running_memory(self):
         with patch.object(self.window, "error") as error, \
              patch.object(self.window, "work") as background:
