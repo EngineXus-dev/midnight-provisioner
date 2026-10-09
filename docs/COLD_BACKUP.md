@@ -46,6 +46,14 @@ disk-image files and sufficient free space. If libvirt VM storage is owned by
 root or QEMU, Nightglass refuses and suggests a separate permission-reviewed
 procedure; do **not** run the GUI as root or loosen storage permissions blindly.
 
+## New: verified offline recovery staging
+
+Use **Backup & verify → Recover into NEW folder**, or
+`nightglass recover plan|stage|verify`, to prepare a **separate offline copy**
+with a fresh guest identity and rewritten disk/NVRAM paths. Nothing is
+automatically defined in libvirt and no guest is started. Follow the
+[recovery staging guide](RECOVERY_STAGING.md) before a manual import.
+
 ## Recovery: deliberately manual
 
 Restoring a guest may require reconstructing the original storage permissions
