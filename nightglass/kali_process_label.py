@@ -15,7 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-import os
+import posixpath
 import re
 import uuid
 from xml.etree import ElementTree as ET
@@ -73,7 +73,7 @@ def _flag_value(args: list[str], flag: str) -> str | None:
 
 
 def _matches_qemu(args: list[str], guest: str, domain_uuid: str) -> bool:
-    if not args or not QEMU_EXECUTABLE.fullmatch(os.path.basename(args[0])):
+    if not args or not QEMU_EXECUTABLE.fullmatch(posixpath.basename(args[0])):
         return False
     candidate_uuid = _flag_value(args, "-uuid")
     name = _flag_value(args, "-name")
