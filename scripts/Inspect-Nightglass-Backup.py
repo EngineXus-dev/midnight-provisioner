@@ -56,8 +56,30 @@ def is_link_or_reparse(path: Path, st: os.stat_result) -> bool:
                     & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)))
 
 
+
+def reject_linked_ancestors(path: Path) -> None:
+    """Fail closed if ANY existing path component is a link/reparse point.
+
+    This conservative preflight includes the chosen leaf and its parents.
+    On Windows, junctions and other reparse points are refused. This
+    does not make traversals atomic against concurrent filesystem writes.
+    """
+    current = Path(os.path.abspath(path))
+    while True:
+        try:
+            info = current.lstat()
+        except OSError as exc:
+            raise BackupError("A selected path component is inaccessible") from exc
+        if is_link_or_reparse(current, info):
+            raise BackupError("A selected path component is linked or reparsed")
+        if current.parent == current:
+            break
+        current = current.parent
+
+
 def checked_root(path: Path) -> Path:
     try:
+        reject_linked_ancestors(path)
         before = path.lstat()
         if is_link_or_reparse(path, before) or not stat.S_ISDIR(before.st_mode):
             raise BackupError("Selected root is linked/reparsed or is not a directory")
@@ -216,6 +238,7 @@ def compare(source: Inventory, backup: Inventory, *, verify: bool,
 def write_report_new(path: Path, payload: dict, roots: tuple[Path, Path]) -> None:
     target = path.absolute()
     try:
+        reject_linked_ancestors(target.parent)
         parent_st = target.parent.lstat()
         if is_link_or_reparse(target.parent, parent_st):
             raise BackupError("Linked/junction report parent is unsupported")
