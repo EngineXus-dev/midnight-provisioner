@@ -81,6 +81,14 @@ not verified reproducible software lockfiles or preinstalled snapshots.
   intentionally separates **template planning** from privileged host
   provisioning and guest updates.
 
+## Implemented after catalog: setup plans and manual version snapshots
+
+A template can now be exported as a private **PLANNED_ONLY** JSON record,
+checked for catalog drift, compared with a manually prepared Kali package
+inventory and optionally saved as a self-reported version lock. See
+[per-guest Kali setup manifests](KALI_SETUP_MANIFESTS.md) for examples
+and explicitly unverified software provenance and rollback assumptions.
+
 ## Next phase planned (not enabled)
 
 A supervised, reproducible **per-guest setup manifest** could track selected
