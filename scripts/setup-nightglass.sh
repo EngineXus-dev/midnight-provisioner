@@ -47,8 +47,14 @@ if [[ "${1:-}" != "--yes" ]]; then
   read -r -p "Type INSTALL to continue: " confirm
   [[ "$confirm" == "INSTALL" ]] || { echo "Cancelled."; exit 1; }
 fi
+umask 077
 mkdir -p -- "$DATA_HOME/nightglass"
 if [[ ! -e "$VENV_DIR" ]]; then
+  # Claim this dedicated, newly created directory before any dependency step.
+  # An interrupted first installation can therefore be safely resumed.
+  mkdir -- "$VENV_DIR"
+  touch -- "$MARKER"
+  chmod 600 -- "$MARKER"
   "$PYTHON_BIN" -m venv "$VENV_DIR"
 fi
 if [[ ! -x "$VENV_DIR/bin/python" ]]; then
