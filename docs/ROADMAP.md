@@ -261,6 +261,18 @@
 - [ ] Verify real QEMU /proc SELinux labels, guest OS boot, packet-level network denial and actual restore on supervised Fedora/KVM
 - [ ] Authenticated guest provenance and resilient protection from privileged libvirt/storage races still unavailable
 
+## v0.3p — actual QEMU process SELinux context observation (draft)
+- [x] Match exactly one already-running QEMU process to live system-libvirt guest UUID AND name using read-only bounded /proc metadata
+- [x] Compare actual /proc/PID/attr/current effective sVirt process label against libvirt's explicit dynamic current-domain SELinux label
+- [x] Require prior registered policy, SELinux enforcing host/capabilities, matching live sVirt MCS metadata and running guest state
+- [x] Recheck process start time, argv, effective label and libvirt UUID/label/state to narrow PID-reuse or privilege-race windows
+- [x] Fail closed on unreadable/missing /proc, duplicate QEMU process identity, unknown labels, or unsupported SELinux configuration
+- [x] No sudo/privilege fallback and no QEMU guest/file/active-disk probes; preserve process PID/cmdline/MCS/host path privacy
+- [x] Compact GUI Kali actions in 3-column grid; add opt-in CLI/GUI effective-label check and synthetic /proc/Qt regression coverage
+- [ ] Run on real Fedora KDE/KVM hardware (ordinary user); verify permissions, QEMU process label format and false-negative behavior
+- [ ] Confirm QEMU disk inode SELinux context, actual guest boot and packet-level network denial under supervised Fedora acceptance
+- [ ] Actual OS recovery, unsigned package/authenticated image provenance, unregistered storage aliases and privileged races remain unverified
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
