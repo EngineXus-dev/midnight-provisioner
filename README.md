@@ -259,6 +259,31 @@ Browse via **Prepare VM → Kali toolkit**, or `nightglass templates list`,
 Nightglass does not automatically create the VM, connect networks or install
 packages. See the [Kali VM template catalog](docs/KALI_TEMPLATES.md).
 
+## Private Kali setup plans and package-version drift checks
+
+Per-template Kali VM plans can now be written to **NEW, private JSON files**
+with fixed software lists and offline-only defaults:
+
+```bash
+nightglass templates export recon ./new-recon-plan.json
+nightglass templates verify ./new-recon-plan.json
+```
+
+After **manual** in-guest inspection and installation, compare an explicitly
+provided guest inventory or record a separate reported-version snapshot:
+
+```bash
+nightglass templates compare ./new-recon-plan.json ./guest-inventory.json
+nightglass templates lock ./new-recon-plan.json ./guest-inventory.json ./new-lock.json
+```
+
+The GUI adds **Save private Kali setup plan** and **Compare guest inventory**
+to Prepare VM. These are read-only planning/comparison operations apart from
+writing explicitly requested new JSON records. Guest inventories are
+**untrusted user-reported data**, not proof of signed repositories, completed
+dependencies or a tested baseline restore. See the
+[setup manifest workflow](docs/KALI_SETUP_MANIFESTS.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
