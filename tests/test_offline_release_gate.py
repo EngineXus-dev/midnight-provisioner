@@ -149,8 +149,18 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
             self.assertTrue(checkout.name.startswith("Nightglass-RC-"))
             self.assertNotEqual(checkout, repo)
             self.assertTrue(log.parent == report.parent == repo.parent)
-            self.assertIn("worktree", calls[1])
-            self.assertIn("--detach", calls[1])
+            # Branch checkout now does fetch -> pinned ref verification ->
+            # worktree add -> HEAD/ref equality checks. Do not assume
+            # worktree is the second Git call as in older runner versions.
+            worktree_calls = [command for command in calls if "worktree" in command]
+            self.assertEqual(len(worktree_calls), 1)
+            self.assertIn("--detach", worktree_calls[0])
+            fetch_index = next(i for i, command in enumerate(calls)
+                               if "fetch" in command)
+            worktree_index = calls.index(worktree_calls[0])
+            self.assertLess(fetch_index, worktree_index)
+            self.assertTrue(any("rev-parse" in command
+                                for command in calls[fetch_index + 1:worktree_index]))
             joined = " ".join(" ".join(c) for c in calls)
             for forbidden in (" reset ", " clean ", " merge ",
                               " rebase ", " push ", " checkout ", "Actions"):
