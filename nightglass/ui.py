@@ -32,6 +32,7 @@ from .readiness import RecoveryReadiness
 from .acceptance import RegisteredGuestAuditor, save_acceptance
 from .theme import apply_theme, COLORS
 from .resources import collect_resources
+from .host_posture import inspect_host_posture
 
 class NoWheelComboBox(QComboBox):
     """Prevent incidental wheel scrolling from changing a saved profile."""
@@ -345,6 +346,26 @@ class MainWindow(QMainWindow):
         refresh_pressure.clicked.connect(lambda: self.refresh_resources(activate=True))
         pressure_layout.addWidget(refresh_pressure)
         layout.addWidget(pressure_panel)
+        posture_panel = QFrame()
+        posture_panel.setObjectName("Panel")
+        posture_layout = QVBoxLayout(posture_panel)
+        posture_heading = QLabel("FEDORA HOST SECURITY POSTURE  ·  READ-ONLY")
+        posture_heading.setObjectName("SectionHeading")
+        posture_layout.addWidget(posture_heading)
+        self.posture_summary = QLabel(
+            "Not checked — SELinux, /dev/kvm and firewall routing require review"
+        )
+        self.posture_summary.setWordWrap(True)
+        self.posture_summary.setObjectName("SubTitle")
+        posture_layout.addWidget(self.posture_summary)
+        posture_button = QPushButton("Audit Fedora host security")
+        posture_button.setToolTip(
+            "Read SELinux enforcement, KVM access, firewalld status and IPv4/IPv6 "
+            "forwarding. No sudo, guest startup, firewall or SELinux changes."
+        )
+        posture_button.clicked.connect(self.check_host_security)
+        posture_layout.addWidget(posture_button)
+        layout.addWidget(posture_panel)
         self.diagnostics = QPlainTextEdit()
         self.diagnostics.setReadOnly(True)
         self.diagnostics.setPlaceholderText("Select 'Run host checks' to inspect host readiness")
@@ -1081,6 +1102,26 @@ class MainWindow(QMainWindow):
         self.work(
             lambda: collect_resources(workspaces=tuple(self.spaces)),
             received, failed,
+        )
+
+    def check_host_security(self):
+        self.posture_summary.setText("Inspecting nonprivileged host security state …")
+        self.work(
+            inspect_host_posture,
+            lambda report: (
+                self.posture_summary.setText(
+                    "Host review: " + ("checks observed; runtime isolation unverified"
+                                       if report.complete else "attention required")
+                ),
+                self.diagnostics.setPlainText(report.describe())
+            ),
+            lambda message: (
+                self.posture_summary.setText("Host review: UNKNOWN"),
+                self.diagnostics.setPlainText(
+                    "Host security posture unavailable: " + message +
+                    "\nNo configuration was changed."
+                )
+            ),
         )
 
     def check_host(self):
