@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -37,6 +38,11 @@ class RestoreTests(unittest.TestCase):
         self.xml = self._xml()
         self._backup()
         self.service = RecoveryStager(FakeHV())
+        if os.name == "nt":
+            # Only synthetic fixture writes: production POSIX permissions stay enforced.
+            mode_patch = patch("nightglass.recovery.os.fchmod", create=True)
+            mode_patch.start()
+            self.addCleanup(mode_patch.stop)
 
     def _xml(self, extra="", policy="isolated"):
         link = (
@@ -208,7 +214,10 @@ class RestoreTests(unittest.TestCase):
         folder = self._stage()
         asset = folder / "disks/disk-01.qcow2"
         asset.unlink()
-        asset.symlink_to(self.source / "disks/disk-01.qcow2")
+        try:
+            asset.symlink_to(self.source / "disks/disk-01.qcow2")
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies symlink creation in synthetic fixture")
         with self.assertRaisesRegex(ToolError, "symlinked staging file"):
             verify_staging(folder)
 
