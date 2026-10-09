@@ -83,6 +83,16 @@
 - [ ] Confirm test results on Fedora KDE with the distribution's installed utilities
 - [ ] Real KVM boot, packet-level isolation and snapshot/restore tests remain unverified
 
+## v0.2.6 — live host resource and external VM awareness (draft)
+- [x] Read-only MemAvailable and swap-occupancy status, not misleading MemFree figures
+- [x] Account for all active system-libvirt guests, including externally started/unbound VMs
+- [x] Compare observed activity with clamped host-specific resource budgets
+- [x] Opt-in, Diagnostics-only 20-second GUI refresh and read-only CLI command
+- [x] Unknown backend/resource state never returns an all-clear result
+- [x] Synthetic test coverage for memory and hypervisor failure modes
+- [ ] Validate on Fedora KDE with real 8/16/32 GB RAM pressure and out-of-band VM starts
+- [ ] Actual VM allocation/reservation accounting and measured host-pressure behaviors
+
 ## v0.3 — defense in depth
 - [ ] Polkit actions and minimal privileged policy service, no trusted XML audit from user-editable settings
 - [ ] SELinux device/volume access review; stronger VM security architecture tests
