@@ -13,6 +13,7 @@ from .portability import (
     save_machine_preferences,
 )
 from .updates import SourceUpdater
+from .provisioning import OfflineProvisioner, build_plan
 import os
 
 
@@ -38,9 +39,24 @@ def main(argv: list[str] | None = None) -> int:
     update_apply.add_argument("--yes", action="store_true", help="Confirm without an interactive prompt")
     update_setting = update_actions.add_parser("checks", help="Opt into startup update notices")
     update_setting.add_argument("state", choices=("on", "off"))
+    wizard = sub.add_parser("provision", help="Read-only VM ISO integrity and guest XML preflight")
+    wizard.add_argument("kind", choices=("pentest", "analysis"))
+    wizard.add_argument("--iso", required=True)
+    wizard.add_argument("--sha256", required=True, help="Checksum from the official publisher")
+    wizard.add_argument("--name")
+    wizard.add_argument("--ram-mib", type=int)
+    wizard.add_argument("--vcpus", type=int)
+    wizard.add_argument("--disk-gib", type=int)
     args = parser.parse_args(argv)
     cmd = args.command or "gui"
     try:
+        if cmd == "provision":
+            plan = build_plan(
+                args.kind, args.iso, args.sha256, name=args.name,
+                ram_mib=args.ram_mib, vcpus=args.vcpus, disk_gib=args.disk_gib,
+            )
+            print(OfflineProvisioner().preview(plan).describe())
+            return 0
         if cmd == "profile":
             if args.profile_action in (None, "show"):
                 print(current_budget().explain())
