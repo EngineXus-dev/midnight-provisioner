@@ -676,3 +676,15 @@ only manually dispatched CI with read-only token scope and flags
 mutable action version tags for human review. **Tests for the
 newest cumulative branch are still pending** and the audit cannot
 authorize integration or Windows/Fedora deployment.
+
+### Phase 8: Windows one-command offline checks (opt-in)
+
+See [Windows verification launcher](docs/WINDOWS_ONE_COMMAND_OFFLINE_CHECKS.md)
+for the preview-first script `scripts/Invoke-Nightglass-OfflineChecks.ps1`.
+It is safe to retrieve into a new temp folder without switching off
+`main`. It offers explicit `-FetchRefs`, `-AuditStack` and
+`-RunDockerGate` switches, with separate consent for Docker testing
+and image downloads/builds. The gate checks the exact reviewed Git
+SHA before creating a test worktree. **The latest integration tests
+remain pending**; any synthetic PASS is not approval to merge or
+install Windows 11 Pro/Fedora.
