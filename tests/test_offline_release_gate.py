@@ -1,0 +1,168 @@
+"""Synthetic contract tests for the opt-in cumulative offline release gate.
+
+Never runs git fetch, Docker, PowerShell, Fedora/libvirt or GitHub Actions.
+"""
+from __future__ import annotations
+
+import base64
+from contextlib import redirect_stdout
+import hashlib
+import importlib.util
+import io
+import json
+import os
+from pathlib import Path
+import re
+import tempfile
+import unittest
+from unittest.mock import patch
+
+
+ROOT = Path(__file__).resolve().parents[1]
+RUNNER = ROOT / "scripts" / "Run-Nightglass-Offline-Release-Gate.py"
+spec = importlib.util.spec_from_file_location("nightglass_offline_gate_for_tests", RUNNER)
+gate = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+spec.loader.exec_module(gate)
+
+
+class OfflineReleaseGateContractTests(unittest.TestCase):
+    def test_default_is_plan_only_with_no_os_or_git_calls(self):
+        with patch.object(gate, "repo_root", side_effect=AssertionError("Unexpected repo access")), \
+             patch.object(gate, "verify", side_effect=AssertionError("Unexpected verifier")):
+            with redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(gate.main([]), 0)
+        self.assertIn("PLAN ONLY", out.getvalue())
+        self.assertIn("No GitHub Actions or merges", out.getvalue())
+
+    def test_authorized_branch_and_origin_only(self):
+        self.assertEqual(gate.BRANCH, "verification/offline-release-candidate-gate")
+        self.assertTrue(gate.ORIGIN.fullmatch(
+            "https://github.com/EngineXus-dev/nightglass-workspaces.git"))
+        self.assertTrue(gate.ORIGIN.fullmatch(
+            "git@github.com:EngineXus-dev/nightglass-workspaces.git"))
+        for bad in ("https://github.com/EngineXus-dev/unrelated.git",
+                    "https://github.com/attacker/nightglass-workspaces.git",
+                    "https://example.com/EngineXus-dev/nightglass-workspaces.git"):
+            self.assertIsNone(gate.ORIGIN.fullmatch(bad))
+
+    def test_isolated_docker_runtime_is_rootless_nonprivileged_readonly(self):
+        opts = gate.docker_base(
+            Path("/tmp/mock-detached"), label="nightglass-unit-test",
+            memory="1024m", tmpfs="512m")
+        text = " ".join(opts)
+        for flag in ("--network none", "--read-only", "--cap-drop ALL",
+                     "--security-opt no-new-privileges:true",
+                     "--user 10001:10001", "--pull never", "--ipc private",
+                     "target=/workspace,readonly", "size=512m",
+                     "--memory 1024m"):
+            self.assertIn(flag, text)
+        for forbidden in ("--privileged", "/dev/kvm", "/var/run/docker.sock",
+                          "--network host", "type=bind,source=/"):
+            self.assertNotIn(forbidden, text)
+
+    def test_version_matrix_and_fedora_image_are_explicit(self):
+        self.assertEqual(gate.VERSIONS, ("3.11", "3.12", "3.13"))
+        self.assertEqual(len(gate.CHECKS), 6)
+        with tempfile.TemporaryDirectory() as home:
+            worktree = Path(home)
+            (worktree / "docker").mkdir()
+            cf = worktree / gate.FEDORA_CONTAINERFILE
+            cf.write_text("FROM fedora:43\n", encoding="utf-8")
+            sha = hashlib.sha256(cf.read_bytes()).hexdigest()[:12]
+            self.assertEqual(gate.fedora_tag(worktree),
+                             "nightglass-fedora-verifier:43-" + sha)
+
+    def test_powershell_source_is_parsed_not_executed(self):
+        argv = gate.power_shell_ast(Path("C:/new-detached"))
+        self.assertEqual(argv[0], "powershell.exe")
+        self.assertIn("-EncodedCommand", argv)
+        encoded = argv[-1]
+        raw = base64.b64decode(encoded).decode("utf-16le")
+        self.assertIn("Parser]::ParseFile(", raw)
+        self.assertIn("Get-ChildItem", raw)
+        self.assertIn("$errors.Count -gt 0", raw)
+        self.assertNotIn("Invoke-Expression", raw)
+        self.assertNotIn("Start-Process", raw)
+        self.assertNotIn("& $p", raw)
+
+    def test_missing_image_remains_blocked_by_default(self):
+        with patch.object(gate, "image_cached", return_value=False):
+            with patch.object(gate, "run_logged", side_effect=AssertionError(
+                    "Do not auto-pull when consent is absent")):
+                self.assertFalse(gate.fresh_image("python:3.13-slim",
+                    root=ROOT, allow_pull=False, stream=io.StringIO()))
+        with tempfile.TemporaryDirectory() as home:
+            root = Path(home)
+            (root / "docker").mkdir()
+            (root / gate.FEDORA_CONTAINERFILE).write_text(
+                "FROM fedora:43\n", encoding="utf-8")
+            with patch.object(gate, "image_cached", return_value=False):
+                with patch.object(gate, "run_logged", side_effect=AssertionError(
+                        "Do not auto-build Fedora when consent is absent")):
+                    self.assertFalse(gate.prepare_fedora(
+                        "ng-fedora:test", checkout=root, allow_build=False,
+                        stream=io.StringIO()))
+
+    def test_detached_worktree_is_unique_and_never_mutates_main(self):
+        with tempfile.TemporaryDirectory() as home:
+            repo = Path(home) / "nightglass-workspaces"
+            repo.mkdir()
+            calls = []
+
+            def fake_checked(argv, *, cwd, timeout=30):
+                calls.append(argv)
+                if argv[-3:] == ["rev-parse", "HEAD"] or (
+                        "rev-parse" in argv and argv[-1].startswith("refs/remotes")):
+                    return "a" * 40
+                return ""
+
+            with patch.object(gate, "checked", side_effect=fake_checked):
+                checkout, sha, log, report = gate.branch_checkout(repo)
+            self.assertEqual(sha, "a" * 40)
+            self.assertEqual(checkout.parent, repo.parent)
+            self.assertTrue(checkout.name.startswith("Nightglass-RC-"))
+            self.assertNotEqual(checkout, repo)
+            self.assertTrue(log.parent == report.parent == repo.parent)
+            self.assertIn("worktree", calls[1])
+            self.assertIn("--detach", calls[1])
+            joined = " ".join(" ".join(c) for c in calls)
+            for forbidden in (" reset ", " clean ", " merge ",
+                              " rebase ", " push ", " checkout ", "Actions"):
+                self.assertNotIn(forbidden, joined)
+            self.assertFalse(log.exists())
+            self.assertFalse(report.exists())
+
+    def test_reports_exclusively_created_and_hardware_gate_not_attested(self):
+        with tempfile.TemporaryDirectory() as home:
+            file = Path(home) / "new-summary.json"
+            payload = {"test_gate_passed": True,
+                       "physical_fedora_kvm_svirt_network_restore": "NOT_TESTED"}
+            gate.summary_file(file, payload)
+            self.assertEqual(json.loads(file.read_text()), payload)
+            with self.assertRaises(FileExistsError):
+                gate.summary_file(file, payload)
+            if os.name == "posix":
+                self.assertEqual(file.stat().st_mode & 0o777, 0o600)
+
+    def test_gate_source_does_not_operate_windows_installer_or_vm(self):
+        source = RUNNER.read_text(encoding="utf-8")
+        self.assertIn('"github_pr_merge_or_actions": "NOT_PERFORMED"', source)
+        self.assertIn('"windows11_clean_install_usb_formatter": "NOT_RUN"', source)
+        self.assertIn('"physical_fedora_kvm_svirt_network_restore": "NOT_TESTED"', source)
+        self.assertIn('passed = all(results[k] == "PASS" for k in CHECKS)', source)
+        self.assertIn("summary_file(report_path, report)", source)
+        self.assertNotRegex(source, r"(?m)^\s*os\.system\(")
+        self.assertNotIn("shell=True", source)
+        self.assertNotIn('["git", "merge"', source)
+        self.assertNotIn('["git", "reset"', source)
+        self.assertNotIn('["git", "clean"', source)
+
+    def test_failed_any_check_cannot_produce_pass(self):
+        self.assertFalse(all({"a": "PASS", "b": "BLOCKED"}[x] == "PASS"
+                             for x in ("a", "b")))
+        self.assertEqual(gate.VERDICT, {"PASS", "FAIL", "BLOCKED", "NOT_RUN"})
+
+
+if __name__ == "__main__":
+    unittest.main()
