@@ -34,6 +34,7 @@ from .kali_cold_baseline import KaliColdBaselineInspector
 from .kali_recovery_link import KaliRecoveryLink
 from .kali_recovery_registration import KaliRecoveryRegistrationInspector
 from .kali_running import KaliRunningInspector
+from .kali_process_label import KaliProcessLabelInspector
 from .kali_drift import compare_version_lock_files
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
@@ -697,6 +698,9 @@ class MainWindow(QMainWindow):
         self.provision_preview_button.setObjectName("Primary")
         self.provision_preview_button.clicked.connect(self.preview_provision)
         controls.addWidget(self.provision_preview_button)
+        kali_actions = QGridLayout()
+        kali_actions.setHorizontalSpacing(8)
+        kali_actions.setVerticalSpacing(8)
         self.kali_preflight_button = QPushButton("Check Kali VM readiness")
         self.kali_preflight_button.setToolTip(
             "Check a SAVED Kali plan, local ISO hash, both offline VM XML stages, "
@@ -704,7 +708,7 @@ class MainWindow(QMainWindow):
             "No guest, disk, VM definition or network is created."
         )
         self.kali_preflight_button.clicked.connect(self.check_kali_template_readiness)
-        controls.addWidget(self.kali_preflight_button)
+        kali_actions.addWidget(self.kali_preflight_button, 0, 0)
         registered = QPushButton("Audit installed Kali template VM")
         registered.setToolTip(
             "Read-only inspection of an already manually installed, shut-off "
@@ -712,7 +716,7 @@ class MainWindow(QMainWindow):
             "No guest starts or file changes."
         )
         registered.clicked.connect(self.audit_registered_kali_template)
-        controls.addWidget(registered)
+        kali_actions.addWidget(registered, 0, 1)
         baseline = QPushButton("Verify Kali cold backup")
         baseline.setToolTip(
             "Read-only binding of a manually installed, shut-off Kali VM and "
@@ -720,7 +724,7 @@ class MainWindow(QMainWindow):
             "Does not make a backup, restore or boot."
         )
         baseline.clicked.connect(self.verify_kali_cold_baseline)
-        controls.addWidget(baseline)
+        kali_actions.addWidget(baseline, 0, 2)
         link_button = QPushButton("Verify Kali recovery copy")
         link_button.setToolTip(
             "Read-only: compare a separate NEW offline recovery staging folder "
@@ -728,7 +732,7 @@ class MainWindow(QMainWindow):
             "Does not restore, define, import or boot any guest."
         )
         link_button.clicked.connect(self.check_kali_recovery_link)
-        controls.addWidget(link_button)
+        kali_actions.addWidget(link_button, 1, 0)
         registered_recovery = QPushButton("Audit registered Kali recovery")
         registered_recovery.setToolTip(
             "Read-only validation of a MANUALLY registered, SHUT-OFF offline Kali "
@@ -736,7 +740,7 @@ class MainWindow(QMainWindow):
             "autostart, and disk collisions. Does not start or change guests."
         )
         registered_recovery.clicked.connect(self.audit_registered_kali_recovery)
-        controls.addWidget(registered_recovery)
+        kali_actions.addWidget(registered_recovery, 1, 1)
         runtime_button = QPushButton("Observe running Kali recovery")
         runtime_button.setToolTip(
             "Read-only Fedora/libvirt sVirt and no-NIC metadata check for a benign "
@@ -744,11 +748,21 @@ class MainWindow(QMainWindow):
             "or access a guest. Does NOT hash an active qcow2 disk."
         )
         runtime_button.clicked.connect(self.observe_running_kali_recovery)
-        controls.addWidget(runtime_button)
+        kali_actions.addWidget(runtime_button, 1, 2)
+        label_button = QPushButton("Inspect effective QEMU sVirt label")
+        label_button.setToolTip(
+            "As an ordinary Fedora user, inspect one ALREADY running benign "
+            "Kali QEMU process /proc/PID/attr/current. Confirm guest UUID/name "
+            "and compare actual process context to libvirt. Never use sudo, "
+            "start a VM, read guest files or hash the writable disk."
+        )
+        label_button.clicked.connect(self.check_kali_qemu_process_label)
+        kali_actions.addWidget(label_button, 2, 0)
         vm_manager = QPushButton("Open virt-manager")
         vm_manager.clicked.connect(lambda: self.open_program(["virt-manager", "--connect", "qemu:///system"]))
         controls.addWidget(vm_manager)
         layout.addLayout(controls)
+        layout.addLayout(kali_actions)
         self.provision_result = QPlainTextEdit()
         self.provision_result.setReadOnly(True)
         self.provision_result.setMinimumHeight(265)
@@ -1178,6 +1192,46 @@ class MainWindow(QMainWindow):
             lambda msg: self.provision_result.setPlainText(
                 "KALI RUNNING-GUEST OBSERVATION: BLOCKED / UNVERIFIED\n" + msg +
                 "\nNo VM, guest disk or host network was modified."
+            ),
+        )
+
+    def check_kali_qemu_process_label(self):
+        if self.provision_kind.currentData() != "pentest":
+            self.provision_result.setPlainText(
+                "QEMU process SELinux inspection is for manually running benign Kali VMs only."
+            )
+            return
+        template_id = self.provision_template.currentData()
+        if not template_id:
+            self.provision_result.setPlainText("Choose a curated Kali toolkit first.")
+            return
+        plan, _ = QFileDialog.getOpenFileName(
+            self, "Select original curated Kali setup plan", "", "JSON files (*.json)"
+        )
+        if not plan:
+            return
+        guest, accepted = QInputDialog.getText(
+            self, "Observe an already running benign Kali recovery",
+            "NEW manually running recovery guest name (not original guest):"
+        )
+        if not accepted or not guest.strip():
+            return
+        source_guest = self.provision_name.text().strip()
+        self.provision_result.setPlainText(
+            "Checking effective QEMU /proc SELinux process context as an ordinary "
+            "Fedora user. Unreadable process metadata will BLOCK; no sudo fallback …"
+        )
+        def check():
+            data = load_setup_plan(Path(plan))
+            if data["guest"] != source_guest or data["template_id"] != template_id:
+                raise ToolError("QEMU process-label plan differs from selected Kali source guest/profile")
+            return KaliProcessLabelInspector().inspect(Path(plan), guest.strip())
+        self.work(
+            check,
+            lambda report: self.provision_result.setPlainText(report.describe()),
+            lambda msg: self.provision_result.setPlainText(
+                "KALI QEMU PROCESS LABEL: BLOCKED / UNVERIFIED\n" + msg +
+                "\nNo root access, VM lifecycle action, guest read or disk hash occurred."
             ),
         )
 
