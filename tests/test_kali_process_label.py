@@ -4,6 +4,7 @@ from __future__ import annotations
 from contextlib import redirect_stdout
 from io import StringIO
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -75,7 +76,13 @@ class ProcessLabelTests(unittest.TestCase):
         self.addCleanup(temp.cleanup)
         self.root = Path(temp.name)
         self.plan = self.root / "new-setup-plan.json"
-        save_setup_plan(build_setup_plan("recon"), self.plan)
+        if os.name == "nt":
+            # Windows lacks fchmod. Mock only this POSIX operation in
+            # synthetic fixture setup; production permissions remain intact.
+            with patch("nightglass.kali_setup.os.fchmod", create=True):
+                save_setup_plan(build_setup_plan("recon"), self.plan)
+        else:
+            save_setup_plan(build_setup_plan("recon"), self.plan)
         self.proc = self.root / "mock-proc"
         self.proc.mkdir()
         self.hv = FakeHypervisor()
