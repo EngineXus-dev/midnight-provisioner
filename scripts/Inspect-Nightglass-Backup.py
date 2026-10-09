@@ -64,6 +64,10 @@ def reject_linked_ancestors(path: Path) -> None:
     On Windows, junctions and other reparse points are refused. This
     does not make traversals atomic against concurrent filesystem writes.
     """
+    # Lexical abspath() collapses '..' before the kernel resolves links.
+    # Refuse it to prevent alias/../target from bypassing this walk.
+    if ".." in Path(path).parts:
+        raise BackupError("Parent traversal is unsupported in a selected path")
     current = Path(os.path.abspath(path))
     while True:
         try:
