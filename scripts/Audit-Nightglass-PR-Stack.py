@@ -27,6 +27,8 @@ SAFE_BRANCH = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]*\Z")
 HEX_SHA = re.compile(r"[0-9a-f]{40}\Z")
 MAX_MANIFEST_BYTES = 32 * 1024
 MANIFEST_PATH = "config/nightglass-pr-stack-snapshot.json"
+WORKFLOW_PATH = ".github/workflows/verify.yml"
+MAX_WORKFLOW_BYTES = 32 * 1024
 LAST_STACK_HEAD = "verification/stack-integration-readiness"
 
 
@@ -157,6 +159,55 @@ def warn_path(path: str) -> str | None:
     return None
 
 
+
+def review_manual_workflow(contents: bytes) -> dict:
+    """Fail closed on obvious CI auto-triggers and excessive token permissions.
+
+    Purposefully conservative structural check, NOT a full YAML parser,
+    actions supply-chain audit, or GitHub execution authorization.
+    """
+    if not isinstance(contents, bytes) or not contents or len(contents) > MAX_WORKFLOW_BYTES:
+        raise StackError("Missing or oversized GitHub Actions workflow")
+    try:
+        lines = contents.decode("utf-8", errors="strict").splitlines()
+    except UnicodeDecodeError as exc:
+        raise StackError("Workflow must have unambiguous UTF-8 encoding") from exc
+    significant = [line.rstrip() for line in lines
+                   if line.strip() and not line.lstrip().startswith("#")]
+    events = [i for i, line in enumerate(significant) if line == "on:"]
+    perms = [i for i, line in enumerate(significant) if line == "permissions:"]
+    if len(events) != 1 or len(perms) != 1:
+        raise StackError("Workflow event or token permission block is ambiguous")
+
+    def block(index: int) -> list[str]:
+        selected = []
+        for line in significant[index + 1:]:
+            if line and not line[0].isspace():
+                break
+            selected.append(line)
+        return selected
+
+    if block(events[0]) != ["  workflow_dispatch:"]:
+        raise StackError("Only explicit workflow_dispatch may trigger GitHub Actions")
+    if block(perms[0]) != ["  contents: read"]:
+        raise StackError("Workflow token must have only contents: read permission")
+    if any(re.search(r"(?<![A-Za-z0-9_-])(?:self-hosted|pull_request_target|"
+                     r"workflow_run|repository_dispatch)(?![A-Za-z0-9_-])", line, re.I)
+           for line in significant):
+        raise StackError("Unsafe workflow trigger or runner token")
+    if any(re.match(r"^\s+permissions:", line) for line in significant):
+        raise StackError("Unexpected job-level token permissions")
+    mutable_actions = [
+        line.strip() for line in significant
+        if re.match(r"^\s+-?\s*uses:\s*[^#\s]+@v[0-9]+\s*$", line)
+    ]
+    return {
+        "trigger": "MANUAL_WORKFLOW_DISPATCH_ONLY",
+        "token_permissions": "contents: read",
+        "source_integrity": "LOCAL_GIT_OBJECT_NOT_SIGNED",
+        "mutable_action_refs_need_review": mutable_actions,
+    }
+
 def verify(root: Path, *, manifest: list[dict],
            expected_sha: str | None = None) -> dict:
     """Local metadata only; no checkout, fetch, rebase or merge."""
@@ -218,6 +269,14 @@ def verify(root: Path, *, manifest: list[dict],
         raise StackError("Non-UTF8 changed path requires independent review") from exc
     alerts = [{"category": warn_path(name), "path": name}
               for name in names if warn_path(name) is not None]
+    # Inspect the CI policy from the EXACT candidate Git object, not
+    # a possibly stale .github file in the user's main checkout.
+    workflow = git(["show", refs[CANDIDATE] + ":" + WORKFLOW_PATH],
+                   root=root, raw=True)
+    workflow_review = review_manual_workflow(workflow)
+    for action in workflow_review["mutable_action_refs_need_review"]:
+        alerts.append({"category": "MUTABLE_ACTION_REF_REVIEW",
+                       "path": WORKFLOW_PATH, "detail": action})
     end = git_ref(root, "refs/heads/main")
     if end != original_head:
         errors.append("Main ref changed during inspection")
@@ -234,6 +293,7 @@ def verify(root: Path, *, manifest: list[dict],
         "candidate_only_commits": ahead,
         "changed_path_count": len(names),
         "review_flags": alerts,
+        "workflow_policy_review": workflow_review,
         "structure_pass": not errors,
         "blockers": errors,
         "github_live_pr_status_verified": False,
