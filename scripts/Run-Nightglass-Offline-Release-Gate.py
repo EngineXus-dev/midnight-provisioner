@@ -27,7 +27,7 @@ import sys
 import tempfile
 import time
 
-BRANCH = "deployment/windows11-pro-activation-media-preflight"
+BRANCH = "verification/rc-evidence-and-stack-audit"
 ORIGIN = re.compile(
     r"^(?:https://github\.com/|git@github\.com:)"
     r"enginexus-dev/nightglass-workspaces(?:\.git)?/?$",
@@ -223,6 +223,13 @@ def summary_file(path: Path, payload: dict) -> None:
 
 
 def verify(*, root: Path, allow_pull: bool, allow_build: bool) -> int:
+    # Capture main's ref both before and after test worktree preparation.
+    # This proves equality of the observed refs, not a claim about all
+    # external processes that could modify the repository concurrently.
+    main_before = checked(["git", "-C", str(root), "rev-parse",
+                           "refs/heads/main"], cwd=root)
+    if not re.fullmatch(r"[0-9a-f]{40}", main_before):
+        raise GateError("Cannot verify original main ref before testing.")
     checkout, sha, log_path, report_path = branch_checkout(root)
     print("New detached read-only test source:", checkout)
     print("Exact tested commit:", sha)
@@ -286,12 +293,31 @@ def verify(*, root: Path, allow_pull: bool, allow_build: bool) -> int:
     except (OSError, GateError, ValueError) as exc:
         error = type(exc).__name__
         print("[BLOCKED] Could not complete all checks:", error, file=sys.stderr)
+    try:
+        main_after = checked(["git", "-C", str(root), "rev-parse",
+                              "refs/heads/main"], cwd=root)
+        if not re.fullmatch(r"[0-9a-f]{40}", main_after):
+            raise GateError("Invalid original main ref after test run.")
+    except (OSError, GateError, subprocess.TimeoutExpired) as exc:
+        main_after = "UNKNOWN"
+        error = error or type(exc).__name__
+    if main_after != main_before:
+        error = error or "MainRefChanged"
+    # Hash the completed local log before writing the independent report.
+    try:
+        log_digest = hashlib.sha256(log_path.read_bytes()).hexdigest()
+    except OSError as exc:
+        log_digest = "UNKNOWN"
+        error = error or type(exc).__name__
     passed = all(results[k] == "PASS" for k in CHECKS) and error is None
     report = {
-        "format": "nightglass-offline-rc-gate-v1",
+        "format": "nightglass-offline-rc-gate-v2",
         "collected_at_utc": datetime.now(timezone.utc).isoformat(),
         "branch": BRANCH, "tested_commit": sha, "checks": results,
         "test_gate_passed": passed, "execution_error": error,
+        "original_main_before": main_before, "original_main_after": main_after,
+        "local_log_sha256": log_digest, "report_authentication": "LOCAL_UNAUTHENTICATED",
+        "deployment_approved": False, "release_attested": False,
         "physical_fedora_kvm_svirt_network_restore": "NOT_TESTED",
         "windows11_clean_install_usb_formatter": "NOT_RUN",
         "github_pr_merge_or_actions": "NOT_PERFORMED",
@@ -305,6 +331,8 @@ def verify(*, root: Path, allow_pull: bool, allow_build: bool) -> int:
         return 1
     print("Local log (review before sharing):", log_path)
     print("Private status-only summary:", report_path)
+    print("Independent local evidence auditor: scripts/Audit-Nightglass-Release-Evidence.py")
+    print("Evidence remains UNAUTHENTICATED; review full logs and exact Git SHA.")
     print("Physical Fedora hardware acceptance: PENDING.")
     print("No OS install, USB formatting, PR merge or GitHub Actions.")
     print("OVERALL: " + ("ALL SELECTED GATES PASS" if passed else "INCOMPLETE / BLOCKED"))
