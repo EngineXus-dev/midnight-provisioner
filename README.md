@@ -461,9 +461,9 @@ The script creates a fresh `nightglass-workspaces` **private** repository throug
 ## Optional Windows 11 upgrade first (NO automatic OS changes)
 
 The host read-only review identified Windows 10 Home on a UEFI/GPT
-Windows Disk 0 (measured system-disk capacity) and a separate measured backup-disk capacity GPT Disk 1 whose
-contents remain unknown. Nightglass cannot assume Disk 1 is empty or
-available. The Windows 10 boot, encrypted recovery, Fast Startup,
+Windows Disk 0 (measured system-disk capacity) and a separate measured backup-disk capacity GPT Disk 1 that the
+user has confirmed is a **PORTABLE DRIVE**. Nightglass explicitly excludes
+Disk 1 from Fedora target selection and USB formatting. The Windows 10 boot, encrypted recovery, Fast Startup,
 second-disk and upgrade prerequisites require human confirmation.
 
 If Windows 11 is chosen, **complete it and revalidate Windows first**.
@@ -572,3 +572,8 @@ python -m compileall -q nightglass tests
 ```
 
 No root access, VM images, lab connectivity, or malware samples are needed for these tests. They test policy logic and process argument construction, not the security of a hypervisor itself. SPDX license: MIT.
+
+See [Nightglass one-USB multiboot plan](docs/ONE_USB_MULTIBOOT_PLAN.md): a
+separate blank USB can contain official Windows 11 and Fedora KDE ISO files,
+but a supported Windows upgrade must be completed within Windows first,
+and later Fedora partitioning requires backup verification and explicit approval.
