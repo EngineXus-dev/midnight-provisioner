@@ -137,6 +137,51 @@ class BackupIntegrityTests(unittest.TestCase):
             self.assertFalse(result["verification_succeeded"])
             self.assertIn(".env", diffs)
 
+    def test_cross_name_hardlink_is_not_an_independent_copy(self):
+        # Old check only compared source and backup at the SAME path.
+        # A source/first.bin hardlink masquerading as backup/second.bin
+        # must fail even though expected contents and sizes match.
+        with tempfile.TemporaryDirectory() as folder:
+            src, dst = self.make_trees(Path(folder))
+            first = src / "first.bin"
+            second = src / "second.bin"
+            first.write_bytes(b"same data")
+            second.write_bytes(b"same data")
+            (dst / "first.bin").write_bytes(b"same data")
+            alias = dst / "second.bin"
+            try:
+                os.link(first, alias)
+            except (OSError, NotImplementedError):
+                self.skipTest("Hardlinks unavailable on synthetic filesystem")
+            if first.stat().st_ino == 0 or first.stat().st_ino != alias.stat().st_ino:
+                self.skipTest("Filesystem does not report stable hardlink identity")
+            result, differences = self.inspect(src, dst, verify=True)
+            self.assertEqual(result["different_file_sizes"], 0)
+            self.assertEqual(result["different_file_hashes"], 0)
+            self.assertEqual(result["same_file_identity_count"], 1)
+            self.assertEqual(result["status"], "NOT_INDEPENDENT_FILE_COPY")
+            self.assertEqual(result["identity_scope"], "ALL_FILES_IN_SELECTED_SOURCE_ROOT")
+            self.assertFalse(result["verification_succeeded"])
+            self.assertIn("second.bin", differences)
+
+    def test_extra_backup_file_hardlinked_to_source_is_rejected(self):
+        with tempfile.TemporaryDirectory() as folder:
+            src, dst = self.make_trees(Path(folder))
+            original = src / ".env"
+            alias = dst / "extra-but-not-independent.env"
+            try:
+                os.link(original, alias)
+            except (OSError, NotImplementedError):
+                self.skipTest("Hardlinks unavailable on synthetic filesystem")
+            if original.stat().st_ino == 0 or original.stat().st_ino != alias.stat().st_ino:
+                self.skipTest("Filesystem does not report stable hardlink identity")
+            result, differences = self.inspect(src, dst, verify=True)
+            self.assertEqual(result["extra_backup_files"], 1)
+            self.assertEqual(result["same_file_identity_count"], 1)
+            self.assertEqual(result["status"], "NOT_INDEPENDENT_FILE_COPY")
+            self.assertFalse(result["verification_succeeded"])
+            self.assertIn(alias.name, differences)
+
     def test_no_recursive_or_self_comparison(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
