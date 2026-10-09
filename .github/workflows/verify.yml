@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Compile
-        run: python -m compileall -q nightglass tests
+        run: python -m compileall -q nightglass tests scripts/kali-guest-inventory.py
       - name: Check installer shell syntax
         run: bash -n scripts/setup-nightglass.sh && bash -n scripts/fedora-recovery-smoke.sh
       - name: Smoke-test headless machine tuning
