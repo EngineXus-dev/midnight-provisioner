@@ -343,9 +343,11 @@ Or select **Prepare VM → Audit installed Kali template VM**. The checker
 inspects both registered XML definitions, current guest state, resource
 limits, unexpected networking, disk driver metadata and the **exact source
 paths** in other libvirt VMs. It makes no host or guest modifications.
-Passing configuration checks do not prove that two differently named disk
-files aren't aliases, or that Kali tool installations and runtime isolation
-are trustworthy. See [registered Kali VM audit](docs/KALI_REGISTERED_TEMPLATES.md).
+Registered disk checks reject hardlinked selected images, normalized
+path aliases and symlinks found within the selected disk folder. Aliases
+outside that folder, bind mounts and privileged state changes may still
+escape static review; Kali package installation and runtime isolation
+remain unverified. See [registered Kali VM audit](docs/KALI_REGISTERED_TEMPLATES.md).
 
 ## Useful controls
 
