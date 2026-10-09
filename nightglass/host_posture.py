@@ -122,6 +122,8 @@ def inspect_host_posture(
         checks.append(PostureCheck("KVM", "UNKNOWN", "KVM device is a symbolic link; inspect manually"))
     elif not KVM_DEVICE.exists():
         checks.append(PostureCheck("KVM", "WARN", "No /dev/kvm; hardware virtualization unavailable"))
+    elif not KVM_DEVICE.is_char_device():
+        checks.append(PostureCheck("KVM", "UNKNOWN", "/dev/kvm is not a character device"))
     elif not os.access(KVM_DEVICE, os.R_OK | os.W_OK):
         checks.append(PostureCheck("KVM", "WARN", "Cannot read/write /dev/kvm as this user; do not use sudo as workaround"))
     else:
