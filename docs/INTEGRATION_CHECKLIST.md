@@ -5,7 +5,7 @@
 Nightglass is developed as a cumulative chain of **29 open draft pull
 requests** as of October 9, 2026. No PR has been merged. PR #1 targets
 \`main\` and each following PR targets the preceding phase branch.
-Draft PR #30 in this workstream adds a manual test entry point and
+Draft PR #31 in this workstream adds a manual test entry point and
 prepares future CI to run **only on explicit workflow_dispatch**. It
 does not merge anything or activate a high-risk guest capability.
 
@@ -121,7 +121,7 @@ prove malicious guest isolation.
 
 ## 5. Integration policy
 
-Keep PR #1 through #30 as **drafts**. Use the newest cumulative branch
+Keep the 29 preceding PRs and integration PR #31 as **drafts**. Use the newest cumulative branch
 for regression verification rather than wasting Actions on every PR.
 When tests and physical safety gates appropriate to the phase are
 met—and the repository owner **explicitly authorizes merges**—integrate
