@@ -488,6 +488,73 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.window.verify_kali_cold_baseline()
             picker.assert_not_called()
 
+    def test_kali_recovery_copy_gui_binds_source_template_and_allows_cancellation(self):
+        from types import SimpleNamespace
+        from PySide6.QtWidgets import QPushButton
+        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        self.window.prepare_space("pentest")
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("recon")
+        )
+        labels = {
+            control.text()
+            for control in self.window.stack.currentWidget().findChildren(QPushButton)
+        }
+        self.assertIn("Verify Kali recovery copy", labels)
+        plan = Path(self.temp.name) / "selected-kali.json"
+        save_setup_plan(build_setup_plan("recon"), plan)
+        src = Path(self.temp.name) / "original-backup"
+        stage = Path(self.temp.name) / "staged-copy"
+        src.mkdir()
+        stage.mkdir()
+        result = SimpleNamespace(
+            ok=True,
+            describe=lambda: (
+                "KALI RECOVERY LINK: MATCHED (FILES/XML ONLY — NOT RESTORE-PROVEN)"
+            ),
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName", return_value=(str(plan), "JSON"),
+        ), patch.object(
+            self.ui.QFileDialog, "getExistingDirectory",
+            side_effect=[str(src), str(stage)],
+        ), patch.object(self.ui, "KaliRecoveryLink") as checker, \
+             patch.object(self.window, "work") as worker:
+            checker.return_value.inspect.return_value = result
+            self.window.check_kali_recovery_link()
+            worker.assert_called_once()
+            task, success, failure = worker.call_args.args
+            self.assertIs(task(), result)
+            checker.return_value.inspect.assert_called_once_with(plan, src, stage)
+            success(result)
+            self.assertIn("NOT RESTORE-PROVEN", self.window.provision_result.toPlainText())
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("web-audit")
+        )
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName", return_value=(str(plan), "JSON"),
+        ), patch.object(
+            self.ui.QFileDialog, "getExistingDirectory",
+            side_effect=[str(src), str(stage)],
+        ), patch.object(self.ui, "KaliRecoveryLink") as checker, \
+             patch.object(self.window, "work") as worker:
+            self.window.check_kali_recovery_link()
+            task, success, failure = worker.call_args.args
+            with self.assertRaisesRegex(Exception, "differs from selected"):
+                task()
+            checker.assert_not_called()
+            failure("profile mismatch")
+        self.assertIn("BLOCKED", self.window.provision_result.toPlainText())
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName", return_value=("", ""),
+        ), patch.object(self.window, "work") as worker:
+            self.window.check_kali_recovery_link()
+            worker.assert_not_called()
+        self.window.prepare_space("analysis")
+        with patch.object(self.ui.QFileDialog, "getOpenFileName") as dialog:
+            self.window.check_kali_recovery_link()
+            dialog.assert_not_called()
+
     def test_analysis_profile_cannot_save_running_memory(self):
         with patch.object(self.window, "error") as error, \
              patch.object(self.window, "work") as background:
