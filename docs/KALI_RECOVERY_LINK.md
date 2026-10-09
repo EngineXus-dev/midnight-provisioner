@@ -74,6 +74,17 @@ already-staged recovery folder.
 The result is **MATCHED (FILES/XML ONLY — NOT RESTORE-PROVEN)**, never
 “restored” or “safe to execute.”
 
+## Read-only check after manual registration
+
+After separately inspecting and **manually registering** a new, shut-off
+benign recovery VM, run `nightglass templates recovery-registered PLAN.json
+--backup EXISTING_BACKUP --staged EXISTING_STAGE`. The GUI offers
+**Audit registered Kali recovery**. This revalidates the backup and copy
+against the actual system-libvirt recovery guest, requiring a new VM UUID,
+autostart OFF, no NIC/saved resume and no other registered guest using the
+recovery disk. It still does **not** boot or restore the VM. See
+[registered Kali recovery audit](KALI_REGISTERED_RECOVERY.md).
+
 ## Limits and next steps
 
 SHA-256 matching does not prove that the original backup was created by
