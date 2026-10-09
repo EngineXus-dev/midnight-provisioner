@@ -15,6 +15,7 @@ from .portability import (
 )
 from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
+from .kali_templates import get_template, list_templates, plan_template
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -50,6 +51,12 @@ def main(argv: list[str] | None = None) -> int:
     update_apply.add_argument("--yes", action="store_true", help="Confirm without an interactive prompt")
     update_setting = update_actions.add_parser("checks", help="Opt into startup update notices")
     update_setting.add_argument("state", choices=("on", "off"))
+    template_cli = sub.add_parser("templates", help="Browse curated independent Kali VM tool profiles (read-only)")
+    template_commands = template_cli.add_subparsers(dest="template_action")
+    template_list = template_commands.add_parser("list", help="List all white-hat and red-team templates")
+    template_list.add_argument("--category", choices=("white-hat", "red-team"))
+    template_show = template_commands.add_parser("show", help="Show exact packages and offline resource defaults")
+    template_show.add_argument("identifier")
     wizard = sub.add_parser("provision", help="Read-only VM ISO integrity and guest XML preflight")
     wizard.add_argument("kind", choices=("pentest", "analysis"))
     wizard.add_argument("--iso", required=True)
@@ -58,6 +65,7 @@ def main(argv: list[str] | None = None) -> int:
     wizard.add_argument("--ram-mib", type=int)
     wizard.add_argument("--vcpus", type=int)
     wizard.add_argument("--disk-gib", type=int)
+    wizard.add_argument("--template", help="Optional curated Kali template ID, pentest guests only")
     backup = sub.add_parser("backup", help="Cold VM backup plan/create and integrity verification")
     backup_actions = backup.add_subparsers(dest="backup_action")
     bp = backup_actions.add_parser("plan", help="Verify shutdown and show eligible backup assets")
@@ -97,6 +105,19 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     cmd = args.command or "gui"
     try:
+        if cmd == "templates":
+            if args.template_action == "show":
+                print(get_template(args.identifier).describe())
+                return 0
+            if args.template_action in (None, "list"):
+                for entry in list_templates(args.category if args.template_action == "list" else None):
+                    print(
+                        f"{entry.identifier:16s} {entry.category:10s} "
+                        f"{entry.name} ({len(entry.packages)} tools; {entry.ram_mib} MiB)"
+                    )
+                print("PLANS ONLY: each template uses a separate, disconnected Kali VM.")
+                return 0
+            parser.error("Choose templates list or templates show")
         if cmd == "runtime-label":
             report = RuntimeLabelInspector().inspect(args.guest, args.policy)
             print(report.describe())
@@ -179,11 +200,20 @@ def main(argv: list[str] | None = None) -> int:
             print("Verify the backup with: nightglass backup verify", directory)
             return 0
         if cmd == "provision":
-            plan = build_plan(
-                args.kind, args.iso, args.sha256, name=args.name,
-                ram_mib=args.ram_mib, vcpus=args.vcpus, disk_gib=args.disk_gib,
+            if args.template and args.kind != "pentest":
+                raise ToolError("Curated Kali templates are only for pentest guests, not analysis VMs")
+            plan = (
+                plan_template(
+                    args.template, args.iso, args.sha256, name=args.name,
+                    ram_mib=args.ram_mib, vcpus=args.vcpus, disk_gib=args.disk_gib,
+                ) if args.template else build_plan(
+                    args.kind, args.iso, args.sha256, name=args.name,
+                    ram_mib=args.ram_mib, vcpus=args.vcpus, disk_gib=args.disk_gib,
+                )
             )
             print(OfflineProvisioner().preview(plan).describe())
+            if args.template:
+                print("\n" + get_template(args.template).describe())
             return 0
         if cmd == "profile":
             if args.profile_action in (None, "show"):
