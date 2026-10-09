@@ -732,3 +732,7 @@ and `..` bypass spelling is refused. The fix is committed on a
 reversible draft branch; native Windows junction and latest
 cumulative Docker tests remain pending. No OS installation,
 personal-file copying, drive formatting or PR merge occurred.
+
+### Phase 13: backup hardlink identity across file names and directory groups
+
+[Cross-root identity review](docs/BACKUP_CROSS_ROOT_IDENTITY.md) documents the new checks for backups hardlinked to differently named original files or to originals in another selected directory group. Runtime tests on native Windows are still pending; no deployment is approved.
