@@ -192,6 +192,18 @@ This is **read-only, not an isolation guarantee or an enforcement service**.
 Missing RAM data or an inaccessible libvirt connection means UNKNOWN, never a
 false NORMAL status. See [resource monitoring limitations](docs/RESOURCE_MONITOR.md).
 
+## Fedora host posture review (read-only)
+
+Nightglass's Diagnostics page now offers **Audit Fedora host security**.
+It reports SELinux enforcement, the `/dev/kvm` character device and access,
+firewalld availability, and IPv4/IPv6 forwarding **without modifying the
+host**. The CLI equivalent is `nightglass host-security`.
+
+The restricted VM policy additionally rejects explicit guest/disk security
+label opt-outs. Successful local checks are **not** proof of effective sVirt,
+firewall isolation, packet-level network denial or malware containment.
+See [Fedora security posture limitations](docs/HOST_POSTURE.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
