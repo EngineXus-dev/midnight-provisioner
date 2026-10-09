@@ -177,20 +177,27 @@ def fingerprint(file: FileInfo) -> str:
 
 
 def compare(source: Inventory, backup: Inventory, *, verify: bool,
-            source_device: int, backup_device: int) -> tuple[dict, list[str]]:
+            source_device: int, backup_device: int,
+            forbidden_source_ids: set[tuple[int, int]] | None = None
+            ) -> tuple[dict, list[str]]:
     missing = sorted(source.files.keys() - backup.files.keys())
     extras = sorted(backup.files.keys() - source.files.keys())
     missing_dirs = sorted(source.folders - backup.folders)
     changed_sizes = sorted(key for key in source.files.keys() & backup.files.keys()
                            if source.files[key].size != backup.files[key].size)
-    # A same-volume hard link is not a separately recoverable backup.
-    # Only compare nonzero inode identifiers; some Windows mounts report
-    # unavailable/zero IDs and therefore remain unverified by this test.
+    # Compare EVERY backup file against EVERY source identity, not
+    # merely files with identical relative names. A hardlink can be
+    # disguised by using another filename, or (in a multi-root set)
+    # point to a source in a different selected group.
+    # Missing/zero inode identifiers cannot establish independence.
+    source_ids = (
+        {(file.device, file.inode) for file in source.files.values()
+         if file.inode != 0}
+        if forbidden_source_ids is None else forbidden_source_ids
+    )
     aliases = sorted(
-        key for key in source.files.keys() & backup.files.keys()
-        if source.files[key].device == backup.files[key].device
-        and source.files[key].inode != 0
-        and source.files[key].inode == backup.files[key].inode
+        name for name, file in backup.files.items()
+        if file.inode != 0 and (file.device, file.inode) in source_ids
     )
     modified: list[str] = []
     common = sorted(source.files.keys() & backup.files.keys())
@@ -222,6 +229,11 @@ def compare(source: Inventory, backup: Inventory, *, verify: bool,
         "different_file_sizes": len(changed_sizes),
         "different_file_hashes": len(modified),
         "same_file_identity_count": len(aliases),
+        "identity_scope": (
+            "ALL_SELECTED_SOURCE_ROOTS" if forbidden_source_ids is not None
+            else "ALL_FILES_IN_SELECTED_SOURCE_ROOT"
+        ),
+        "identity_evidence": "NONZERO_DEVICE_INODE_ONLY_NOT_PHYSICAL_PROOF",
         "extra_backup_files": len(extras),
         "source_markers_present": source.markers,
         "backup_markers_present": backup.markers,
