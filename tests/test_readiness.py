@@ -90,8 +90,7 @@ class ReadinessTests(unittest.TestCase):
 
     def check(self):
         with patch("nightglass.readiness.platform.system", return_value="Linux"), \
-             patch("nightglass.readiness.os.path.exists", return_value=True), \
-             patch("nightglass.readiness.os.access", return_value=True), \
+             patch("nightglass.readiness._kvm_accessible", return_value=True), \
              patch("nightglass.readiness.current_budget", return_value=budget_for(8, 6)):
             return self.service.check(self.dir)
 
@@ -176,7 +175,7 @@ class ReadinessTests(unittest.TestCase):
 
     def test_unavailable_kvm_blocks(self):
         with patch("nightglass.readiness.platform.system", return_value="Linux"), \
-             patch("nightglass.readiness.os.path.exists", return_value=False):
+             patch("nightglass.readiness._kvm_accessible", return_value=False):
             with self.assertRaisesRegex(ToolError, "KVM access unavailable"):
                 self.service.check(self.dir)
 
@@ -193,8 +192,7 @@ class ReadinessTests(unittest.TestCase):
             return [] if hv.calls == 1 else ["nightglass-recovered"]
         hv.list_domains = changing
         with patch("nightglass.readiness.platform.system", return_value="Linux"), \
-             patch("nightglass.readiness.os.path.exists", return_value=True), \
-             patch("nightglass.readiness.os.access", return_value=True), \
+             patch("nightglass.readiness._kvm_accessible", return_value=True), \
              patch("nightglass.readiness.current_budget", return_value=budget_for(8, 6)):
             with self.assertRaisesRegex(ToolError, "registered during preflight"):
                 service.check(self.dir)
