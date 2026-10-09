@@ -168,6 +168,15 @@ A report that passes XML checks is **not** evidence of actual boot success,
 packet-level network isolation, or resistance to hypervisor escape. Read the
 [registered guest audit guide](docs/REGISTERED_GUEST_AUDIT.md).
 
+## Native virtualization-tool tests (no VM creation)
+
+The GitHub CI pipeline now checks **real** libvirt XML schema validation and
+QEMU disk-header behavior on a disposable Ubuntu runner, including refusal of
+QCOW2 backing-file chains. This is stronger than mocked tool responses, but
+**still does not boot a VM or prove Fedora isolation**. See
+[Native tools testing](docs/NATIVE_TOOLS_TESTING.md) and
+[Fedora acceptance guide](docs/FEDORA_ACCEPTANCE.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
