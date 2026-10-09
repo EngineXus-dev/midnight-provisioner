@@ -217,6 +217,22 @@ This does **not** prevent a privileged application from editing libvirt
 definitions after the audit, starting guests outside Nightglass or altering
 host firewall policy. No new automatic VM import/start has been enabled.
 
+## Verified staged-to-registered recovery handoff
+
+After **manual** registration of a new guest on a disposable Fedora host,
+Nightglass can check whether the registered VM really uses the previously
+verified staged disk images and matching QEMU formats:
+
+```bash
+nightglass recover handoff /path/to/staged-new-guest
+```
+
+Or select **Backup & verify → Verify registered handoff**. The check is
+read-only, requires the recovered VM to be powered off and rejects extra
+disks, changed NVRAM, managed-save state or mismatched registered UUIDs.
+It does not prove runtime confinement, guest boot or network isolation.
+See [verified recovery handoff](docs/RECOVERY_HANDOFF.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
