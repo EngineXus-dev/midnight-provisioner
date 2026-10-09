@@ -43,6 +43,7 @@ class HostPostureTests(unittest.TestCase):
              patch.object(posture.os, "geteuid", return_value=root_uid), \
              patch.object(posture.KVM_DEVICE.__class__, "is_symlink", return_value=False), \
              patch.object(posture.KVM_DEVICE.__class__, "exists", return_value=kvm_exists), \
+             patch.object(posture.KVM_DEVICE.__class__, "is_char_device", return_value=True), \
              patch.object(posture.os, "access", return_value=kvm_access):
             result = posture.inspect_host_posture(
                 runner=runner, which=lambda name: "/usr/bin/" + name
