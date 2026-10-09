@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -21,6 +22,24 @@ SCRIPT = ROOT / "scripts" / "kali-guest-inventory.py"
 spec = importlib.util.spec_from_file_location("kali_guest_inventory", SCRIPT)
 guest_helper = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(guest_helper)
+
+
+# Native Windows cannot set Linux descriptor modes; POSIX still asserts 0600.
+_fixture_mode_patch = None
+
+
+def setUpModule():
+    global _fixture_mode_patch
+    if os.name == "nt":
+        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch.start()
+
+
+def tearDownModule():
+    global _fixture_mode_patch
+    if _fixture_mode_patch is not None:
+        _fixture_mode_patch.stop()
+        _fixture_mode_patch = None
 
 
 def completed(argv, stdout="", stderr="", code=0):
@@ -51,7 +70,7 @@ class GuestInventoryHelperTests(unittest.TestCase):
         raise AssertionError("Unexpected guest command requested")
 
     def collect(self):
-        with patch.object(guest_helper.os, "geteuid", return_value=1000), \
+        with patch.object(guest_helper.os, "geteuid", return_value=1000, create=True), \
              patch.object(guest_helper, "_query", side_effect=self.fake_query):
             return guest_helper.collect(self.plan_path, self.kali_release)
 
@@ -100,7 +119,7 @@ class GuestInventoryHelperTests(unittest.TestCase):
         with self.assertRaisesRegex(guest_helper.InventoryError, "Only run inside"):
             guest_helper.kali_release(self.kali_release)
         self.kali_release.write_text("ID=kali\nVERSION_CODENAME=kali-rolling\n")
-        with patch.object(guest_helper.os, "geteuid", return_value=0), \
+        with patch.object(guest_helper.os, "geteuid", return_value=0, create=True), \
              patch.object(guest_helper, "_query") as query, \
              self.assertRaisesRegex(guest_helper.InventoryError, "not root"):
             guest_helper.collect(self.plan_path, self.kali_release)
@@ -139,7 +158,10 @@ class GuestInventoryHelperTests(unittest.TestCase):
                     guest_helper.read_plan(self.plan_path)
                 self.plan_path.write_text(original)
         linked = self.folder / "alias.json"
-        linked.symlink_to(self.plan_path)
+        try:
+            linked.symlink_to(self.plan_path)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies synthetic symlink creation")
         with self.assertRaisesRegex(guest_helper.InventoryError, "symlink"):
             guest_helper.read_plan(linked)
 
@@ -147,14 +169,18 @@ class GuestInventoryHelperTests(unittest.TestCase):
         report = self.collect()
         target = self.folder / "new-guest-inventory.json"
         guest_helper.save_new(report, target)
-        self.assertEqual(target.stat().st_mode & 0o777, 0o600)
+        if os.name != "nt":
+            self.assertEqual(target.stat().st_mode & 0o777, 0o600)
         self.assertEqual(json.loads(target.read_text()), report)
         old = target.read_bytes()
         with self.assertRaisesRegex(guest_helper.InventoryError, "already exists"):
             guest_helper.save_new(report, target)
         self.assertEqual(target.read_bytes(), old)
         linked = self.folder / "symlink.json"
-        linked.symlink_to(target)
+        try:
+            linked.symlink_to(target)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies synthetic symlink creation")
         with self.assertRaisesRegex(guest_helper.InventoryError, "already exists"):
             guest_helper.save_new(report, linked)
 
