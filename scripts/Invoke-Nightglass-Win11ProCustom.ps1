@@ -103,7 +103,17 @@ Write-Host ''
 
 if ($Mode -eq 'Preview' -or $Mode -eq 'ExportPlan') {
   foreach ($item in $entries) {
-    $status = if ([int]$item.id -in $coreIds) { 'CORE-PROPOSED' } else { 'SEPARATE-REVIEW' }
+    $status = if ([int]$item.id -eq 35) {
+      'CORE RECALL/CLICK-TO-DO; COPILOT UNINSTALL SEPARATE'
+    } elseif ([int]$item.id -eq 31) {
+      'CORE GAME-DVR/OVERLAY; XBOX UNINSTALL SEPARATE'
+    } elseif ([int]$item.id -eq 6) {
+      'CORE EDGE/PAINT/NOTEPAD; CHROME MANUAL'
+    } elseif ([int]$item.id -in $coreIds) {
+      'CORE-PROPOSED'
+    } else {
+      'SEPARATE-REVIEW'
+    }
     Write-Host ('{0,2} [{1}] {2}' -f $item.id, $status, $item.title)
   }
   Write-Host ''
