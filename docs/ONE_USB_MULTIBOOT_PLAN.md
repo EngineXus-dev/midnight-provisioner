@@ -159,3 +159,21 @@ automatic Fedora installer, ISO downloader or device writer is authorized.
 or validated, Windows 11 not installed, Fedora not installed, portable
 drive not accessed and no Windows partition changed. The user is NOT
 ready to execute this plan yet and has asked to continue other work.
+
+## Optional custom Windows 11 Lite ISO is NOT necessary for USB fit
+
+The 16 GB installer stick can likely hold official unmodified Windows
+11 and Fedora KDE ISOs if the measured files plus Ventoy overhead fit.
+NTLite compression is an optional independent project, **not** a
+prerequisite for multi-ISO boot media. The preferred first boot path
+is to retain one genuine, unmodified Microsoft installation image
+for reliable recovery.
+
+If building an optional Lite image, use the current official stable
+Windows version (Microsoft lists **26H2 as of 2026-10-09**) and keep
+the edition with an actually valid licence (current Windows was Home;
+do not default to Pro), servicing, Defender, BitLocker, TPM, WinRE,
+WebView2, Store, and virtualization components. The machine remains
+in INSTALLATION HOLD and NO ISO has been built here.
+
+See [NTLite Free safe profile](WINDOWS11_LITE_IMAGE_PROFILE.md).
