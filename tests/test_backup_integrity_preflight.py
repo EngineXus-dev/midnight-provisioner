@@ -161,6 +161,50 @@ class BackupIntegrityTests(unittest.TestCase):
             with self.assertRaises(backup.BackupError):
                 backup.checked_root(link)
 
+    def test_linked_parent_of_selected_root_is_rejected(self):
+        with tempfile.TemporaryDirectory() as home:
+            root = Path(home)
+            real_parent = root / "actual"
+            real_parent.mkdir()
+            child = real_parent / "project"
+            child.mkdir()
+            alias = root / "shortcut"
+            try:
+                alias.symlink_to(real_parent, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("Directory symlink creation unavailable")
+            # Final component 'project' is NOT itself a symlink.
+            self.assertFalse((alias / "project").is_symlink())
+            with self.assertRaises(backup.BackupError):
+                backup.checked_root(alias / "project")
+            self.assertEqual(backup.checked_root(child), child.resolve())
+
+    def test_linked_parent_of_report_is_blocked_without_creating_output(self):
+        with tempfile.TemporaryDirectory() as home:
+            root = Path(home)
+            real = root / "real"
+            real.mkdir()
+            alias = root / "linked-parent"
+            try:
+                alias.symlink_to(real, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("Directory symlink creation unavailable")
+            report = alias / "safe-looking.json"
+            with self.assertRaises(backup.BackupError):
+                backup.write_report_new(report, {"state": "test"},
+                                        (root / "source", root / "backup"))
+            self.assertFalse((real / "safe-looking.json").exists())
+
+    def test_dotdot_parent_traversal_does_not_skip_link_detection(self):
+        with tempfile.TemporaryDirectory() as home:
+            root = Path(home)
+            normal = root / "source"
+            normal.mkdir()
+            unsafe = root / "middle" / ".." / "source"
+            with self.assertRaises(backup.BackupError):
+                backup.checked_root(unsafe)
+            self.assertEqual(backup.checked_root(normal), normal.resolve())
+
     def test_large_file_and_count_limits_fail_closed(self):
         with tempfile.TemporaryDirectory() as folder:
             src, dst = self.make_trees(Path(folder))
