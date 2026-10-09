@@ -217,6 +217,31 @@ class OffscreenMainWindowTests(unittest.TestCase):
             error.assert_called_once()
             dialog.assert_not_called()
 
+    def test_guest_inventory_instructions_are_read_only_and_guest_scoped(self):
+        from PySide6.QtWidgets import QPushButton
+        self.window.prepare_space("pentest")
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("recon")
+        )
+        controls = {
+            button.text()
+            for button in self.window.stack.currentWidget().findChildren(QPushButton)
+        }
+        self.assertIn("Guest inventory instructions", controls)
+        with patch.object(self.window, "work") as worker, \
+             patch.object(self.ui.subprocess, "run") as commands:
+            self.window.show_guest_inventory_instructions()
+            worker.assert_not_called()
+            commands.assert_not_called()
+        output = self.window.provision_result.toPlainText()
+        self.assertIn("python3 kali-guest-inventory.py --plan", output)
+        self.assertIn("NOT authenticated", output)
+        self.assertIn("does NOT provide host/guest file sharing", output)
+        self.assertIn("nightglass-kali-recon", output)
+        self.window.prepare_space("analysis")
+        self.window.show_guest_inventory_instructions()
+        self.assertIn("benign pentest VMs only", self.window.provision_result.toPlainText())
+
     def test_analysis_profile_cannot_save_running_memory(self):
         with patch.object(self.window, "error") as error, \
              patch.object(self.window, "work") as background:
