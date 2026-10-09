@@ -42,6 +42,7 @@ WINDOWS_PORTABLE_SUITES = (
     "test_release_evidence_audit.py",
     "test_pr_stack_audit.py",
     "test_candidate_branch_contract.py",
+    "test_portable_suite_coverage.py",
     "test_windows_offline_launcher.py",
     "test_required_integration_suites.py",
     "test_headless_matrix_coverage.py",
@@ -210,7 +211,8 @@ def main(argv=None) -> int:
             for pattern in WINDOWS_PORTABLE_SUITES:
                 failed |= bool(run_command(
                     f"Windows-portable synthetic tests: {pattern}",
-                    unit_args(pattern), dry_run=args.dry_run,
+                    [sys.executable, "-B", "scripts/run_portable_suite.py",
+                     "--pattern", pattern], dry_run=args.dry_run,
                 ))
         failed |= bool(run_command(
             "Synthetic QEMU /proc cases (Windows-compatible subset)",
