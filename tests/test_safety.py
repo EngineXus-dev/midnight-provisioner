@@ -1,3 +1,4 @@
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -156,9 +157,14 @@ class ConfigTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             target = Path(td) / 'settings' / 'workspaces.json'
             source = [Workspace('test', 'Test', 'vm', 'safevm', 'isolated', 'offline')]
-            save_workspaces(source, target)
+            if os.name == "nt":
+                with patch("nightglass.settings.os.fchmod", create=True):
+                    save_workspaces(source, target)
+            else:
+                save_workspaces(source, target)
             self.assertEqual(load_workspaces(target), source)
-            self.assertEqual(target.stat().st_mode & 0o777, 0o600)
+            if os.name != "nt":
+                self.assertEqual(target.stat().st_mode & 0o777, 0o600)
 
     def test_bad_config_rejected(self):
         with tempfile.TemporaryDirectory() as td:
