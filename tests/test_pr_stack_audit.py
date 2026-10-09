@@ -152,8 +152,7 @@ class StackAuditTests(unittest.TestCase):
 
     def test_wrong_candidate_sha_or_non_descendant_fails_closed(self):
         with self.assertRaises(audit.StackError):
-            self.run_fake(sha="d" * 40, main_only=0) if False else audit.verify(
-                ROOT, manifest=self.chain, expected_sha="not a sha")
+            audit.verify(ROOT, manifest=self.chain, expected_sha="not a sha")
         failure, _ = self.run_fake(merged_failure=True)
         self.assertFalse(failure["structure_pass"])
         self.assertTrue(failure["blockers"])
