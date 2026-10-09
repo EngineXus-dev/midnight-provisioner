@@ -16,6 +16,15 @@
 - [x] Disable managed-save for disposable analysis profiles; saved-session status in the UI and CLI
 - [ ] Fedora/KVM end-to-end tests for resumed Kali sessions and manual out-of-band changes
 
+## v0.1.3 — one install, portable machine tuning (draft)
+- [x] One non-root Nightglass app setup script; remove separate 8/32 GB setup entrypoints
+- [x] Detect RAM and CPU at every VM launch; clamp custom preferences to conservative budgets
+- [x] Machine settings GUI with Automatic, Compact, Balanced, Performance and advanced controls
+- [x] Machine-local settings isolated from portable workspace definitions and VM images
+- [x] Optional source update check and user-confirmed fast-forward-only Git update
+- [ ] Live Fedora/KDE setup, GUI and VM-limit smoke tests on 8, 16 and 32 GB systems
+- [ ] Signature-verified release bundles and automatic dependency rollback before unattended installs
+
 ## v0.2 — workspace provisioning
 - [ ] Installer-assisted Kali and disposable analysis VM templates from verified checksummed images
 - [ ] Dynamic RAM-pressure and swap indicator, VM runtime resource controls and external launch detection
