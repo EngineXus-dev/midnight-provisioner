@@ -696,3 +696,16 @@ adds fail-closed minimum executed-test thresholds for Python 3.11–3.13,
 real Fedora GUI/libvirt fixtures and Bash syntax, and fixes an obsolete
 Git command-order assertion after SHA verification was introduced.
 These are source updates on a draft branch, not verified runtime PASS.
+
+### Phase 10: verify a future portable backup without writing to it
+
+[Backup integrity preflight](docs/BACKUP_INTEGRITY_PREFLIGHT.md)
+introduces `scripts/Inspect-Nightglass-Backup.py`: Preview-only
+by default, with user-requested metadata comparison or streaming
+SHA-256 checks of an original directory and an already copied
+portable backup. The inspection includes hidden .git/.env/.venv
+content and never formats a disk, copies data, alters the registry,
+executes Windows Setup or stores a product key. It does **not**
+prove external-device separation or successful restoration.
+The current draft's native Windows/Docker tests remain pending;
+Windows 11 Pro installation and Fedora deployment remain deferred.
