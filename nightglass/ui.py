@@ -29,6 +29,7 @@ from .provisioning import OfflineProvisioner, build_plan
 from .kali_templates import get_template, list_templates, plan_template
 from .kali_setup import build_setup_plan, save_setup_plan, load_setup_plan, compare_inventory_files, guest_inventory_instructions
 from .kali_preflight import KaliPreflight
+from .kali_registration import KaliRegistrationInspector
 from .kali_drift import compare_version_lock_files
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
@@ -700,6 +701,14 @@ class MainWindow(QMainWindow):
         )
         self.kali_preflight_button.clicked.connect(self.check_kali_template_readiness)
         controls.addWidget(self.kali_preflight_button)
+        registered = QPushButton("Audit installed Kali template VM")
+        registered.setToolTip(
+            "Read-only inspection of an already manually installed, shut-off "
+            "Kali VM against its saved template and separate qcow2 disk. "
+            "No guest starts or file changes."
+        )
+        registered.clicked.connect(self.audit_registered_kali_template)
+        controls.addWidget(registered)
         vm_manager = QPushButton("Open virt-manager")
         vm_manager.clicked.connect(lambda: self.open_program(["virt-manager", "--connect", "qemu:///system"]))
         controls.addWidget(vm_manager)
@@ -899,6 +908,50 @@ class MainWindow(QMainWindow):
                 "\nNo disk, guest, VM definition or configuration was changed."
             )
         self.work(check, completed, failed)
+
+    def audit_registered_kali_template(self):
+        if self.provision_kind.currentData() != "pentest":
+            self.provision_result.setPlainText(
+                "Registered Kali template audits do not apply to malware analysis VMs."
+            )
+            return
+        template_id = self.provision_template.currentData()
+        if not template_id:
+            self.provision_result.setPlainText("Choose a curated Kali VM profile first.")
+            return
+        manifest, _ = QFileDialog.getOpenFileName(
+            self, "Choose existing Kali template setup plan", "",
+            "JSON files (*.json)"
+        )
+        if not manifest:
+            return
+        disk, _ = QFileDialog.getOpenFileName(
+            self, "Choose exact independent qcow2 disk of a SHUT-OFF Kali VM",
+            "", "QEMU disks (*.qcow2)"
+        )
+        if not disk:
+            return
+        selected_name = self.provision_name.text().strip()
+        self.provision_result.setPlainText(
+            "Auditing the registered offline Kali VM, both libvirt definitions, "
+            "independent disk and other registered VM disk sources …"
+        )
+        def check():
+            data = load_setup_plan(Path(manifest))
+            if data["guest"] != selected_name or data["template_id"] != template_id:
+                raise ToolError(
+                    "Selected Kali VM identity does not match saved template plan; "
+                    "audit cannot be reused between guests"
+                )
+            return KaliRegistrationInspector().inspect(Path(manifest), Path(disk))
+        self.work(
+            check,
+            lambda result: self.provision_result.setPlainText(result.describe()),
+            lambda message: self.provision_result.setPlainText(
+                "REGISTERED KALI TEMPLATE: BLOCKED / UNVERIFIED\n" + message +
+                "\nNo VM or disk was started, changed or registered."
+            ),
+        )
 
     def show_kali_template(self):
         if self.provision_kind.currentData() != "pentest":
