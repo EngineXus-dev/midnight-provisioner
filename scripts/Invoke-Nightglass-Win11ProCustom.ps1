@@ -58,15 +58,15 @@ $approvedSwitches = @(
   'DisableStoreSearchSuggestions','EnableEndTask','ShowKnownFileExt',
   'ShowHiddenFolders','HideHome','HideGallery','HideOnedrive',
   'DisableWindowSnapping','DisableDVR','DisableGameBarIntegration',
-  'DisableCopilot','DisableRecall','DisableClickToDo'
+  'DisableRecall','DisableClickToDo'
 )
 $requested = @()
 foreach ($item in $entries) {
   if ([int]$item.id -in $coreIds) {
     foreach ($flag in @($item.switches)) {
-      # Actual gaming application uninstallation must remain a separately
-      # authorized non-reversible operation, never part of core tweaks.
-      if ($flag -eq 'RemoveGamingApps') { continue }
+      # Actual gaming app and Copilot app uninstalls must remain separate
+      # user-approved steps; upstream -DisableCopilot removes the app.
+      if ($flag -in @('RemoveGamingApps','DisableCopilot')) { continue }
       if ($flag -notin $approvedSwitches) {
         throw ('Catalog attempted an unapproved core switch: ' + $flag)
       }
@@ -108,7 +108,7 @@ if ($Mode -eq 'Preview' -or $Mode -eq 'ExportPlan') {
   }
   Write-Host ''
   Write-Host ('CORE: ' + ($requested -join ', '))
-  Write-Host 'DEFERRED: OneDrive uninstall, Xbox app uninstall, promotional app removals, TPM/encryption, Startup pins, Sandbox, WSL, Brave/Chrome policy, telemetry details.'
+  Write-Host 'DEFERRED: OneDrive, Xbox, Copilot and promotional app uninstalls, TPM/encryption, Start pins, Sandbox, WSL, Brave/Chrome policy, telemetry details.'
   Write-Host 'Preview/ExportPlan never runs Win11Debloat/WinUtil or changes Windows settings.'
   if ($Mode -eq 'Preview') { exit 0 }
 
