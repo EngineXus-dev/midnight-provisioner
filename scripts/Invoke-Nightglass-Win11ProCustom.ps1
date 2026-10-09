@@ -190,15 +190,15 @@ if ($parseErrors.Count -gt 0 -or $null -eq $ast.ParamBlock) {
   throw 'Third-party Win11Debloat script parser rejected file or parameter block absent.'
 }
 $available = @($ast.ParamBlock.Parameters | ForEach-Object { $_.Name.VariablePath.UserPath })
-foreach ($required in (@('CLI','CreateRestorePoint') + $requested)) {
+foreach ($required in (@('CreateRestorePoint') + $requested)) {
   if ($required -notin $available) {
     throw ('Reviewed Win11Debloat version does not support flag: ' + $required)
   }
 }
-$invocation = @{ CLI = $true; CreateRestorePoint = $true }
+$invocation = @{ CreateRestorePoint = $true }
 foreach ($switch in $requested) { $invocation[$switch] = $true }
 Write-Host 'Starting reviewed, hash-pinned local Win11Debloat script with CORE switches only.'
-Write-Host 'If the restore point cannot be created, stop manually before continuing.'
+Write-Host 'A restore point is requested, not guaranteed. Independent full backup remains mandatory.'
 # Win11Debloat is external code; its ability to reverse uninstall actions
 # is limited. We deliberately exclude app uninstalls from this invocation.
 & $Win11DebloatPath @invocation
