@@ -39,11 +39,11 @@ class Windows11ProCustomContract(unittest.TestCase):
 
     def test_no_destructive_actions_mixed_into_approved_core(self):
         source = self.script
-        self.assertIn("if ($flag -eq 'RemoveGamingApps') { continue }", source)
+        self.assertIn("if ($flag -in @('RemoveGamingApps','DisableCopilot')) { continue }", source)
         for risky in (
             "DisableBitlockerAutoEncryption", "EnableWindowsSandbox",
             "EnableWindowsSubsystemForLinux", "RemoveGamingApps",
-            "RemoveApps", "ForceRemoveEdge", "ClearStart",
+            "RemoveApps", "ForceRemoveEdge", "ClearStart", "DisableCopilot",
         ):
             # Explicitly omitted from the hardcoded approved list.
             allowlisted = source.split("$approvedSwitches = @(", 1)[1].split("\n)", 1)[0]
@@ -98,7 +98,7 @@ class Windows11ProCustomContract(unittest.TestCase):
     def test_selected_core_cover_explicit_requirements(self):
         for term in (
             "DisableGameBarIntegration", "DisableDVR", "DisableRecall",
-            "DisableClickToDo", "DisableCopilot", "DisableLocationServices",
+            "DisableClickToDo", "DisableLocationServices",
             "DisableFastStartup", "DisableUpdateASAP",
             "PreventUpdateAutoReboot", "DisableDeliveryOptimization",
             "DisableAISvcAutoStart", "EnableEndTask",
