@@ -34,8 +34,11 @@ def run_required(check: str) -> int:
         return 2
     # Direct execution from scripts/ does not implicitly add the
     # repository root needed for 'import nightglass' in GUI/native tests.
-    if str(ROOT) not in sys.path:
-        sys.path.insert(0, str(ROOT))
+    # Place the pinned checkout first, even when an inherited PYTHONPATH
+    # already lists it after another potentially conflicting package root.
+    if str(ROOT) in sys.path:
+        sys.path.remove(str(ROOT))
+    sys.path.insert(0, str(ROOT))
     loader = unittest.TestLoader()
     suite = loader.discover(str(ROOT / "tests"), pattern=filename)
     collected = suite.countTestCases()
