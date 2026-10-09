@@ -28,6 +28,7 @@ from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
+from .readiness import RecoveryReadiness
 
 STYLE = """
 QWidget { background: #0b0e13; color: #dce5e9; font-family: 'Noto Sans', 'DejaVu Sans', sans-serif; font-size: 12px; }
@@ -663,6 +664,9 @@ class MainWindow(QMainWindow):
         stage_verify = QPushButton("Verify staged recovery")
         stage_verify.clicked.connect(self.verify_recovery_folder)
         row.addWidget(stage_verify)
+        host_check = QPushButton("Check Fedora import readiness")
+        host_check.clicked.connect(self.preflight_recovery_folder)
+        row.addWidget(host_check)
         row.addStretch()
         layout.addLayout(row)
         self.stack.addWidget(area)
@@ -791,6 +795,22 @@ class MainWindow(QMainWindow):
                 "\n\nThis does not prove the VM boots or is securely isolated after manual import."
             ),
             lambda message: self.recovery_log.setPlainText("RECOVERY VERIFICATION FAILED: " + message),
+        )
+
+    def preflight_recovery_folder(self):
+        directory = QFileDialog.getExistingDirectory(
+            self, "Select staged Nightglass recovery for read-only Fedora checks", str(Path.home())
+        )
+        if not directory:
+            return
+        self.recovery_log.setPlainText("Validating local schema, image headers and KVM readiness …")
+        self.work(
+            lambda: RecoveryReadiness().check(Path(directory)),
+            lambda report: self.recovery_log.setPlainText(report.describe()),
+            lambda message: self.recovery_log.setPlainText(
+                "FEDORA IMPORT PREFLIGHT BLOCKED: " + message +
+                "\nNo VM was registered, started, or changed."
+            ),
         )
 
     def verify_backup_folder(self):
