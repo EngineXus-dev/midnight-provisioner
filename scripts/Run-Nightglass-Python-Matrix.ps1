@@ -44,7 +44,7 @@ try {
     Start-Transcript -LiteralPath $logPath -NoClobber | Out-Null
     $transcriptStarted = $true
 
-    Write-Host "Nightglass PYTHON 3.11-3.13 MATRIX — NO HOST MODIFICATION"
+    Write-Host "Nightglass PYTHON 3.11-3.13 MATRIX  -  NO HOST MODIFICATION"
     Write-Host "Images may be pulled from Docker Hub on first use; each test container has --network none."
     Write-Host "No merges, resets, git clean, force-push, GitHub Actions, guest boot or .env/.venv overwrite."
     $engine = (& docker info --format '{{.OSType}}' | Out-String).Trim()
