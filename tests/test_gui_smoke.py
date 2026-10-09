@@ -56,7 +56,19 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.app.palette().color(QPalette.ColorRole.Window).name(),
             COLORS["window"],
         )
-        self.assertIn("QFrame#Sidebar QPushButton:checked", self.app.styleSheet())
+        from PySide6.QtWidgets import QFrame, QLabel
+        stylesheet = self.app.styleSheet()
+        self.assertIn("QFrame#Sidebar QPushButton:checked", stylesheet)
+        self.assertIn(COLORS["neon_pink"], stylesheet)
+        self.assertIn(COLORS["neon_purple"], stylesheet)
+        self.assertIn("QFrame#AccentRail", stylesheet)
+        self.assertIn("border-left: 3px solid", stylesheet)
+        self.assertEqual(
+            len(self.window.findChildren(QFrame, "AccentRail")), 1
+        )
+        tagline = self.window.findChildren(QLabel, "Tagline")
+        self.assertEqual(len(tagline), 1)
+        self.assertIn("RESTORE", tagline[0].text())
         self.assertEqual(len(self.window.nav_buttons), 6)
         self.assertTrue(self.window.nav_buttons[0].isChecked())
         self.window.goto(3)
