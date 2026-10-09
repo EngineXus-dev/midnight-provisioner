@@ -445,3 +445,16 @@
 - [ ] Run latest branch portable Windows and Fedora Docker tests, including backup integrity suite, before relying on the new tool
 - [ ] After user-created backup: independently test a harmless restore and verify all user-selected personal sources and recovery material
 - [ ] Windows 11 Pro clean installation, 16GB USB formatting, portable-drive writing and Fedora deployment remain deferred and require separate permission
+
+## v0.4f — multi-source Windows migration backup coverage (draft)
+- [x] Add private JSON catalog with 1–32 explicit source/portable-copy pairs, stable nonsensitive labels and absolute paths
+- [x] Add Preview (no reads), Inspect (metadata), Verify (SHA-256 all regular-file content) without copying, restoring, Git actions or disk writes
+- [x] Refuse duplicate manifest keys, invalid/symlinked manifest, nested/overlapping roots and empty source folders
+- [x] Aggregate all pairs fail-closed; a single missing or altered copy blocks the entire set
+- [x] Detect same-inode hardlinked copies so shared data cannot count as a separate independent backup
+- [x] Keep manifest and reports private with .gitignore patterns and optional exclusive-write reports outside scanned trees
+- [x] Synthetic tests for multiple copied roots, content drift, omitted files, symlinks, duplicate IDs and no-access Preview
+- [x] Track 44 predecessor PRs through #45, with PR #30 accurately absent
+- [ ] Execute latest branch Windows/Docker tests before relying on the new backup audit
+- [ ] Independently confirm personal data coverage, actual example backup-drive capacity portable-media identity, full backup and a harmless restore drill
+- [ ] Windows 11 Pro clean install, Fedora boot/partitioning, 16GB USB formatting and any merges remain separately held
