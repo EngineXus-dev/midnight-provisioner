@@ -348,3 +348,26 @@ Sandbox/WSL installation and Start pinned-layout deletion.
 execution, Win11Debloat sourced version compatibility, actual ISO
 customization, app removals, new OS installation, USB writing, or Fedora
 hardware acceptance. Existing local Windows and main remain untouched.
+
+## New cumulative offline release gate — not yet executed (draft)
+
+A new stacked branch `verification/offline-release-candidate-gate` adds
+an opt-in, fail-closed **latest-code** offline verification runner.
+Default preview has no Git or Docker effects. Explicit execution fetches
+only the branch into a NEW detached sibling worktree; native Windows
+PowerShell and Python AST are **parse-only**, while actual unit tests
+run only in disconnected/rootless read-only Docker environments
+(Python 3.11, 3.12, 3.13 and Fedora 43 Qt/native fixtures).
+
+Earlier PASS results do NOT apply to this newest code SHA. No new
+matrix/Fedora test run has been performed for this branch.
+A mandatory gate cannot turn green on blocked/missing test images.
+Private exclusive-create local log/JSON records exact commit and
+statuses; physical Fedora hardware acceptance is ALWAYS separate.
+
+The previously stale Windows 11 Lite test's Home-only wording was
+corrected for the valid Pro licence. No keys collected/stored.
+No branch has been merged. The user remains unready to format the
+16 GB stick, change internal 500 GB drive, install Windows 11 Pro
+or Fedora, or make Win11Debloat changes; portable example backup-drive capacity disk stays
+backup-only. See [offline gate](OFFLINE_RELEASE_CANDIDATE_GATE.md).
