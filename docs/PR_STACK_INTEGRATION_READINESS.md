@@ -1,6 +1,18 @@
-# Phase 6 — draft PR stack integration readiness (read-only)
+# Phase 6–7 — draft PR integration readiness (read-only)
 
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
+
+**Phase 7 correction:** the original source-audit proposal expected the
+snapshot JSON to exist in the user's original `main` checkout.
+That was wrong: the file exists only in the unmerged draft branch.
+The new auditor reads it from the **verified candidate Git object**
+without branch checkout or overwrite. It now includes **40 predecessor
+draft PRs (#1–29 and #31–41)**. PR #30 is absent. See
+[remote-ref audit fix](REMOTE_REF_STACK_AUDIT.md). Current tests of this
+new candidate have NOT yet executed. No PR is merged or approved.
+
+## Historical Phase 6 snapshot (PRs through #40)
+
 
 **Current state: SOURCE AUDIT IMPLEMENTED, TESTS NOT YET RUN.**
 No Nightglass changes have been merged to main. No Windows 11 Pro
