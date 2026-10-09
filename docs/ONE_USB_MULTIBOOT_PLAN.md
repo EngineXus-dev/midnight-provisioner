@@ -11,8 +11,13 @@ Example physical drive roles; discover actual devices independently:
   installation target and **NEVER a USB formatting/boot-media target**.
   We do not know its contents or backup role. Do not overwrite or reformat it.
 - A future multiboot installer **requires a THIRD physical device**: a dedicated,
-  verified-blank USB flash drive (recommend 32 GiB or greater, preferably 64 GiB).
-  Capacity is a planning allowance, not proof that the USB is blank.
+  user-owned **16 GB USB flash drive** (not the portable Disk 1). A 16 GB
+  stick should be sufficient for the two ISOs if their **actual combined
+  sizes plus Ventoy overhead** fit the freshly prepared USB partition.
+  Fedora KDE 44 x86_64 is about 3.1 GB; Windows 11 ISO size varies by
+  release/language (often roughly 7–8+ GB). Check the *real* file sizes
+  and usable USB space before any media preparation. Do not assume the
+  drive is blank or erase it now.
 
 ## One USB is convenient; one automated dual-OS installer is NOT safer
 
@@ -60,24 +65,44 @@ boot under the desired policy, prefer **two separate, official installer
 USB sticks** (Microsoft Windows media and Fedora Media Writer) rather than
 auto-changing Secure Boot settings or installing untrusted boot keys.
 
-### Windows 11 in-place upgrade is a DIFFERENT operation
+### User-selected Windows 11 CLEAN install — intentionally deferred
 
-To keep Windows 10 applications and user files, first independently verify
-Windows 11 eligibility and a restorable external backup, and then follow
-Microsoft's supported **in-place upgrade initiated while Windows is running**:
-Windows Update / Windows 11 Installation Assistant, or mount/open the official
-Windows 11 ISO within Windows and run its setup.exe, choosing *Keep personal
-files and apps* where available. Merely booting the Windows 11 ISO from the
-USB is ordinarily the **fresh/clean installation path** and may erase the
-existing Windows installation; it is NOT an unattended way to upgrade
-Windows 10 safely. Do not trigger Windows installation as part of Nightglass.
+The user expressly chose a **clean Windows 11 install**, NOT an in-place
+upgrade preserving installed apps. That decision means the existing Windows
+install, installed applications, environment and any unbacked files can be
+lost if the Windows target is erased. Windows 11's real hardware eligibility
+(TPM 2.0, Secure Boot capability, storage/driver support), licensing/edition,
+activation recovery, and a checked backup of important local project files
+must be verified before any install.
 
-Official Microsoft description:
-https://support.microsoft.com/en-us/windows/deployment/install-upgrade/ways-to-install-windows-11
+**Do not run installation now.** This is a future deployment option while
+the user finishes other work. The user's example backup-drive capacity portable Disk 1 is intended
+as backup storage ONLY; copy any needed files there, verify their integrity,
+and **disconnect it before booting a clean installer** so it cannot be selected
+as an installation target or accidentally formatted. A copy of selected files
+is not automatically a restorable full-system image.
 
-When Windows 11 succeeds, boot it repeatedly and recheck activation, encryption,
-Windows recovery, firmware entries, hardware support and disk layout. **Only
-after the Windows upgrade is finished** is Fedora partition planning appropriate.
+The present Windows OS is on an internal measured system-disk capacity GPT drive labelled Disk 0
+*in the October 9 Windows readout*. Setup may renumber disks/partitions:
+never select any drive by disk number alone. A future supported Windows 11
+clean install can create/recreate its EFI, MSR, OS and recovery partitions on
+a **human-verified internal Windows target**, with the consequences of every
+deletion/format operation explicitly approved then. This documentation
+does NOT authorize deleting the current Windows ESP/Recovery/C: partitions.
+No unattended WinPE scripts, auto-delete rules, answer files or ISO patching.
+
+After clean Windows 11 is working, independently validate activation
+(the prior Windows 10 Home licence is not a guaranteed Pro licence), drivers,
+user file restoration, Windows recovery, encryption and firmware.
+Only then plan Fedora KDE live trials and later dual boot. Preserve
+sufficient internal disk capacity for the eventual Fedora installation, but
+do NOT guess a Linux allocation or partition now.
+
+Official Microsoft clean-install documentation:
+https://support.microsoft.com/en-us/windows/deployment/install-upgrade/reinstall-windows-with-the-installation-media
+
+Read [Windows 11 clean-install staged plan](WINDOWS11_CLEAN_INSTALL_STAGED.md)
+for a non-executing backup and later recovery checklist.
 
 ### Fedora live boot and final installation
 
@@ -96,17 +121,21 @@ No disk/EFI layout or shrink amount is approved at this stage.
 
 ### Preparation and test milestones
 
-- [ ] Verify Windows 11 eligibility and preserve independent Windows/recovery
-      backups **before** an upgrade or Fedora installer work
-- [ ] Obtain a separate expendable USB stick; record its size, model and
-      purpose; preserve both Disk 0 and the confirmed portable Disk 1
+- [ ] Verify Windows 11 eligibility, matching edition/licence and an
+      independently restorable recovery/backup plan **before** clean install
+- [x] User reports a separate 16 GB USB stick is available (capacity
+      unverified); preserve the example backup-drive capacity portable Disk 1 as backup storage
+- [ ] Verify real USB identity, usable size, any existing contents,
+      official ISO sizes and safety margin before any USB formatting
 - [ ] Review SHA-256/signed checksum evidence for official ISO files
 - [ ] Decide Ventoy vs two official sticks based on Secure Boot compatibility
 - [ ] User explicitly confirms the **dedicated USB's identity and that all its
       contents may be deleted** before invoking any USB-formatter/writer
 - [ ] Prepare USB manually; boot-test both menu entries WITHOUT beginning
       a clean Windows install or Fedora partitioning
-- [ ] If chosen, finish Windows 11 in-place upgrade inside Windows first
+- [ ] When explicitly authorized much later, perform the user-selected
+      Windows 11 CLEAN install only after backup validation and portable
+      backup-drive disconnection; then validate Windows before Fedora
 - [ ] Boot Fedora KDE live; test hardware and return to Windows
 - [ ] Review Windows GPT/EFI/Recovery and unallocated space against a
       separately authorized Fedora installation plan
@@ -119,8 +148,14 @@ No disk/EFI layout or shrink amount is approved at this stage.
 no third dedicated USB; unknown USB target; unexpected Disk 1 write;
 unverified backups/BitLocker recovery; unsigned/unknown installation image;
 Ventoy Secure Boot policy incompatible; confusing Fedora partition preview;
-Windows upgrade unfinished or unrecoverable. Under any of these, STOP.
+Windows clean-install backup unverified, or installer not explicitly
+authorized for that later date. Under any of these, STOP.
 
 This document is a planning/provenance artifact. No new "one click dual-boot"
 partition tool, silent firmware modification, preseeded Windows setup,
 automatic Fedora installer, ISO downloader or device writer is authorized.
+
+**Current execution state:** USB not prepared, ISO files not downloaded
+or validated, Windows 11 not installed, Fedora not installed, portable
+drive not accessed and no Windows partition changed. The user is NOT
+ready to execute this plan yet and has asked to continue other work.
