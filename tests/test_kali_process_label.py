@@ -105,6 +105,14 @@ class ProcessLabelTests(unittest.TestCase):
             hypervisor=self.hv, runtime=self.runtime, proc_root=self.proc
         ).inspect(self.plan, RECOVERED)
 
+    def test_linux_proc_stat_starttime_field_22_fixture_is_exact(self):
+        from nightglass.kali_process_label import _start_time
+        self.assertEqual(_start_time(self.pid_dir), "97123")
+        fields = (self.pid_dir / "stat").read_text().split(") ", 1)[1].split()
+        self.assertEqual(len(fields), 20)
+        self.assertEqual(fields[0], "S")   # Field 3
+        self.assertEqual(fields[19], "97123")  # Field 22
+
     def test_one_unique_qemu_and_actual_label_produce_non_attestation_pass(self):
         report = self.inspect()
         self.assertTrue(report.ok, report.describe())
