@@ -895,8 +895,8 @@ class MainWindow(QMainWindow):
         def failed(message):
             self.kali_preflight_button.setEnabled(True)
             self.provision_result.setPlainText(
-                "KALI VM READINESS: BLOCKED / UNVERIFIED\\n" + message +
-                "\\nNo disk, guest, VM definition or configuration was changed."
+                "KALI VM READINESS: BLOCKED / UNVERIFIED\n" + message +
+                "\nNo disk, guest, VM definition or configuration was changed."
             )
         self.work(check, completed, failed)
 
