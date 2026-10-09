@@ -1,6 +1,7 @@
 """Headless diagnostics and workspace inspection. Host-changing actions are GUI-gated."""
 from __future__ import annotations
 import argparse
+from pathlib import Path
 from dataclasses import replace
 import sys
 from .settings import load_workspaces
@@ -14,6 +15,7 @@ from .portability import (
 )
 from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
+from .backups import ColdBackup, verify_backup
 import os
 
 
@@ -47,9 +49,45 @@ def main(argv: list[str] | None = None) -> int:
     wizard.add_argument("--ram-mib", type=int)
     wizard.add_argument("--vcpus", type=int)
     wizard.add_argument("--disk-gib", type=int)
+    backup = sub.add_parser("backup", help="Cold VM backup plan/create and integrity verification")
+    backup_actions = backup.add_subparsers(dest="backup_action")
+    bp = backup_actions.add_parser("plan", help="Verify shutdown and show eligible backup assets")
+    bp.add_argument("key", help="Bound workspace key, such as pentest or analysis")
+    bc = backup_actions.add_parser("create", help="Make a NEW offline backup; never overwrite")
+    bc.add_argument("key", help="Bound VM workspace key")
+    bc.add_argument("destination", help="New, nonexistent backup directory")
+    bc.add_argument("--yes", action="store_true", help="Explicitly confirm backup creation")
+    bv = backup_actions.add_parser("verify", help="Read-only SHA-256 integrity checks")
+    bv.add_argument("directory", help="Existing Nightglass backup folder")
     args = parser.parse_args(argv)
     cmd = args.command or "gui"
     try:
+        if cmd == "backup":
+            if args.backup_action == "verify":
+                for line in verify_backup(Path(args.directory)):
+                    print(line)
+                print("Integrity checked; test a real restore before relying on this copy.")
+                return 0
+            if args.backup_action not in {"plan", "create"}:
+                parser.error("Choose backup plan, backup create or backup verify")
+            space = next((s for s in load_workspaces() if s.key == args.key), None)
+            if space is None or space.kind != "vm" or space.policy not in {"lab", "isolated"}:
+                parser.error("Choose a configured isolated or lab VM workspace")
+            service = ColdBackup()
+            plan = service.plan(space.identifier, space.policy)
+            print(plan.describe())
+            if args.backup_action == "plan":
+                return 0
+            if not args.yes:
+                if not sys.stdin.isatty() or input("Type BACKUP to copy the powered-off VM: ").strip() != "BACKUP":
+                    print("Cancelled. No backup created.")
+                    return 1
+            directory = service.create(
+                space.identifier, space.policy, Path(args.destination), confirmed=True
+            )
+            print(f"Cold backup saved at: {directory}")
+            print("Verify the backup with: nightglass backup verify", directory)
+            return 0
         if cmd == "provision":
             plan = build_plan(
                 args.kind, args.iso, args.sha256, name=args.name,
