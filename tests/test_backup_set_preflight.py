@@ -9,6 +9,7 @@ from contextlib import redirect_stderr, redirect_stdout
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -109,6 +110,28 @@ class BackupSetTests(unittest.TestCase):
             self.assertEqual(report["status"], "INCOMPLETE")
             self.assertEqual(report["additional_backup_files_to_review"], 1)
             self.assertEqual(extra.read_bytes(), b"DO_NOT_DELETE")
+
+    def test_hardlink_in_one_backup_pair_blocks_whole_set(self):
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp)
+            roots = self.fixture(home)
+            src = roots["personal"][0] / ".env"
+            dest = roots["personal"][1] / ".env"
+            dest.unlink()
+            try:
+                os.link(src, dest)
+            except (OSError, NotImplementedError):
+                self.skipTest("Filesystem does not support hardlinks here")
+            path = self.manifest(home, roots)
+            with redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(settool.main([
+                    "--mode", "Verify", "--manifest", str(path)]), 1)
+            report = json.loads(output.getvalue())
+            self.assertEqual(report["status"], "INCOMPLETE")
+            self.assertFalse(report["all_selected_content_matched"])
+            self.assertEqual(
+                {x["id"]: x for x in report["entries"]}["personal"]
+                ["same_file_identity_count"], 1)
 
     def test_inspect_does_not_claim_content_matching(self):
         with tempfile.TemporaryDirectory() as temp:
