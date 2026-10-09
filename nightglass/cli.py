@@ -20,6 +20,7 @@ from .kali_setup import (
     build_setup_plan, save_setup_plan, load_setup_plan,
     compare_inventory_files, save_version_lock, guest_inventory_instructions,
 )
+from .kali_drift import compare_version_lock_files, save_drift_review
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -77,6 +78,13 @@ def main(argv: list[str] | None = None) -> int:
     template_lock.add_argument("destination", type=Path)
     template_guest = template_commands.add_parser("guest-help", help="Show safe manual offline inventory collection steps for one Kali VM")
     template_guest.add_argument("identifier")
+    template_drift = template_commands.add_parser(
+        "drift", help="Read-only review of Kali guest versions against a previous private snapshot"
+    )
+    template_drift.add_argument("plan", type=Path)
+    template_drift.add_argument("lock", type=Path)
+    template_drift.add_argument("inventory", type=Path)
+    template_drift.add_argument("--report", type=Path, help="Write optional NEW private JSON evidence")
     wizard = sub.add_parser("provision", help="Read-only VM ISO integrity and guest XML preflight")
     wizard.add_argument("kind", choices=("pentest", "analysis"))
     wizard.add_argument("--iso", required=True)
@@ -126,6 +134,12 @@ def main(argv: list[str] | None = None) -> int:
     cmd = args.command or "gui"
     try:
         if cmd == "templates":
+            if args.template_action == "drift":
+                report = compare_version_lock_files(args.plan, args.lock, args.inventory)
+                print(report.describe())
+                if args.report:
+                    print("Private self-reported metadata report:", save_drift_review(report, args.report))
+                return 0 if report.unchanged else 2
             if args.template_action == "guest-help":
                 print(guest_inventory_instructions(args.identifier))
                 return 0
@@ -163,7 +177,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 print("PLANS ONLY: each template uses a separate, disconnected Kali VM.")
                 return 0
-            parser.error("Choose templates list, show, export, verify, compare, lock or guest-help")
+            parser.error("Choose templates list, show, export, verify, compare, lock, drift or guest-help")
         if cmd == "runtime-label":
             report = RuntimeLabelInspector().inspect(args.guest, args.policy)
             print(report.describe())
