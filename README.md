@@ -419,21 +419,6 @@ starts a VM, executes guest commands or hashes a writable live qcow2.
 process-context confinement or packet-level isolation. See
 [supervised Kali runtime observation](docs/KALI_RUNNING_OBSERVATION.md).
 
-## Read-only effective QEMU SELinux context probe
-
-For an **already manually started benign Kali recovery guest**, the new
-`nightglass templates process-label ORIGINAL_PLAN.json --guest NEW_RECOVERY_NAME`
-command and **Prepare VM → Inspect effective QEMU sVirt label** button
-compare the current libvirt SELinux process label to a read-only,
-unprivileged `/proc/PID/attr/current` observation.
-
-The process must uniquely match the registered libvirt guest name and UUID;
-unknown or inaccessible process metadata fails closed, **without sudo**.
-Kali action buttons now use a compact grid instead of one oversized row.
-No VM, guest disk or host configuration is changed. This remains
-non-attested process metadata, not proof of guest isolation, OS boot or
-recovery. See [QEMU process label inspection](docs/KALI_QEMU_PROCESS_LABEL.md).
-
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
