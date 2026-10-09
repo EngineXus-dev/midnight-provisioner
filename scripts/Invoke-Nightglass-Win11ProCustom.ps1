@@ -43,9 +43,9 @@ if (@(Compare-Object -ReferenceObject $expectedIds -DifferenceObject @($entries 
 # This is an intentionally hardcoded approved subset, independent of
 # catalog data (which is untrusted if someone edits a local JSON file).
 # An edited JSON cannot cause additional PowerShell switches to execute.
-$coreIds = @(2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,22,23,24,25,26,27,28,31,35)
+$coreIds = @(1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,31,35)
 $approvedSwitches = @(
-  'DisableSuggestions','DisableLockscreenTips','DisableEdgeAds',
+  'DisableTelemetry','DisableSuggestions','DisableLockscreenTips','DisableEdgeAds',
   'DisableLocationServices','DisableFindMyDevice',
   'DisableSettings365Ads','DisableAISvcAutoStart','DisableEdgeAI',
   'DisablePaintAI','DisableNotepadAI','DisableDragTray',
@@ -54,8 +54,8 @@ $approvedSwitches = @(
   'DisableUpdateASAP','PreventUpdateAutoReboot',
   'DisableDeliveryOptimization','DisableDeviceAutoAppDownload',
   'EnableDarkMode','DisableTransparency','DisableAnimations',
-  'DisableDesktopSpotlight','DisableStartPhoneLink','DisableBing',
-  'DisableStoreSearchSuggestions','EnableEndTask','ShowKnownFileExt',
+  'DisableDesktopSpotlight','DisableStartRecommended','DisableStartPhoneLink','DisableBing',
+  'EnableEndTask','ShowKnownFileExt',
   'ShowHiddenFolders','HideHome','HideGallery','HideOnedrive',
   'DisableWindowSnapping','DisableDVR','DisableGameBarIntegration',
   'DisableRecall','DisableClickToDo'
@@ -66,7 +66,8 @@ foreach ($item in $entries) {
     foreach ($flag in @($item.switches)) {
       # Actual gaming app and Copilot app uninstalls must remain separate
       # user-approved steps; upstream -DisableCopilot removes the app.
-      if ($flag -in @('RemoveGamingApps','DisableCopilot')) { continue }
+      if ($flag -in @('RemoveGamingApps','DisableCopilot','DisableSearchHistory',
+                      'ClearStart','StartAllAppsList','DisableStoreSearchSuggestions')) { continue }
       if ($flag -notin $approvedSwitches) {
         throw ('Catalog attempted an unapproved core switch: ' + $flag)
       }
@@ -87,7 +88,7 @@ if ($AllowBrowserTweaks) {
   # reviewed local Win11Debloat CLI; Chrome must be configured separately.
   $requested += 'DisableBraveBloat'
 }
-$reviewIds = @(1,12,21,29,30,32,33,34)
+$reviewIds = @(1,12,21,23,29,30,32,33,34)
 $reviewItems = @($entries | Where-Object { [int]$_.id -in $reviewIds })
 if ($reviewItems.Count -ne $reviewIds.Count) {
   throw 'Missing deferred/manual review items.'
@@ -105,6 +106,12 @@ if ($Mode -eq 'Preview' -or $Mode -eq 'ExportPlan') {
   foreach ($item in $entries) {
     $status = if ([int]$item.id -eq 35) {
       'CORE RECALL/CLICK-TO-DO; COPILOT UNINSTALL SEPARATE'
+    } elseif ([int]$item.id -eq 23) {
+      'CORE BING; STORE SEARCH REQUIRES ACL REVIEW'
+    } elseif ([int]$item.id -eq 21) {
+      'CORE RECOMMENDATIONS; PIN RESET/LAYOUT SEPARATE'
+    } elseif ([int]$item.id -eq 1) {
+      'CORE OPTIONAL TELEMETRY REDUCTION; MORE MANUAL'
     } elseif ([int]$item.id -eq 31) {
       'CORE GAME-DVR/OVERLAY; XBOX UNINSTALL SEPARATE'
     } elseif ([int]$item.id -eq 6) {
@@ -118,7 +125,7 @@ if ($Mode -eq 'Preview' -or $Mode -eq 'ExportPlan') {
   }
   Write-Host ''
   Write-Host ('CORE: ' + ($requested -join ', '))
-  Write-Host 'DEFERRED: OneDrive, Xbox, Copilot and promotional app uninstalls, TPM/encryption, Start pins, Sandbox, WSL, Brave/Chrome policy, telemetry details.'
+  Write-Host 'DEFERRED: OneDrive/Xbox/Copilot/Widget/promotional app removals, TPM/encryption, Start pins, Store search ACLs, Sandbox, WSL, Brave/Chrome policy, required telemetry.'
   Write-Host 'Preview/ExportPlan never runs Win11Debloat/WinUtil or changes Windows settings.'
   if ($Mode -eq 'Preview') { exit 0 }
 
