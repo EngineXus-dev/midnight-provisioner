@@ -154,6 +154,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
             "Verify staged recovery",
             "Check Fedora import readiness",
             "Audit registered VM",
+            "Verify registered handoff",
             "Save local audit report",
         }.issubset(labels))
 
@@ -190,6 +191,28 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.assertFalse(self.window._resource_monitor_busy)
         self.assertIn("UNKNOWN", self.window.resource_status.text())
         self.assertIn("Permission denied", self.window.resource_details.toPlainText())
+
+    def test_registered_recovery_handoff_gui_is_read_only(self):
+        from types import SimpleNamespace
+        from nightglass.handoff import RecoveryHandoff
+        with patch.object(self.ui.QFileDialog, "getExistingDirectory", return_value="/tmp/synthetic-stage"), \
+             patch.object(self.window, "work") as worker:
+            self.window.verify_registered_handoff()
+            worker.assert_called_once()
+            function, success, failure = worker.call_args.args
+            self.assertIn("RecoveryHandoff", function.__code__.co_names)
+            report = SimpleNamespace(
+                guest="nightglass-new-guest",
+                ok=True,
+                describe=lambda: "REGISTERED RECOVERY HANDOFF: PASS (METADATA ONLY)",
+            )
+            success(report)
+            self.assertIs(self.window.last_acceptance, report)
+            self.assertIn("METADATA ONLY", self.window.recovery_log.toPlainText())
+        with patch.object(self.ui.QFileDialog, "getExistingDirectory", return_value=""), \
+             patch.object(self.window, "work") as worker:
+            self.window.verify_registered_handoff()
+            worker.assert_not_called()
 
     def test_read_only_fedora_host_posture_action(self):
         from PySide6.QtWidgets import QPushButton
