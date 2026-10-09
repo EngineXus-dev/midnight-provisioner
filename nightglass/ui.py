@@ -27,6 +27,7 @@ from .portability import (
 from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
 from .backups import ColdBackup, verify_backup
+from .recovery import RecoveryStager, verify_staging
 
 STYLE = """
 QWidget { background: #0b0e13; color: #dce5e9; font-family: 'Noto Sans', 'DejaVu Sans', sans-serif; font-size: 12px; }
@@ -639,9 +640,9 @@ class MainWindow(QMainWindow):
         area = QWidget()
         layout = QVBoxLayout(area)
         title = QLabel(
-            "Cold backups require a powered-off guest, no saved memory, "
-            "file-backed non-layered disks and a passing workspace audit. "
-            "A backup is NOT a snapshot or automatic rollback: restoration requires manual verification."
+            "Cold backups require a powered-off guest and verified source files. "
+            "Recovery staging creates a SEPARATE, unregistered guest copy with an "
+            "offline XML definition and new identity. No import, start or overwrite is automatic."
         )
         title.setObjectName("SubTitle")
         title.setWordWrap(True)
@@ -656,6 +657,12 @@ class MainWindow(QMainWindow):
         verify = QPushButton("Verify saved backup")
         verify.clicked.connect(self.verify_backup_folder)
         row.addWidget(verify)
+        stage = QPushButton("Recover into NEW folder")
+        stage.clicked.connect(self.stage_backup_folder)
+        row.addWidget(stage)
+        stage_verify = QPushButton("Verify staged recovery")
+        stage_verify.clicked.connect(self.verify_recovery_folder)
+        row.addWidget(stage_verify)
         row.addStretch()
         layout.addLayout(row)
         self.stack.addWidget(area)
@@ -712,6 +719,78 @@ class MainWindow(QMainWindow):
             lambda: ColdBackup().plan(space.identifier, space.policy),
             ready,
             lambda msg: self.recovery_log.setPlainText("Backup refused: " + msg),
+        )
+
+    def stage_backup_folder(self):
+        source = QFileDialog.getExistingDirectory(
+            self, "Select existing Nightglass cold backup", str(Path.home())
+        )
+        if not source:
+            return
+        parent = QFileDialog.getExistingDirectory(
+            self, "Select writable parent folder for NEW restored copy", str(Path.home())
+        )
+        if not parent:
+            return
+        new_name, ok = QInputDialog.getText(
+            self, "New recovered guest name",
+            "Unique NEW libvirt guest identifier (not the original):",
+            text="nightglass-recovered",
+        )
+        if not ok:
+            return
+        try:
+            new_name = safe_name(new_name.strip())
+        except WorkspaceError as exc:
+            self.error(str(exc))
+            return
+        destination = Path(parent) / new_name
+        self.recovery_log.setPlainText("Checking backup hashes and preparing a new offline VM plan …")
+        def ready(plan):
+            if QMessageBox.question(
+                self, "Confirm NEW offline recovery staging",
+                plan.describe() +
+                "\n\nThis copies files but will NOT define or start the VM. Proceed?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            ) != QMessageBox.StandardButton.Yes:
+                self.recovery_log.setPlainText("Cancelled. No recovery staging created.")
+                return
+            self.recovery_log.setPlainText("Copying verified backup into new offline staging area …")
+            self.work(
+                lambda: RecoveryStager().stage(
+                    Path(source), destination, new_name, confirmed=True
+                ),
+                lambda dest: self.recovery_log.setPlainText(
+                    f"New offline recovery staged at: {dest}\n"
+                    "No VM was defined or started. Review the generated domain.xml, "
+                    "disk ownership, SELinux and firmware before importing in virt-manager. "
+                    "Use Verify staged recovery to recheck SHA-256 integrity."
+                ),
+                lambda message: self.recovery_log.setPlainText(
+                    "RECOVERY NOT COMPLETED: " + message
+                ),
+            )
+        self.work(
+            lambda: RecoveryStager().plan(Path(source), destination, new_name),
+            ready,
+            lambda message: self.recovery_log.setPlainText("Recovery refused: " + message),
+        )
+
+    def verify_recovery_folder(self):
+        folder = QFileDialog.getExistingDirectory(
+            self, "Choose staged Nightglass recovery", str(Path.home())
+        )
+        if not folder:
+            return
+        self.recovery_log.setPlainText("Rechecking staged recovery hashes and disconnected VM XML …")
+        self.work(
+            lambda: verify_staging(Path(folder)),
+            lambda report: self.recovery_log.setPlainText(
+                "RECOVERY STAGING VERIFIED — OFFLINE XML\n"
+                + "\n".join(report) +
+                "\n\nThis does not prove the VM boots or is securely isolated after manual import."
+            ),
+            lambda message: self.recovery_log.setPlainText("RECOVERY VERIFICATION FAILED: " + message),
         )
 
     def verify_backup_folder(self):
