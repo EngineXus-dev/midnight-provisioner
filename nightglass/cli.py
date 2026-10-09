@@ -23,6 +23,7 @@ from .kali_setup import (
 from .kali_drift import compare_version_lock_files, save_drift_review
 from .kali_preflight import KaliPreflight
 from .kali_registration import KaliRegistrationInspector, save_registration_report
+from .kali_cold_baseline import KaliColdBaselineInspector, save_cold_baseline_report
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -102,6 +103,16 @@ def main(argv: list[str] | None = None) -> int:
                                      help="Exact absolute path to its own existing qcow2 disk")
     template_registered.add_argument("--report", type=Path,
                                      help="Write optional NEW private, non-sensitive JSON evidence")
+    template_baseline = template_commands.add_parser(
+        "baseline", help="Read-only binding of a shut-off Kali template to verified cold backup files"
+    )
+    template_baseline.add_argument("plan", type=Path)
+    template_baseline.add_argument("--disk", type=Path, required=True,
+                                   help="Exact registered Kali qcow2 disk path")
+    template_baseline.add_argument("--backup", type=Path, required=True,
+                                   help="Existing Nightglass cold backup directory")
+    template_baseline.add_argument("--report", type=Path,
+                                   help="Optional NEW private metadata report, never overwritten")
     wizard = sub.add_parser("provision", help="Read-only VM ISO integrity and guest XML preflight")
     wizard.add_argument("kind", choices=("pentest", "analysis"))
     wizard.add_argument("--iso", required=True)
@@ -151,6 +162,12 @@ def main(argv: list[str] | None = None) -> int:
     cmd = args.command or "gui"
     try:
         if cmd == "templates":
+            if args.template_action == "baseline":
+                report = KaliColdBaselineInspector().inspect(args.plan, args.disk, args.backup)
+                print(report.describe())
+                if args.report:
+                    print("NEW private baseline evidence:", save_cold_baseline_report(report, args.report))
+                return 0 if report.ok else 2
             if args.template_action == "registered":
                 report = KaliRegistrationInspector().inspect(args.plan, args.disk)
                 print(report.describe())
@@ -204,7 +221,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 print("PLANS ONLY: each template uses a separate, disconnected Kali VM.")
                 return 0
-            parser.error("Choose templates list, show, export, verify, compare, lock, drift, preflight, registered or guest-help")
+            parser.error("Choose templates list, show, export, verify, compare, lock, drift, preflight, registered, baseline or guest-help")
         if cmd == "runtime-label":
             report = RuntimeLabelInspector().inspect(args.guest, args.policy)
             print(report.describe())
