@@ -247,6 +247,8 @@ class OffscreenMainWindowTests(unittest.TestCase):
         from PySide6.QtWidgets import QPushButton
         with patch.object(self.window, "check_host"):
             self.window.goto(2)
+        from PySide6.QtWidgets import QScrollArea
+        self.assertIsInstance(self.window.stack.currentWidget(), QScrollArea)
         labels = {
             button.text()
             for button in self.window.stack.currentWidget().findChildren(QPushButton)
@@ -296,8 +298,9 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.assertGreater(target.stat().st_size, 2048)
             # Inspect three materially different views, without loading guest
             # images, accessing libvirt, or touching the developer's settings.
-            for page, suffix in ((3, "machine"), (5, "recovery")):
-                self.window.goto(page)
+            for page, suffix in ((3, "machine"), (5, "recovery"), (2, "diagnostics")):
+                with patch.object(self.window, "check_host"):
+                    self.window.goto(page)
                 self.app.processEvents()
                 other = target.with_name(target.stem + "-" + suffix + ".png")
                 self.assertTrue(self.window.grab().save(str(other), "PNG"))
