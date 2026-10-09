@@ -33,6 +33,21 @@ From an illustrative read-only Windows review:
   media and unplugging drives. Identifying a future target by "Disk 0"
   alone is UNSAFE.
 
+## Windows 11 Pro activation may happen later
+
+The future clean-install plan now defaults to **Activate later**
+instead of requiring immediate entry of the valid Pro licence.
+During authentic Windows Setup, use **I don't have a product key**
+when offered, confirm **Pro**, and after setup activate through
+**Settings > System > Activation > Change product key**.
+The user may instead choose **Activate during setup**. Avoid
+embedding any key in installer media, presets, GitHub or reports.
+Firmware OEM Home-key edition auto-selection requires a verified
+Pro-only image/edition choice; do not accidentally clean-install Home.
+
+No Windows 11 install, Pro activation attempt or USB writer has run.
+See [Windows 11 Pro activation choices](WINDOWS11_PRO_ACTIVATE_LATER.md).
+
 ## Preparation at leisure — no action until explicitly requested
 
 1. **Eligibility and licence.** Confirm Windows 11 support with
