@@ -85,7 +85,10 @@ def _other_disk_alias(source: str | None, disk: Path) -> str | None:
         return "Another registered VM uses a symlinked disk path in the selected directory"
     # st_nlink == 1 on the selected disk should prevent same-inode hardlinks,
     # but compare inode identity again in case of a concurrent filesystem race.
-    selected = disk.stat()
+    try:
+        selected = disk.stat()
+    except OSError:
+        return "Selected Kali disk disappeared during alias inspection"
     if (details.st_dev, details.st_ino) == (selected.st_dev, selected.st_ino):
         return "Another registered VM disk source resolves to the selected disk inode"
     return None
@@ -205,6 +208,10 @@ class KaliRegistrationInspector:
         template = get_template(plan["template_id"])
         guest = plan["guest"]
         disk = _safe_disk(Path(expected_disk))
+        # Compare identity after the lengthy XML and qemu-img metadata checks.
+        # This narrows, but cannot eliminate, privileged guest/storage races.
+        initial_stat = disk.stat()
+        initial_inode = (initial_stat.st_dev, initial_stat.st_ino)
         issues: list[str] = []
         cautions = [
             "Offline libvirt XML is metadata, not a measurement of actual guest isolation",
@@ -319,6 +326,16 @@ class KaliRegistrationInspector:
                     )
             except ToolError:
                 issues.append("Selected independent disk QEMU metadata could not be verified")
+        if not issues:
+            # Detect unexpected replacement/new hardlinks while querying XML
+            # or QEMU. No file content is read/written by this stat-based guard.
+            try:
+                _safe_disk(disk)
+                final_stat = disk.stat()
+                if (final_stat.st_dev, final_stat.st_ino) != initial_inode:
+                    issues.append("Selected Kali disk inode changed during inspection")
+            except (OSError, ToolError):
+                issues.append("Selected Kali disk became unavailable or hardlinked during inspection")
         if not issues:
             # Observe the guest's state again after slower image and XML reads.
             try:
