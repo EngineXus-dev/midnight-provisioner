@@ -94,7 +94,7 @@ class ProcessLabelTests(unittest.TestCase):
         )
         # field 3 is S; field 22 (suffix index 19) is starttime.
         (parent / "stat").write_text(
-            str(pid) + " (qemu-system-x86_64) S " + " ".join(["0"] * 18 + [start])
+            str(pid) + " (qemu-system-x86_64) S " + " ".join(["0"] * 19 + [start])
         )
         (parent / "attr/current").write_text(context + "\n")
         return parent
@@ -191,18 +191,6 @@ class ProcessLabelTests(unittest.TestCase):
         self.assertFalse(self.inspect().ok)
 
     def test_qemu_process_start_time_change_fails_closed(self):
-        original_stat = Path.read_text
-        count = [0]
-        target = self.pid_dir / "stat"
-        def simulated_churn(path, *args, **kwargs):
-            if path == target:
-                count[0] += 1
-                if count[0] == 2:
-                    return original_stat(path, *args, **kwargs).replace("97123", "97234")
-            return original_stat(path, *args, **kwargs)
-        with patch.object(Path, "read_text", simulated_churn):
-            # The helper uses .open('rb'), not read_text; instead patch _start_time.
-            pass
         from nightglass import kali_process_label as mod
         real_start = mod._start_time
         count = [0]
