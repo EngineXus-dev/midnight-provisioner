@@ -354,6 +354,16 @@
 - [ ] Independently verify vendor script hash/flags/rollback semantics and each requested setting on 26H2
 - [ ] No installed Windows, ISO/USB, backups, Fedora disk layout or PR merges altered as part of planning
 
+## v0.3y — Windows 11 Pro activate-later and safe media preflight (draft)
+- [x] Add alternate `activate_later` (default) vs `activate_during_setup` product-key flow, never collect/store keys
+- [x] Explicitly handle user-reported valid Pro key vs possible OEM Windows Home firmware key selecting wrong edition
+- [x] Update PowerShell Preview/ExportPlan to record key timing only, with user-verifiable Pro edition/activation later
+- [x] Add pure-stdlib media preflight: two regular ISO sizes, optional streaming SHA-256, explicit measured USB usable bytes and 1 GiB capacity reserve
+- [x] Require separate published ISO provenance; a raw file hash/fit estimate cannot verify publisher or secure boot
+- [x] Preserve example backup-drive capacity portable disk as backup-only; no implicit USB writer, shrink, ISO download or Windows install
+- [ ] Execute syntax/contract tests on latest cumulative branch in isolated offline release gate (source PR currently unverified)
+- [ ] Later user-only decisions: verify separate 16GB stick, media hashes, real Pro edition, backups and install timing; NO install now
+
 ## v0.3x — cumulative release candidate offline integration gate (draft)
 - [x] Implement an opt-in one-branch, new-detached-worktree verification runner to avoid all GitHub Actions usage
 - [x] Default PLAN ONLY; no implicit fetch, Docker image acquisition, OS or filesystem mutation
