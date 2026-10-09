@@ -511,3 +511,27 @@ The snapshot now contains 42 predecessor PRs (#1–29 and #31–43;
 #30 absent). All remain unmerged. No latest-branch native Windows,
 Docker or Fedora tests have been run yet. No OS/USB/VM changes.
 See [strict test completeness](OFFLINE_TEST_COMPLETENESS.md).
+
+## Phase 10 — copied backup content integrity preflight (draft)
+
+The user intends to back up important data to their **example backup-drive capacity portable
+drive** before a *future* Windows 11 Pro clean install. Older Git
+sync/update scripts accidentally overwrote local `.env`,
+`.venv` and ignored/user-created files, so remote Git commits are
+not sufficient data-preservation evidence.
+
+`scripts/Inspect-Nightglass-Backup.py` now supports Preview
+(default, **no filesystem access**), Inspect (metadata only), and
+Verify (read-only SHA-256 of all regular files in two separately
+selected folder trees). It includes hidden .git/.env/.venv,
+reports missing/extra content, blocks reparse/link paths and
+provides a new local JSON report only if explicitly selected.
+Nothing is copied, deleted, mounted, restored, reformatted or
+installed. True device independence and restorability remain
+manual checks, not claimed as PASS.
+
+A dedicated `tests/test_backup_integrity_preflight.py` uses
+synthetic temporary data and is included in the portable suite.
+**It has NOT yet been run on the target Windows laptop**, and no
+live backups, operating systems or install media have been touched.
+See [backup verification guide](BACKUP_INTEGRITY_PREFLIGHT.md).
