@@ -417,3 +417,31 @@ proof that tests were run honestly. It is a local engineering record.
 No PR merge, OS install, USB format, user file copy or hardware
 acceptance is authorized. See
 [release evidence audit](RELEASE_EVIDENCE_AUDIT.md).
+
+## Phase 6 — full PR stack audit, latest integration branch (tests pending)
+
+I inspected GitHub PR metadata #1–40 on 2026-10-09. Exactly **39
+PRs (#1–29 and #31–40) were OPEN, DRAFT and UNMERGED**. PR #30
+returned NOT_FOUND, not "a failed/closed PR". Every observed
+PR's base matched the predecessor's head, starting at main.
+Prior final PR #40 branch comparison against main: **454 ahead,
+0 behind, 136 changed files**. The changed list includes
+`.github/workflows/verify.yml`, an explicit manual security review
+item. This is historical evidence, not a persistent real-time check.
+
+The new branch `verification/stack-integration-readiness` adds
+`config/nightglass-pr-stack-snapshot.json`, a no-write-by-default
+`scripts/Audit-Nightglass-PR-Stack.py`, and synthetic
+`tests/test_pr_stack_audit.py`, now in the Windows-portable
+offline suite. The auditor reads only existing Git refs and path names;
+it never fetches/merges, modifies source or invokes Windows/Fedora
+tools. It refuses missing refs, non-linear stacks, main drift,
+ambiguous origins and unexpected PR #30. Any passing result
+**still requires full source/diff review, latest exact-SHA Docker
+evidence, and live GitHub PR status checks**; `merge_authorized`
+and `deployment_approved` stay FALSE.
+
+**Neither Phase 6's tests nor the latest cumulative offline gate have
+been run**. No PRs merged, no Actions used, no Windows 11 Pro
+installation, no USB formatted and no portable backup drive touched.
+Read [PR stack review](PR_STACK_INTEGRATION_READINESS.md).
