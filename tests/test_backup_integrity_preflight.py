@@ -9,6 +9,7 @@ from contextlib import redirect_stdout, redirect_stderr
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -115,6 +116,22 @@ class BackupIntegrityTests(unittest.TestCase):
             self.assertEqual(result["status"], "CONTENT_MATCH_EXTRAS_REVIEW")
             self.assertTrue(result["verification_succeeded"])
             self.assertEqual(extra.read_bytes(), b"old")
+
+    def test_same_inode_hardlink_copy_is_not_an_independent_backup(self):
+        with tempfile.TemporaryDirectory() as folder:
+            src, dst = self.make_trees(Path(folder))
+            original = src / ".env"
+            copied = dst / ".env"
+            copied.unlink()
+            try:
+                os.link(original, copied)
+            except (OSError, NotImplementedError):
+                self.skipTest("Filesystem does not support hardlinks here")
+            result, diffs = self.inspect(src, dst, verify=True)
+            self.assertEqual(result["same_file_identity_count"], 1)
+            self.assertEqual(result["status"], "NOT_INDEPENDENT_FILE_COPY")
+            self.assertFalse(result["verification_succeeded"])
+            self.assertIn(".env", diffs)
 
     def test_no_recursive_or_self_comparison(self):
         with tempfile.TemporaryDirectory() as folder:
