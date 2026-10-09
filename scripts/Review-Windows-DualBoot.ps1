@@ -72,7 +72,8 @@ try {
 try {
     $cpu = @(Get-CimInstance -ClassName Win32_Processor -ErrorAction Stop)
     if ($cpu.Count -gt 0) {
-        Say 'Logical CPU cores' ([string]@($cpu | Measure-Object -Property NumberOfLogicalProcessors -Sum)[0].Sum)
+        $logicalCores = ($cpu | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum
+        Say 'Logical CPU cores' ([string]$logicalCores)
         foreach ($prop in @('VMMonitorModeExtensions', 'VirtualizationFirmwareEnabled',
                              'SecondLevelAddressTranslationExtensions')) {
             $vals = @($cpu | ForEach-Object { $_.$prop } | Select-Object -Unique)
