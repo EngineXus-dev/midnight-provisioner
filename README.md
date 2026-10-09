@@ -487,6 +487,30 @@ Nightglass checkout to fetch the updated integration branch into another
 **new independent worktree**; it does not pull or overwrite existing
 `.env`, `.venv` or untracked files.
 
+### Run complete Fedora tests inside Docker Desktop (Windows)
+
+With Docker Desktop's **Linux engine already running**, use the separate
+PowerShell launcher/runner to fetch this integration branch into another
+**new clean git worktree** and run the complete Fedora test suite without
+GitHub Actions or access to original project secrets:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Run-Nightglass-Fedora-Checks.ps1
+```
+
+This script lives on the integration branch (not the older `main`
+checkout). A standalone launcher can retrieve it from the connected
+private repository without checking out or overwriting any original
+files. The test image may download official Fedora packages **during
+the initial build**; the actual tests run with **no network**, a
+**read-only checkout**, nonroot UID, no KVM devices and no VM lifecycle
+operations. It saves a new result transcript. See
+[Docker test instructions](docs/FEDORA_DOCKER_VERIFICATION.md).
+
+**Fedora container green ≠ Fedora host/KVM certified.** Real host
+SELinux/sVirt process, guest network and restore verification remains
+pending.
+
 This workflow change does **not** globally disable existing automatic
 workflows in other PR branches. A repository owner can disable the
 **Verify source** workflow in GitHub's Actions UI while minutes are
