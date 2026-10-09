@@ -96,6 +96,26 @@ Nightglass now has a **Prepare VM** wizard for Kali/pentesting and malware-analy
 
 **It does not yet create or start a VM.** Actual VM installation remains under your control through virt-manager; then bind the new guest in Nightglass and run its launch audit. See [VM preparation guide](docs/VM_PREPARATION.md).
 
+## Cold VM backups and validation (experimental)
+
+Nightglass can now prepare **cold backups** of fully shut-down restricted VMs
+using newly created directories only. The export checks guest power state,
+managed-save status, local disk formats and backing chains, includes UEFI NVRAM
+where applicable, then copies guest disks and XML with SHA-256 manifests.
+
+In the GUI, use **Cold backup** on a VM card, then **Backup & verify → Verify
+saved backup**. CLI options:
+
+```bash
+nightglass backup plan pentest
+nightglass backup create pentest /path/to/a/NEW/backup-folder
+nightglass backup verify /path/to/a/backup-folder
+```
+
+This is **not** one-click rollback or a tested restore procedure: source XML
+contains machine-specific paths, and a verified hash does not prove a guest
+can boot. See [cold backup and manual recovery](docs/COLD_BACKUP.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
