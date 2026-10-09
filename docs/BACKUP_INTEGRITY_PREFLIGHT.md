@@ -143,3 +143,13 @@ See [clean install plan](WINDOWS11_CLEAN_INSTALL_STAGED.md),
 **This Phase 10 source has not yet run its Windows-native and
 full offline Docker test matrix. No source files or backup media on
 the user's workstation have been modified.**
+
+## Phase 11: optional private multiple-location catalog
+
+To verify more than one copied directory, use the new
+[Multi-source backup coverage](MULTI_SOURCE_BACKUP_READINESS.md) tool.
+It reuses this single-folder checker and aggregates outcomes
+without copying or writing user files. The original checker also
+refuses a content match where copied files are merely hard links
+sharing the same nonzero inode and device identifier as originals.
+This is a safety check, **not proof of physical media independence**.
