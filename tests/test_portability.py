@@ -1,4 +1,5 @@
 """Tests: one installation, hardware-clamped preferences and cautious updates."""
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -62,9 +63,16 @@ class MachineBudgetTests(unittest.TestCase):
                 preset="balanced", guest_ram_cap_gib=4.0, active_vm_cap=2, vcpu_cap=3,
                 automatic_update_checks=True,
             )
-            save_machine_preferences(original, filename)
+            if os.name == "nt":
+                # Native Windows has no fchmod; test serialization while
+                # retaining the POSIX permissions call in production.
+                with patch("nightglass.portability.os.fchmod", create=True):
+                    save_machine_preferences(original, filename)
+            else:
+                save_machine_preferences(original, filename)
             self.assertEqual(load_machine_preferences(filename), original)
-            self.assertEqual(filename.stat().st_mode & 0o777, 0o600)
+            if os.name != "nt":
+                self.assertEqual(filename.stat().st_mode & 0o777, 0o600)
             self.assertEqual((Path(root) / "machine.json").exists(), True)
 
     def test_machine_prefs_refuse_symlink(self):
@@ -72,7 +80,10 @@ class MachineBudgetTests(unittest.TestCase):
             source = Path(root) / "source.json"
             source.write_text("{}")
             dest = Path(root) / "machine.json"
-            dest.symlink_to(source)
+            try:
+                dest.symlink_to(source)
+            except (OSError, NotImplementedError):
+                self.skipTest("Creating test symlinks requires unavailable OS privileges")
             with self.assertRaises(WorkspaceError):
                 save_machine_preferences(MachinePreferences(), dest)
             with self.assertRaises(WorkspaceError):
