@@ -28,8 +28,8 @@ or USB media formatting;
 its size alone does not make it an install target. C: has about measured filesystem free space filesystem space, **not unallocated space**. Fast Startup was
 ENABLED, Secure Boot/drive encryption UNKNOWN, and RAM detected RAM capacity usable.
 
-If a Windows 11 upgrade happens **before** dual boot, keep Fedora
-installation fully paused until Windows 11 hardware eligibility is
+If the user later performs their chosen CLEAN Windows 11 installation,
+keep Fedora installation fully paused until Windows 11 eligibility is
 verified with official PC Health Check/Windows Update, a tested Windows
 backup/recovery route is available, Windows 11 successfully boots with
 data/driver/encryption state checked, and this host's read-only disk
@@ -37,7 +37,11 @@ inventory is run again. The reported target CPU (verify compatibility) is on Mic
 supported-processor list, but TPM 2.0, Secure Boot capability and
 device-specific Windows 11 eligibility still need validation.
 
-See [Windows 11 first](WINDOWS11_UPGRADE_FIRST.md). The app must not
+See [deferred clean Windows 11 plan](WINDOWS11_CLEAN_INSTALL_STAGED.md).
+the example uses a separate installer USB, which may be sufficient for two
+original ISOs if actual files fit; the portable Disk 1 is reserved
+for backups, not OS/USB installation. There is no installation date.
+The app must not
 start Windows Setup, bypass TPM or Secure Boot requirements, change
 partitioning, or attempt dual-boot deployment automatically.
 
@@ -77,3 +81,8 @@ and Fedora KDE ISO installers through a multiboot menu, but OS installation
 and partition decisions remain separate manual steps. The portable Disk 1
 must never be used to create this USB. See
 [one-USB multiboot plan](ONE_USB_MULTIBOOT_PLAN.md).
+
+The user selected a future **clean** Windows 11 installation rather
+than in-place upgrade. No files have yet been backed up through this
+project and no bootable media has been written. Verify chosen portable
+backup copies and project secrets before any destructive operation.
