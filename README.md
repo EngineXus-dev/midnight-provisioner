@@ -245,6 +245,20 @@ This **does not start a guest or inspect the actual QEMU process or image
 inode's effective labels**. It does not demonstrate network packet isolation.
 See [runtime sVirt observation](docs/RUNTIME_SVIRT_OBSERVATION.md).
 
+## Separate Kali toolkit VMs — curated white-hat and red-team profiles
+
+Nightglass offers seven lightweight Kali **planning templates** for recon,
+web assessments, defensive forensics, wireless surveys, directory review,
+controlled exploit research and web validation. Rather than installing all
+security tools into one VM, each profile recommends a **separate Kali VM**
+with a unique identity, disk, scoped tool list and laptop-aware RAM limits.
+
+Browse via **Prepare VM → Kali toolkit**, or `nightglass templates list`,
+`nightglass templates show recon`, and `nightglass provision pentest
+--template recon --iso ... --sha256 ...`. All templates begin **offline**;
+Nightglass does not automatically create the VM, connect networks or install
+packages. See the [Kali VM template catalog](docs/KALI_TEMPLATES.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
