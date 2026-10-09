@@ -167,6 +167,8 @@ def branch_checkout(root: Path, *, expected_sha: str | None = None) -> tuple[Pat
     expected = checked(["git", "-C", str(root), "rev-parse", git_ref], cwd=root)
     if sha != expected or not re.fullmatch(r"[0-9a-f]{40}", sha):
         raise GateError("Detached checkout commit disagrees with fetched target.")
+    if expected_sha is not None and sha != expected_sha:
+        raise GateError("Pinned commit changed during worktree creation; no tests allowed.")
     return checkout, sha, log, report
 
 
