@@ -4,6 +4,7 @@ from __future__ import annotations
 from contextlib import redirect_stdout
 from io import StringIO
 import json
+import os
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -29,6 +30,25 @@ def xml(name, disk, uuid=UUID_NEW, extra=""):
         f'<disk type="file" device="disk"><driver name="qemu" type="qcow2"/>'
         f'<source file="{disk}"/></disk>{extra}</devices></domain>'
     )
+
+
+# Native Windows cannot perform POSIX fchmod. Isolate this capability only
+# while running synthetic module tests; production Linux enforcement is intact.
+_fixture_mode_patch = None
+
+
+def setUpModule():
+    global _fixture_mode_patch
+    if os.name == "nt":
+        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch.start()
+
+
+def tearDownModule():
+    global _fixture_mode_patch
+    if _fixture_mode_patch is not None:
+        _fixture_mode_patch.stop()
+        _fixture_mode_patch = None
 
 
 class FakeHV:
@@ -228,7 +248,10 @@ class Tests(unittest.TestCase):
             self.check()
         hardlink.unlink()
         link = self.root / "disk-symlink.qcow2"
-        link.symlink_to(self.disk)
+        try:
+            link.symlink_to(self.disk)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies creation of synthetic symlinks")
         with self.assertRaisesRegex(ToolError, "symlink"):
             self.check(disk=link)
         self.assertEqual(self.hv.calls, [])
@@ -237,7 +260,8 @@ class Tests(unittest.TestCase):
         report = self.check()
         dest = self.root / "new-kali-runtime-report.json"
         self.assertEqual(save_kali_running_observation(report, dest), dest)
-        self.assertEqual(dest.stat().st_mode & 0o777, 0o600)
+        if os.name != "nt":
+            self.assertEqual(dest.stat().st_mode & 0o777, 0o600)
         contents = dest.read_text(encoding="utf-8")
         self.assertNotIn(str(self.root), contents)
         self.assertNotIn(str(self.disk), contents)
