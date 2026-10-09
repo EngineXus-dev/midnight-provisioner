@@ -649,3 +649,17 @@ tampered or incomplete evidence but cannot authenticate an adversarial
 report/log pair and cannot certify real Fedora KVM/sVirt security.
 This latest branch is a **draft / untested integration candidate**:
 no Windows or Fedora deployment or PR merge is implied.
+
+### Stacked PR integration guard (Phase 6, no merges)
+
+[PR stack integration readiness](docs/PR_STACK_INTEGRATION_READINESS.md)
+records 39 current draft/unmerged Nightglass PRs (#1–29, #31–40;
+#30 is absent). A preview-first local source auditor at
+`scripts/Audit-Nightglass-PR-Stack.py` checks local Git
+branch ancestry and path-level sensitive changes without
+checkout, merge, rebase, reset, clean or source writes. It can never
+authorize an actual merge or OS installation. GitHub PR metadata
+may have changed since the snapshot and the **new tests are pending**.
+A future cumulative integration review must include independent
+workflow inspection, current GitHub status and exact-commit offline
+test evidence before a separate user-approved merge decision.
