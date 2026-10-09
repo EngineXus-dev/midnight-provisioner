@@ -26,6 +26,7 @@ from .portability import (
 )
 from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
+from .kali_templates import get_template, list_templates, plan_template
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -585,9 +586,19 @@ class MainWindow(QMainWindow):
         self.provision_kind = NoWheelComboBox()
         self.provision_kind.addItem("Kali / authorized pentesting (offline initially)", "pentest")
         self.provision_kind.addItem("Disposable malware analysis (offline)", "analysis")
+        self.provision_template = NoWheelComboBox()
+        self.provision_template.addItem("Custom Kali — no tool bundle", None)
+        for template in list_templates():
+            self.provision_template.addItem(
+                ("WHITE HAT  ·  " if template.category == "white-hat" else "RED TEAM  ·  ")
+                + template.name, template.identifier
+            )
+        self.provision_template.setToolTip(
+            "Curated package lists only. Every preset is a separate, initially OFFLINE Kali VM. "
+            "Nothing is installed until you manually approve it inside that guest."
+        )
         self.provision_name = QLineEdit("nightglass-kali")
         self.provision_name.setPlaceholderText("Unique VM name")
-        self.provision_kind.currentIndexChanged.connect(self.provision_kind_changed)
         self.provision_iso = QLineEdit()
         self.provision_iso.setPlaceholderText("Select downloaded Linux .iso file")
         iso_row = QHBoxLayout()
@@ -606,8 +617,11 @@ class MainWindow(QMainWindow):
         self.provision_disk = QLineEdit()
         self.provision_disk.setPlaceholderText("Auto (GiB)")
         self.provision_disk.setValidator(QIntValidator(20, 256, self))
+        self.provision_kind.currentIndexChanged.connect(self.provision_kind_changed)
+        self.provision_template.currentIndexChanged.connect(self.provision_template_changed)
         specs = [
             ("Workspace type", self.provision_kind),
+            ("Kali toolkit (one VM per template)", self.provision_template),
             ("VM name", self.provision_name),
             ("SHA-256 from publisher", self.provision_sha),
             ("RAM in MiB", self.provision_ram),
@@ -620,6 +634,18 @@ class MainWindow(QMainWindow):
             grid.addWidget(QLabel(label), index, 0)
             grid.addWidget(field, index, 1)
         layout.addWidget(panel)
+        template_info = QHBoxLayout()
+        self.kali_template_note = QLabel(
+            "Choose a compact Kali toolkit; all packages are suggestions for one "
+            "separate VM and are NOT installed by Nightglass."
+        )
+        self.kali_template_note.setObjectName("SubTitle")
+        self.kali_template_note.setWordWrap(True)
+        template_info.addWidget(self.kali_template_note, 1)
+        view_template = QPushButton("View toolkit details")
+        view_template.clicked.connect(self.show_kali_template)
+        template_info.addWidget(view_template)
+        layout.addLayout(template_info)
 
         controls = QHBoxLayout()
         self.provision_preview_button = QPushButton("Verify ISO + preview VM")
@@ -643,8 +669,48 @@ class MainWindow(QMainWindow):
 
     def provision_kind_changed(self, *_):
         kind = self.provision_kind.currentData()
-        self.provision_name.setText("nightglass-malware" if kind == "analysis" else "nightglass-kali")
+        self.provision_template.setEnabled(kind == "pentest")
+        if kind == "analysis":
+            self.provision_name.setText("nightglass-malware")
+        else:
+            template_id = self.provision_template.currentData()
+            self.provision_name.setText(
+                get_template(template_id).default_name if template_id else "nightglass-kali"
+            )
         self.provision_result.clear()
+
+    def provision_template_changed(self, *_):
+        if self.provision_kind.currentData() != "pentest":
+            return
+        template_id = self.provision_template.currentData()
+        if template_id is None:
+            self.provision_name.setText("nightglass-kali")
+            self.provision_ram.clear()
+            self.provision_cpus.clear()
+            self.provision_disk.clear()
+        else:
+            template = get_template(template_id)
+            self.provision_name.setText(template.default_name)
+            # Leave RAM/vCPU as 'Auto' so the current machine budget wins;
+            # a template's suggested cap is applied by plan_template().
+            self.provision_ram.clear()
+            self.provision_cpus.clear()
+            self.provision_disk.setText(str(template.disk_gib))
+        self.provision_result.clear()
+
+    def show_kali_template(self):
+        if self.provision_kind.currentData() != "pentest":
+            self.provision_result.setPlainText(
+                "Malware analysis uses its own disconnected VM; Kali pentest "
+                "templates must not be attached to it."
+            )
+            return
+        template_id = self.provision_template.currentData()
+        self.provision_result.setPlainText(
+            get_template(template_id).describe() if template_id else
+            "Custom Kali: no predefined tool bundle. The VM is initially "
+            "disconnected. Existing checksum and virt-install dry-run checks apply."
+        )
 
     def choose_provision_iso(self):
         selected, _ = QFileDialog.getOpenFileName(
@@ -664,10 +730,16 @@ class MainWindow(QMainWindow):
 
     def preview_provision(self):
         try:
-            plan = build_plan(
-                self.provision_kind.currentData(),
-                self.provision_iso.text().strip(),
-                self.provision_sha.text().strip(),
+            kind = self.provision_kind.currentData()
+            template_id = self.provision_template.currentData() if kind == "pentest" else None
+            planner = (
+                (lambda **kw: plan_template(template_id, **kw))
+                if template_id else
+                (lambda **kw: build_plan(kind, **kw))
+            )
+            plan = planner(
+                iso_path=self.provision_iso.text().strip(),
+                expected_sha256=self.provision_sha.text().strip(),
                 name=self.provision_name.text().strip(),
                 ram_mib=int(self.provision_ram.text()) if self.provision_ram.text() else None,
                 vcpus=int(self.provision_cpus.text()) if self.provision_cpus.text() else None,
@@ -687,7 +759,8 @@ class MainWindow(QMainWindow):
         self.provision_result.setPlainText("Checking local ISO checksum and validating offline guest XML…")
         def completed(preview):
             self.provision_preview_button.setEnabled(True)
-            self.provision_result.setPlainText(preview.describe())
+            info = "\n\n" + get_template(template_id).describe() if template_id else ""
+            self.provision_result.setPlainText(preview.describe() + info)
         def failed(message):
             self.provision_preview_button.setEnabled(True)
             self.provision_result.setPlainText(
