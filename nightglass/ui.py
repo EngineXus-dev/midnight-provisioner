@@ -31,6 +31,7 @@ from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
 from .acceptance import RegisteredGuestAuditor, save_acceptance
 from .theme import apply_theme, COLORS
+from .resources import collect_resources
 
 class NoWheelComboBox(QComboBox):
     """Prevent incidental wheel scrolling from changing a saved profile."""
@@ -152,11 +153,16 @@ class MainWindow(QMainWindow):
         self.cards = {}
         self._busy = False
         self.last_acceptance = None
+        self._resource_monitor_enabled = False
+        self._resource_monitor_busy = False
         self._build()
         self.refresh()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.refresh)
         self.timer.start(30000)
+        self.resource_timer = QTimer(self)
+        self.resource_timer.timeout.connect(self.refresh_resources)
+        self.resource_timer.start(20000)
         # Only contacts GitHub if the user explicitly opted into update notices.
         if load_machine_preferences().automatic_update_checks:
             QTimer.singleShot(4000, self.check_updates)
@@ -314,11 +320,36 @@ class MainWindow(QMainWindow):
         text.setWordWrap(True)
         text.setObjectName("SubTitle")
         layout.addWidget(text)
+        pressure_panel = QFrame()
+        pressure_panel.setObjectName("Panel")
+        pressure_layout = QVBoxLayout(pressure_panel)
+        pressure_heading = QLabel("LIVE RESOURCE PRESSURE  ·  READ-ONLY")
+        pressure_heading.setObjectName("SectionHeading")
+        pressure_layout.addWidget(pressure_heading)
+        self.resource_status = QLabel("Not checked — select Refresh resource monitor")
+        self.resource_status.setObjectName("Badge")
+        self.resource_status.setWordWrap(True)
+        pressure_layout.addWidget(self.resource_status)
+        self.resource_details = QPlainTextEdit()
+        self.resource_details.setReadOnly(True)
+        self.resource_details.setMinimumHeight(145)
+        self.resource_details.setPlaceholderText(
+            "Read MemAvailable, swap occupancy and all registered system libvirt VM states."
+        )
+        pressure_layout.addWidget(self.resource_details)
+        refresh_pressure = QPushButton("Refresh resource monitor")
+        refresh_pressure.setToolTip(
+            "Enable advisory checks every 20 seconds while Diagnostics is displayed; "
+            "never start, stop or reconfigure a guest."
+        )
+        refresh_pressure.clicked.connect(lambda: self.refresh_resources(activate=True))
+        pressure_layout.addWidget(refresh_pressure)
+        layout.addWidget(pressure_panel)
         self.diagnostics = QPlainTextEdit()
         self.diagnostics.setReadOnly(True)
-        self.diagnostics.setPlaceholderText("Select 'Run checks' to inspect host readiness")
+        self.diagnostics.setPlaceholderText("Select 'Run host checks' to inspect host readiness")
         layout.addWidget(self.diagnostics, 1)
-        run = QPushButton("Run checks")
+        run = QPushButton("Run host checks")
         run.clicked.connect(self.check_host)
         layout.addWidget(run)
         self.stack.addWidget(shell)
@@ -892,6 +923,7 @@ class MainWindow(QMainWindow):
         self.header_title.setText(["Security workspaces", "Trust boundaries", "System diagnostics", "Machine settings", "Offline VM preparation", "VM backups"][index])
         if index == 2:
             self.check_host()
+            self.refresh_resources()
 
     def get_space(self, key: str) -> Workspace:
         return next(w for w in self.spaces if w.key == key)
@@ -1022,6 +1054,34 @@ class MainWindow(QMainWindow):
             self.inform("VM bound. " + ("Launch policy currently passes." if audit.ok else "Start will be blocked until these settings are fixed:\n" + "\n".join(audit.warnings)))
             self.refresh()
         self.work(verify, done, self.error)
+
+    def refresh_resources(self, *, activate: bool = False):
+        if activate:
+            self._resource_monitor_enabled = True
+        if (not self._resource_monitor_enabled
+                or self._resource_monitor_busy
+                or self.stack.currentIndex() != 2):
+            return
+        self._resource_monitor_busy = True
+        self.resource_status.setText("Checking host RAM and libvirt …")
+        def received(snapshot):
+            self._resource_monitor_busy = False
+            self.resource_status.setText(
+                "Resource status: " + snapshot.level +
+                "  ·  " + str(len(snapshot.active_vms)) + " active VM(s)"
+            )
+            self.resource_details.setPlainText(snapshot.describe())
+        def failed(message):
+            self._resource_monitor_busy = False
+            self.resource_status.setText("Resource status: UNKNOWN")
+            self.resource_details.setPlainText(
+                "READ-ONLY INSPECTION UNAVAILABLE: " + message +
+                "\\nDo not assume that launching another VM is safe."
+            )
+        self.work(
+            lambda: collect_resources(workspaces=tuple(self.spaces)),
+            received, failed,
+        )
 
     def check_host(self):
         self.diagnostics.setPlainText("Inspecting read-only host state …")
