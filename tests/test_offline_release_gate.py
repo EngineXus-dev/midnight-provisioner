@@ -158,6 +158,35 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
             self.assertFalse(log.exists())
             self.assertFalse(report.exists())
 
+    def test_pinned_candidate_sha_mismatch_stops_before_worktree_creation(self):
+        with tempfile.TemporaryDirectory() as home:
+            repo = Path(home) / "nightglass-workspaces"
+            repo.mkdir()
+            commands = []
+
+            def fake_checked(argv, *, cwd, timeout=30):
+                commands.append(argv)
+                if "fetch" in argv:
+                    return ""
+                if "rev-parse" in argv:
+                    return "a" * 40
+                raise AssertionError("Worktree operation should never run")
+
+            with patch.object(gate, "checked", side_effect=fake_checked):
+                with self.assertRaises(gate.GateError):
+                    gate.branch_checkout(repo, expected_sha="b" * 40)
+            self.assertEqual(sum(1 for x in commands if "fetch" in x), 1)
+            self.assertFalse(any("worktree" in x for x in commands))
+            self.assertEqual(list(repo.parent.glob("Nightglass-RC-*")), [])
+
+    def test_invalid_expected_sha_prevents_even_fetch(self):
+        with tempfile.TemporaryDirectory() as home:
+            repo = Path(home)
+            with patch.object(gate, "checked", side_effect=AssertionError(
+                    "No Git operation permitted on invalid SHA")):
+                with self.assertRaises(gate.GateError):
+                    gate.branch_checkout(repo, expected_sha="too-short")
+
     def test_reports_exclusively_created_and_hardware_gate_not_attested(self):
         with tempfile.TemporaryDirectory() as home:
             file = Path(home) / "new-summary.json"
