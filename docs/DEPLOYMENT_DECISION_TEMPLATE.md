@@ -4,6 +4,28 @@
 No software automatically fills this in or approves a partition/OS change.
 Store any completed record locally outside the source repository.
 
+## Optional Windows 11-first decision
+
+- [ ] Decision explicitly recorded: stay on Windows 10 / in-place
+      Windows 11 upgrade / separate new-install plan (not automatic)
+- [ ] Microsoft PC Health Check/Windows Update eligibility reviewed,
+      including TPM 2.0, Secure Boot capability, graphics and driver support
+- [ ] Windows 10 offline full-image backup, tested recovery USB and
+      privately secured encryption/recovery keys available *before* upgrade
+- [ ] If Windows 11 was chosen: new installation boots repeatedly,
+      user applications/data/drivers/activation checked, and backup and
+      Windows recovery paths still work
+- [ ] If Windows 11 was chosen: **new post-upgrade read-only**
+      Windows disk/TPM/encryption/firmware inventory reviewed
+- [ ] Disk 1 identity/bus/current files and backup role inspected and
+      independently identified; size alone cannot select it for Fedora
+- [ ] Fedora installation is explicitly on HOLD until all the Windows
+      upgrade and recovery checks are complete
+
+The Windows 11 upgrade is not required if the user chooses another
+supported Windows strategy; it must not be conflated with Fedora
+partitioning or an automatic OS upgrade. No recovery keys in this file.
+
 ## Machine and rollback gate (BEFORE touching storage)
 
 - [ ] Reviewed exact boot mode (UEFI vs legacy) and disk style
