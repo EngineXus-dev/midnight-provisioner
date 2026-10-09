@@ -26,7 +26,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$branch = 'verification/phase15-portable-suite-coverage'
+$branch = 'verification/phase16-isolated-import-paths'
 $requiredConsent = 'RUN NIGHTGLASS OFFLINE TESTS'
 $repoUrlPattern = '^(?:https://github\.com/|git@github\.com:)EngineXus-dev/nightglass-workspaces(?:\.git)?/?$'
 
