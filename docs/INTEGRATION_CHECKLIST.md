@@ -470,3 +470,29 @@ Windows AST check, Docker/Fedora cumulative PASS or real hardware
 acceptance is claimed.** All PRs still draft/unmerged and no
 Windows/USB/portable backup drive changed. See
 [pinned-source stack audit](REMOTE_REF_STACK_AUDIT.md).
+
+## Phase 8 — optional Windows one-command offline verification
+
+The repository now includes
+`scripts/Invoke-Nightglass-OfflineChecks.ps1`, a Windows PowerShell
+5.1 launcher designed to be fetched into a **new temporary folder**
+while the user's actual Windows checkout remains on `main`.
+Default execution only previews options; `-FetchRefs` updates Git
+remote-tracking metadata, `-AuditStack` reads pinned Git-object
+metadata and workflow source, and `-RunDockerGate` requires the
+exact literal consent phrase to run isolated tests. Image download
+and Fedora test build remain separate opt-ins.
+
+The runner's `--expected-commit` pin is checked after fetch
+**before worktree creation** and again after detached checkout,
+preventing a silent run of a newer branch head. A new static
+contract/Windows-native parser test is included in the portable
+verification allowlist. The explicit predecessor stack now covers
+PRs #1–29 and #31–42 (41 drafts; PR #30 absent).
+
+**No new native Windows/PowerShell or Fedora Docker tests have yet been
+executed against this code**. No Windows 11 installation, USB media
+writing, portable example backup-drive capacity backup drive use, Windows debloat setting changes,
+VM boot, PR merge or GitHub Actions invocation has occurred.
+
+See [Windows offline one-command guide](WINDOWS_ONE_COMMAND_OFFLINE_CHECKS.md).
