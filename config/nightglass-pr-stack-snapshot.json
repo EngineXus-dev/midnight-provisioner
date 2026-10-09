@@ -4,9 +4,9 @@
   "repository": "EngineXus-dev/nightglass-workspaces",
   "default_branch": "main",
   "note": "Stored on newest candidate branch, read via verified origin/<branch> Git object; do NOT depend on this file existing in main working tree.",
-  "snapshot_status": "Historical predecessor PR #1–29 and #31–48 draft and unmerged at observation time; PR #30 absent. Refresh live status before any integration.",
+  "snapshot_status": "Historical draft predecessor snapshot includes PR #1–29 and #31–49; PR #30 not found. Not a live GitHub status check.",
   "pr30": "NOT_FOUND",
-  "candidate_branch": "verification/phase14-release-gate-repair",
+  "candidate_branch": "verification/phase15-portable-suite-coverage",
   "review_requires": [
     "full_current_GitHub_PR_status_refresh",
     "all_source_diffs_independent_review",
@@ -249,6 +249,11 @@
       "pr": 48,
       "base": "security/backup-boundary-fix",
       "head": "security/backup-cross-root-alias-guard"
+    },
+    {
+      "pr": 49,
+      "base": "security/backup-cross-root-alias-guard",
+      "head": "verification/phase14-release-gate-repair"
     }
   ]
 }
