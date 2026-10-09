@@ -57,7 +57,7 @@ def validate_manifest(data: dict) -> list[dict]:
         raise StackError("Unexpected default or candidate branch")
     prs = data.get("pull_requests")
     if not isinstance(prs, list) or len(prs) != 50:
-        raise StackError("The snapshot must contain 49 observed draft PRs")
+        raise StackError("The snapshot must contain 50 observed draft PRs")
     if data.get("pr30") != "NOT_FOUND":
         raise StackError("PR #30 must not be invented")
     expected_numbers = list(range(1, 30)) + list(range(31, 52))
