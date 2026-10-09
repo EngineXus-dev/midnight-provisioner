@@ -68,10 +68,11 @@ try {
     $oldPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
-        $probe = (& $python -B -c 'from PySide6.QtWidgets import QApplication; print("Qt import OK")' 2>&1)
+        $probe = (& $python -B -c 'from PySide6.QtWidgets import QApplication' 2>&1)
         $probeExit = $LASTEXITCODE
     } finally { $ErrorActionPreference = $oldPreference }
     @($probe | ForEach-Object { [string]$_ }) | Out-File -LiteralPath $qtLog -Encoding UTF8
+    if ($probeExit -eq 0) { Add-Content -LiteralPath $qtLog -Value 'PySide6.QtWidgets imported successfully.' }
     if ($probeExit -eq 0) {
         $process = Start-Process -FilePath $python -PassThru -NoNewWindow -WorkingDirectory $checkoutRoot -ArgumentList @('-B','-m','unittest','discover','-s','tests','-p',$test,'-v') -RedirectStandardOutput $stdout -RedirectStandardError $stderr
         $finished = $process.WaitForExit($TimeoutSeconds * 1000)
