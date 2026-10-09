@@ -656,3 +656,20 @@ covers 49 predecessors (#1–29, #31–50; #30 absent). No merge,
 Windows 11 Pro installation, Fedora host acceptance, USB
 formatting or portable example backup-drive capacity backup-media writes occurred.
 See [Phase 16 evidence](PHASE16_IMPORT_PATH_VERIFICATION.md).
+
+## Phase 17 — Windows QEMU named-test completeness
+
+The Windows-only `test_kali_process_label.py` subset previously
+used multiple `unittest -k` filters. If a selected method were
+renamed or removed, the remaining matching tests could still
+return success. The new `scripts/run_windows_qemu_subset.py`
+requires each of the **14 selected names** exactly once and
+zero skipped/failed cases. The original file contains 15 tests;
+one intentionally omitted provenance test is not promoted to
+Windows coverage without a separate review.
+
+The new `tests/test_windows_qemu_subset_integrity.py` passed
+**7/7** real tests on isolated local fixtures, and matching Git
+blob hashes confirm the same files were committed. **Native Windows
+and cumulative Python/Fedora Docker tests remain NOT RUN.**
+See [Phase 17 test evidence](PHASE17_QEMU_TEST_COVERAGE.md).
