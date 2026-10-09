@@ -20,6 +20,13 @@ from unittest.mock import patch
 class OffscreenMainWindowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # POSIX descriptor modes are not supported on native Windows. Mock
+        # this Linux-only syscall for synthetic Qt tests; never change
+        # production permission enforcement or Linux-mode assertions.
+        if os.name == "nt":
+            fd_patch = patch("nightglass.settings.os.fchmod", create=True)
+            fd_patch.start()
+            cls.addClassCleanup(fd_patch.stop)
         from PySide6.QtWidgets import QApplication
         from nightglass.theme import apply_theme
         cls.app = QApplication.instance() or QApplication([])
@@ -119,9 +126,10 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.window.save_machine_profile()
         saved = portability.load_machine_preferences(self.config / "nightglass" / "machine.json")
         self.assertEqual(saved, prefs)
-        self.assertEqual(
-            (self.config / "nightglass" / "machine.json").stat().st_mode & 0o777, 0o600
-        )
+        if os.name != "nt":
+            self.assertEqual(
+                (self.config / "nightglass" / "machine.json").stat().st_mode & 0o777, 0o600
+            )
 
     def test_provisioning_ui_never_creates_guest_for_missing_iso(self):
         with patch.object(self.window, "error") as error, \
@@ -181,7 +189,8 @@ class OffscreenMainWindowTests(unittest.TestCase):
         plan = load_setup_plan(output)
         self.assertEqual(plan["template_id"], "recon")
         self.assertEqual(plan["status"], "PLANNED_ONLY")
-        self.assertEqual(output.stat().st_mode & 0o777, 0o600)
+        if os.name != "nt":
+            self.assertEqual(output.stat().st_mode & 0o777, 0o600)
         inventory = Path(self.temp.name) / "manual-inventory.json"
         inventory.write_text(json.dumps({
             "format": INVENTORY_FORMAT,
