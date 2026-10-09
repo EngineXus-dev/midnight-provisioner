@@ -120,6 +120,16 @@
 - [ ] Independently confirm managed-save resume and persistent definition behavior on Fedora/KVM
 - [ ] Reduce possible races with other privileged libvirt clients; XML snapshots are point-in-time only
 
+## v0.3c — verified recovered-guest handoff (draft)
+- [x] Reject staged VM XML disk driver format mismatches before native QEMU processing
+- [x] Inspect live/current and persistent/next-boot registered libvirt XML against verified staging disk paths
+- [x] Refuse unexpected disks, mounted ISOs, extra NVRAM, wrong formats, and inconsistent guest UUIDs
+- [x] Refuse active and managed-saved recovered guests for offline handoff
+- [x] Read-only `qemu-img info` against verified staged files only, with known-good format and chain checks
+- [x] CLI/GUI comparison, private exclusive-create JSON report and mock regression coverage
+- [ ] Supervised benign Fedora/KVM manual-import and network isolation measurements
+- [ ] No automatic import/boot; privileged-host races and arbitrary disk content trust remain unresolved
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
