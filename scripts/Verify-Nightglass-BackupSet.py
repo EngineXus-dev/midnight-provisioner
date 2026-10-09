@@ -2,7 +2,8 @@
 """Nightglass multi-source backup coverage gate (read-only; preview default).
 
 Checks individually chosen source/copied-directory pairs through the
-Phase 10 read-only backup checker. No copies, restores, archive extraction,
+Phase 10 read-only backup checker. Preview does not read the manifest or
+selected directory trees. No copies, restores, archive extraction,
 installer operations, Git calls, network, USB or volume writes.
 
 A user's PRIVATE mapping manifest stays local and must never be committed.
@@ -23,7 +24,7 @@ MODES = ("Preview", "Inspect", "Verify")
 ID = re.compile(r"[a-z][a-z0-9_-]{1,30}\Z")
 MAX_MANIFEST_BYTES = 64 * 1024
 MAX_PAIRS = 32
-BASE = Path(__file__).resolve().parent
+BASE = Path(__file__).absolute().parent
 CHECKER = BASE / "Inspect-Nightglass-Backup.py"
 
 
@@ -173,7 +174,7 @@ def main(argv=None) -> int:
         if args.report:
             ap.error("Preview never writes a report")
         print("NIGHTGLASS BACKUP SET — PREVIEW ONLY")
-        print("No directory/manifest access, no hashing, no copying, no USB or OS changes.")
+        print("No access to selected manifest/data trees, no hashing, copying, USB or OS changes.")
         print("Inspect: selected tree metadata; Verify: content hashes for all selected trees.")
         print("Manifest must remain local and outside GitHub; no actual paths are printed.")
         return 0
