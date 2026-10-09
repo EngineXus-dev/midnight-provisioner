@@ -40,6 +40,18 @@ class PowerShellGuardrailTests(unittest.TestCase):
         self.assertTrue(paths)
         self.assertEqual(scanner.scan(paths), [])
 
+    def test_windows_powershell_51_sources_use_safe_encoding(self):
+        # PowerShell 5.1 may decode BOM-less UTF-8 as the host ANSI codepage.
+        # UTF-8 em dash (E2 80 94) can become a typographic quote and break
+        # string termination; plain ASCII or explicit UTF-8 BOM avoids it.
+        for script in sorted(SCRIPTS.rglob("*.ps1")):
+            with self.subTest(script=str(script.relative_to(ROOT))):
+                raw = script.read_bytes()
+                self.assertTrue(
+                    raw.isascii() or raw.startswith(b"\\xef\\xbb\\xbf"),
+                    f"BOM-less non-ASCII script may fail Windows PowerShell 5.1 parse: {script}",
+                )
+
     def test_gui_runner_never_silently_skips_or_installs(self):
         source = CHECKED.read_text(encoding="utf-8")
         for token in ("QT_QPA_PLATFORM", "offscreen", "NIGHTGLASS_GUI_SMOKE",
