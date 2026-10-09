@@ -291,6 +291,18 @@
 - [ ] Explicit user authorization for installation is still REQUIRED; no automated partitioning or EFI setup
 - [ ] Real Fedora KVM/SELinux/sVirt/live guest/restore gates remain separate and unverified
 
+## v0.3s — optional Windows 11 upgrade-first planning (draft)
+- [x] Record 2026-10-09 read-only Windows 10 Home baseline: UEFI, Windows GPT Disk 0, distinct GPT Disk 1 with unknown contents, RAM and firmware status
+- [x] Revise native Windows reviewer to display read-only TPM presence/readiness/version and second-disk bus/partition metadata without extracting TPM keys or selecting storage
+- [x] Preserve manufacturer firmware, TPM, encryption and Windows recovery protections; no BitLocker suspension or unsupported Windows 11 bypass
+- [x] Add optional Windows 11-first route and separate post-upgrade re-baseline before Fedora installation
+- [x] Extend static safety regression checks; maintain a clear manual hold on OS upgrade/partitioning/EFI changes
+- [ ] Run updated read-only Windows 10/11 reviewer and real PowerShell AST parser on target Windows computer
+- [ ] Review official PC Health Check Windows 11 eligibility, TPM 2.0/Secure Boot capability, encryption status and Windows recovery keys privately
+- [ ] Independently verify exact disk 1 bus/media/data role and whether a safe separate Fedora storage option exists
+- [ ] If Windows 11 chosen: test Windows upgrade and full recovery independently before starting Fedora live-USB validation
+- [ ] Fedora KDE host/KVM/sVirt isolation/benign guest recovery acceptance remains unverified; never auto-install or merge drafts without owner approval
+
 ## v1 — documented secure workstation deployment
 - [ ] Host support matrix (AMD-V, IOMMU, Secure Boot, LUKS, libvirt, Fedora releases)
 - [ ] Reproducible installation artifact and hardware-specific verification on test machines
