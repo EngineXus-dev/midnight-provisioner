@@ -49,9 +49,16 @@ the same Kali profile/guest, the saved plan JSON and its exact qcow2 image.
   no mounted installer media, unexpected disk or backingStore XML.
 - Guest RAM and vCPU declarations remain within the current host resource
   budget; missing values fail closed.
-- **All other system-libvirt VMs** can be read through current/inactive and
-  saved XML. If any reports the **exact same source path**, or cannot be
-  inspected, the independent-disk check blocks rather than declaring safe.
+- **All other system-libvirt VMs** are read through current/inactive and
+  saved XML. If one reports the same source path **including a lexical
+  `..` / `.` alias**, the independent-disk check blocks. A symlinked
+  source within the **selected disk's trusted parent directory** also
+  blocks; unknown/unreadable XML blocks instead of declaring safety.
+- The selected disk's kernel inode metadata must report **exactly one
+  hardlink** (`st_nlink == 1`), rejecting second hardlinks even if their
+  names are in another folder or aren't referenced by a registered VM.
+  This is checked again after native QEMU metadata inspection along with
+  the original device/inode identifier.
 - The expected local disk is a nonempty regular `.qcow2` file with no
   symlink path component. Only that user-selected path is passed to a
   **read-only** `qemu-img info --output=json` check. External/unknown disk
