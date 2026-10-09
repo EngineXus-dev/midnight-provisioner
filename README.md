@@ -611,6 +611,19 @@ install, independent backups, an approved SHA256-pinned local
 Win11Debloat.ps1, real Windows parser/integration tests, and separate
 explicit authorization. No Windows settings have yet changed.
 
+### Windows 11 Pro activate-later option and safe media sizing
+
+The future clean Windows 11 Pro installation defaults to **activate
+later** while also permitting **activation during official setup**.
+No product key is requested or embedded. The
+[activation choice and read-only ISO media plan](docs/WINDOWS11_PRO_ACTIVATE_LATER.md)
+explain how to select Pro without accidentally accepting an OEM Home
+edition, then activate later in Windows Settings. The companion
+`scripts/Plan-Nightglass-InstallMedia.py` only estimates ISO capacity
+of a separately measured, disposable 16 GB USB; it **cannot write
+or select a USB target, start installation, change partitions or
+activate Windows**. The portable example backup-drive capacity backup drive remains off limits.
+
 ### Offline latest-branch release verification (not a deployment)
 
 [Release-candidate integration gate](docs/OFFLINE_RELEASE_CANDIDATE_GATE.md)
