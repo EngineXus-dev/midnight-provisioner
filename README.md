@@ -598,3 +598,15 @@ Windows 11 Apply/Undo functionality has NOT been executed or verified.
 Do not run it against current Windows 10 or before deciding to install.
 No remote debloat script downloads or Windows component removal are
 authorized as part of Nightglass.
+
+### User-selected Windows 11 Pro privacy/debloat profile — staged
+
+The [35-item detailed catalog](config/windows11-pro-custom.json) and
+[Windows 11 Pro configuration runbook](docs/WINDOWS11_PRO_32_POINT_PROFILE.md)
+cover the user's 32 numbered requests plus OneDrive, promotion/Widgets
+and AI-app changes. The planner at
+`scripts/Invoke-Nightglass-Win11ProCustom.ps1` is **preview-only by
+default**. Do not run ApplyCore until a licensed Windows 11 Pro clean
+install, independent backups, an approved SHA256-pinned local
+Win11Debloat.ps1, real Windows parser/integration tests, and separate
+explicit authorization. No Windows settings have yet changed.
