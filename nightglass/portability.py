@@ -64,12 +64,14 @@ def budget_for(
     prefs = prefs or MachinePreferences()
     cpus = max(1, int(logical_cpus or 1))
     # Unknown capacity intentionally maps to the most conservative budget.
+    # Reserve host memory even when every permitted VM is running at its cap.
+    # This is deliberately conservative for integrated-GPU/shared-memory laptops.
     if ram_gib is None or ram_gib < 11:
         hard_ram, hard_vms = max(1.0, min(3.5, (ram_gib or 6.0) - 4.0)), 1
     elif ram_gib < 20:
-        hard_ram, hard_vms = min(6.0, ram_gib - 5.0), 2
+        hard_ram, hard_vms = max(1.0, min(5.0, (ram_gib - 6.0) / 2)), 2
     else:
-        hard_ram, hard_vms = min(12.0, ram_gib * 0.45), 3
+        hard_ram, hard_vms = max(1.0, min(8.0, (ram_gib - 8.0) / 3)), 3
     mode = prefs.preset
     if mode == "compact":
         desired_ram, desired_vms, desired_cpu = 2.5, 1, 2
