@@ -134,3 +134,21 @@ synthetic Docker verification as real hardware certification.
 validated.** The v2 log hash and report are local unauthenticated
 consistency evidence, not third-party attestation. Do not merge any
 draft PR or deploy Windows/Fedora from this gate alone.
+
+## Phase 8 convenience wrapper and exact-SHA pin
+
+For native Windows 10, the new
+[PowerShell launcher](WINDOWS_ONE_COMMAND_OFFLINE_CHECKS.md)
+lets the user preview, fetch Git refs, perform the PR ancestry
+audit and later launch cumulative Docker tests without checking out
+a draft branch or overwriting local ignored data.
+
+The release runner now supports optional `--expected-commit
+<40-character-lowercase-SHA>`; a changed fetched branch causes a
+hard blocker **before creating a detached worktree** and a second
+post-checkout equality assertion. The wrapper always supplies the
+SHA from its exact pinned candidate when `-RunDockerGate` is
+explicitly approved. This is additional protection, not
+independent trustworthy evidence of Windows/Fedora security.
+
+New tests are committed but have not yet been run on Windows/Docker.
