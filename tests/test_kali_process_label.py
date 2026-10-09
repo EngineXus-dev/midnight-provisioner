@@ -239,8 +239,13 @@ class ProcessLabelTests(unittest.TestCase):
     def test_provenance_report_leaks_no_pid_mcs_raw_cmdline_or_host_paths(self):
         result = self.inspect()
         dest = self.root / "new-private-label.json"
-        self.assertEqual(save_kali_process_label(result, dest), dest)
-        self.assertEqual(dest.stat().st_mode & 0o777, 0o600)
+        if os.name == "nt":
+            with patch("nightglass.acceptance.os.fchmod", create=True):
+                self.assertEqual(save_kali_process_label(result, dest), dest)
+        else:
+            self.assertEqual(save_kali_process_label(result, dest), dest)
+        if os.name != "nt":
+            self.assertEqual(dest.stat().st_mode & 0o777, 0o600)
         raw = dest.read_text(encoding="utf-8")
         for sensitive in ("1573", MCS, "system_u:system_r", str(self.root),
                           "/usr/bin/qemu-system", UUID):
