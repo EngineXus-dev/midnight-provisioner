@@ -105,6 +105,42 @@ class WindowsDualBootReviewSafety(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_windows11_upgrade_first_diagnostics_are_advisory(self):
+        for text in (
+            "Get-Tpm -ErrorAction Stop",
+            "Win32_Tpm",
+            "TpmPresent",
+            "TpmReady",
+            "SpecVersion",
+            "2.0 reported",
+            "Windows 11",
+            "PC Health Check",
+            "Get-Partition -DiskNumber $disk.Number",
+            "$disk.BusType",
+        ):
+            self.assertIn(text, self.source)
+        self.assertIn("if ($null -ne $windows -and $windows.Caption -match 'Windows 11')", self.source)
+        self.assertIn("Do not choose an installation disk", self.source)
+        # Don't echo a whole TPM CIM/PowerShell object: it may expose
+        # ownership/authentication-related information.
+        for forbidden in (
+            "Write-Output $tpm",
+            "Write-Host $tpm",
+            "Format-List *",
+            "Get-Tpm |",
+            "Clear-Tpm",
+            "Initialize-Tpm",
+            "Enable-Tpm",
+            "Set-Tpm",
+        ):
+            self.assertNotIn(forbidden, self.source)
+
+    def test_extra_disks_are_not_assumed_available_for_fedora(self):
+        self.assertIn("No partitions reported (NOT proof of an unused disk)", self.source)
+        self.assertIn("do not format based on size or bus type", self.source)
+        self.assertIn("DiskNumber -eq $osPartition.DiskNumber", self.source)
+        self.assertIn("OS volume encryption state", self.source)
+
     def test_no_automatic_install_approval_or_disk_selection(self):
         self.assertIn("NO INSTALL/SHRINK/FORMAT/EFI/BOOTLOADER CHANGES AUTHORIZED.", self.source)
         self.assertIn("Filesystem free space is NOT unallocated", self.source)
