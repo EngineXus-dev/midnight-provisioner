@@ -26,7 +26,7 @@ against an adversary who can modify the entire report and log together.
 `scripts/Run-Nightglass-Offline-Release-Gate.py` defaults to PLAN
 ONLY and has no host/system effects. An explicitly authorized
 `--run` creates a new sibling detached Git worktree from the single
-`verification/remote-ref-stack-audit` branch and writes new,
+`verification/test-gate-reliability-hardening` branch and writes new,
 non-overwriting private log/JSON files outside the original
 checkout. The branch-specific scripts and tests are parsed on the
 Windows host; actual downloaded branch Python tests execute **only
@@ -79,7 +79,7 @@ From the existing Nightglass Git checkout in Windows PowerShell,
 the commands below fetch just this feature branch and create two
 **new temp files** outside the original checkout:
 
-    git fetch --no-tags origin verification/remote-ref-stack-audit
+    git fetch --no-tags origin verification/test-gate-reliability-hardening
     if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
     $tmp = Join-Path $env:TEMP ("Nightglass-RC-Audit-" + [guid]::NewGuid().ToString("N"))
@@ -88,11 +88,11 @@ the commands below fetch just this feature branch and create two
     $runner = Join-Path $tmp "Run-Nightglass-Offline-Release-Gate.py"
     $audit = Join-Path $tmp "Audit-Nightglass-Release-Evidence.py"
 
-    git show origin/verification/remote-ref-stack-audit:scripts/Run-Nightglass-Offline-Release-Gate.py |
+    git show origin/verification/test-gate-reliability-hardening:scripts/Run-Nightglass-Offline-Release-Gate.py |
         Set-Content -LiteralPath $runner -Encoding UTF8
     if ($LASTEXITCODE -ne 0) { throw "Failed to retrieve runner" }
 
-    git show origin/verification/remote-ref-stack-audit:scripts/Audit-Nightglass-Release-Evidence.py |
+    git show origin/verification/test-gate-reliability-hardening:scripts/Audit-Nightglass-Release-Evidence.py |
         Set-Content -LiteralPath $audit -Encoding UTF8
     if ($LASTEXITCODE -ne 0) { throw "Failed to retrieve auditor" }
 
@@ -112,7 +112,7 @@ missing, timed-out or blocked stage.
 After completion, validate the private evidence (replace placeholders
 only with the actual displayed report and log paths):
 
-    $expected = git rev-parse refs/remotes/origin/verification/remote-ref-stack-audit
+    $expected = git rev-parse refs/remotes/origin/verification/test-gate-reliability-hardening
     if ($LASTEXITCODE -ne 0) { throw "Could not verify commit" }
 
     python $audit --report "C:\path\to\new-summary.json" --log "C:\path\to\matching-local-log.txt" --expected-commit $expected
@@ -141,3 +141,11 @@ files, a bootable USB, admin privileges or a Fedora installation.
 
 The local report/audit is an engineering gate, not permission to run
 malware, start high-risk VMs or declare system security certified.
+
+## Phase 9 — strict executed test counts
+
+The newest local gate refuses zero-test Python matrix results and
+skipped Fedora Qt/native suites. The v2 local evidence report remains
+unauthenticated and cannot prove physical SELinux/KVM or guest
+network isolation. This exact branch still needs runtime verification.
+See [test completeness](OFFLINE_TEST_COMPLETENESS.md).
