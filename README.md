@@ -637,3 +637,15 @@ new local report; it does not merge PRs or overwrite .env/.venv.
 **New gate results have not yet been collected.** Passing would not
 replace physical Fedora sVirt/KVM/packet/restore evidence or approve
 a Windows 11 Pro clean install, USB formatter or third-party debloater.
+
+### Latest-code release evidence and independent audit
+
+Phase 5 introduces a [read-only local evidence auditor](docs/RELEASE_EVIDENCE_AUDIT.md).
+The [offline runner](scripts/Run-Nightglass-Offline-Release-Gate.py)
+now records v2 checks, the exact tested Git SHA, before/after original
+`main` refs and a finished local log digest. The
+[auditor](scripts/Audit-Nightglass-Release-Evidence.py) refuses stale,
+tampered or incomplete evidence but cannot authenticate an adversarial
+report/log pair and cannot certify real Fedora KVM/sVirt security.
+This latest branch is a **draft / untested integration candidate**:
+no Windows or Fedora deployment or PR merge is implied.
