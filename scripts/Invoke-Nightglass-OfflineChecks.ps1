@@ -26,7 +26,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$branch = 'verification/windows-one-command-offline-gates'
+$branch = 'verification/test-gate-reliability-hardening'
 $requiredConsent = 'RUN NIGHTGLASS OFFLINE TESTS'
 $repoUrlPattern = '^(?:https://github\.com/|git@github\.com:)EngineXus-dev/nightglass-workspaces(?:\.git)?/?$'
 
