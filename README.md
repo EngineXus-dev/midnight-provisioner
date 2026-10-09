@@ -709,3 +709,15 @@ executes Windows Setup or stores a product key. It does **not**
 prove external-device separation or successful restoration.
 The current draft's native Windows/Docker tests remain pending;
 Windows 11 Pro installation and Fedora deployment remain deferred.
+
+### Phase 11: multi-folder backup coverage without copying
+
+The [multi-source backup set](docs/MULTI_SOURCE_BACKUP_READINESS.md)
+supports a private manifest of multiple original/copied directories.
+`scripts/Verify-Nightglass-BackupSet.py` defaults to zero-access
+Preview, and separately offers read-only metadata or SHA-256
+comparison across all selected locations. It includes hidden
+.git/.env/.venv entries and prevents hardlinked pseudo-copies or
+one empty source from producing a false full PASS. No user's actual
+paths, files, portable disk, ISO or OS have been modified, and
+the newest Windows/Docker synthetic test results remain pending.
