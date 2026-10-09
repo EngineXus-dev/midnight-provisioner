@@ -111,3 +111,33 @@ The PowerShell wrapper preserves exit status and a complete log.
 **Please return the newly generated `Nightglass-Fedora-Check-...-results.txt`
 log if any tests fail.** The code can then be corrected in the connected
 GitHub integration branch without a merge or history rewrite.
+
+## 2026-10-09: first Docker execution and follow-up triage
+
+The first real Docker Desktop execution on Windows 10 successfully built Fedora 43
+and reached the full Linux test suite. Results were **NOT a full pass**:
+62 Python sources parsed; native libvirt/QEMU fixtures **6/6 PASS**;
+full unittest discovery **378 tests, 11 failures, 2 errors, 22 skipped**;
+Bash syntax check **FAIL**; separate PySide6 GUI smoke **FAIL** without a
+Python traceback visible in the supplied transcript.
+
+The failures were investigated and follow-up commits on the same draft
+integration branch now:
+- Enforce LF checkout of `*.sh` using `.gitattributes`, avoiding CRLF in
+  Windows-created worktrees while leaving existing worktrees untouched.
+- Refactor the unchanged KVM accessibility policy into an independently
+  mockable helper, removing a test's globally patched
+  `os.path.exists` that falsely claimed every staging directory had
+  an `INCOMPLETE` marker (accounting for the repeated readiness errors).
+- Give a synthetic nominal-VM startup test a deterministic simulated
+  host memory/CPU budget rather than inadvertently using Docker's 2 GiB
+  limit. Runtime guest memory limits remain enforced.
+- Enable Python faulthandler and report subprocess exit codes/signals to
+  distinguish a GUI crash, kill or assertion failure on the next run.
+- Add regression coverage for the Docker cache-miss and shell line endings.
+
+**Pending:** rerun the latest dedicated integration worktree using the runner
+documented above. Do not claim Linux suite, GUI, host SELinux/sVirt, live
+guest isolation or physical Fedora/KVM acceptance passed on the basis of the
+first Docker execution. Do not merge draft PRs until the remaining failures
+and later hardware acceptance gates have been addressed.
