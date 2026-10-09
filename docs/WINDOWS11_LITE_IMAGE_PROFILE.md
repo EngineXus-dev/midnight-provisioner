@@ -62,8 +62,9 @@ that silently fails in Free.
 
 1. Add the *working copy* to NTLite.
 2. Inspect the multi-edition image; choose the edition that matches
-   your real Windows licence: **Home by default on this machine**.
-   Pro is an alternate *only with a confirmed Pro licence*.
+   your real Windows licence: **Pro only after the reported Pro key is
+   validated for Windows 11 Pro**. The old Windows 10 Home digital
+   licence does not itself activate Pro.
 3. Remove only the **other** editions; preserve setup, EFI/boot,
    WinRE recovery, and the installer metadata.
 4. Export to a new editable **WIM** working image. Retain the
