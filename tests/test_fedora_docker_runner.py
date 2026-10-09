@@ -90,7 +90,7 @@ class FedoraDockerRunnerContractTests(unittest.TestCase):
         # guard, not a substitute for running that integration suite.
         source = (ROOT / "nightglass" / "ui.py").read_text(encoding="utf-8")
         self.assertNotRegex(
-            source, r"\\.connect\\(self\\.[A-Za-z_][A-Za-z_0-9]*\\)"
+            source, r"\.connect\(self\.[A-Za-z_][A-Za-z_0-9]*\)"
         )
         for handler in (
             "check_host_security",
