@@ -329,6 +329,24 @@ This is **not** VM creation, a reservation, package installation or isolation
 certification. Missing/unsafe readings block approval; a passing dry-run
 only permits **manual review**. See [Kali template readiness](docs/KALI_TEMPLATE_PREFLIGHT.md).
 
+## Verify each installed Kali template uses its own VM disk
+
+After **manual** installation and shutdown, review an independently registered
+Kali profile against its saved plan and actual qcow2 disk:
+
+```bash
+nightglass templates registered ./recon-plan.json \
+  --disk /absolute/path/to/independent-recon.qcow2
+```
+
+Or select **Prepare VM → Audit installed Kali template VM**. The checker
+inspects both registered XML definitions, current guest state, resource
+limits, unexpected networking, disk driver metadata and the **exact source
+paths** in other libvirt VMs. It makes no host or guest modifications.
+Passing configuration checks do not prove that two differently named disk
+files aren't aliases, or that Kali tool installations and runtime isolation
+are trustworthy. See [registered Kali VM audit](docs/KALI_REGISTERED_TEMPLATES.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
