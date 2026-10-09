@@ -12,7 +12,7 @@ Nightglass has many unmerged stacked draft PRs and no remaining
 hosted GitHub Actions minutes. Earlier successful Fedora 43 Docker
 and Python 3.11/3.12/3.13 tests apply to older Git commits.
 The new offline release gate checks the **entire latest cumulative**
-deployment/windows11-pro-activation-media-preflight branch without overwriting
+verification/rc-evidence-and-stack-audit branch without overwriting
 the user's original Windows checkout or consuming GitHub Actions.
 
 Six mandatory checks must all pass:
@@ -61,14 +61,14 @@ than force-removed automatically.
 
 From the user's original nightglass-workspaces PowerShell directory:
 
-    git fetch --no-tags origin deployment/windows11-pro-activation-media-preflight
+    git fetch --no-tags origin verification/rc-evidence-and-stack-audit
     if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
     $dir = Join-Path $env:TEMP ("Nightglass-RC-Runner-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $dir | Out-Null
     $runner = Join-Path $dir "Run-Nightglass-Offline-Release-Gate.py"
 
-    $scriptText = & git show origin/deployment/windows11-pro-activation-media-preflight:scripts/Run-Nightglass-Offline-Release-Gate.py
+    $scriptText = & git show origin/verification/rc-evidence-and-stack-audit:scripts/Run-Nightglass-Offline-Release-Gate.py
     if ($LASTEXITCODE -ne 0) { throw "Runner retrieval failed" }
     $scriptText | Set-Content -LiteralPath $runner -Encoding UTF8
 
@@ -118,3 +118,19 @@ transmitted or stored in project config/logs.
 
 See the integration checklist, Fedora acceptance plan and
 Windows 11 Pro 32-point customization profile for later milestones.
+
+## Phase 5 extension: independently auditable evidence
+
+The new [Release evidence audit](RELEASE_EVIDENCE_AUDIT.md) introduces
+a v2 report with the exact tested commit, unchanged original main
+before/after SHA values, a completed local test-log SHA-256 and explicit
+`deployment_approved=false`, `release_attested=false`.
+A separate read-only script,
+`scripts/Audit-Nightglass-Release-Evidence.py`, rejects missing or
+failed checks, stale commits and tampered logs, and never treats
+synthetic Docker verification as real hardware certification.
+
+**No test output for this latest cumulative branch has been run or
+validated.** The v2 log hash and report are local unauthenticated
+consistency evidence, not third-party attestation. Do not merge any
+draft PR or deploy Windows/Fedora from this gate alone.
