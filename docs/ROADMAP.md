@@ -469,3 +469,13 @@
 - [ ] Run all newest-branch tests on native Windows, including actual Windows junction behavior; complete full Python/Fedora Docker matrix
 - [ ] Review remaining concurrent filesystem mutation/path-swap risks; do not claim atomic isolation
 - [ ] No GitHub merges, Windows 11 Pro/Fedora installation, USB formatting or portable-media writes authorized
+
+## Phase 14 — repair cumulative test audit branch drift (draft)
+- [x] Reconcile latest 47 predecessor PRs (#1–29 and #31–48, PR #30 absent) in stack manifest and ancestry checker
+- [x] Update cumulative Windows/Docker runner, local evidence auditor, PowerShell launcher and stack regression expectations to the same candidate
+- [x] Add permanent contract suite comparing Python branch constants, PowerShell launcher branch, manifest ancestry/last head and current operator runbooks
+- [x] Register contract suite in Windows-portable offline verification set
+- [x] Retarget current offline gate/evidence/PowerShell runbooks without rewriting historical phase reports
+- [ ] Run the exact candidate suite on the real Windows laptop and in isolated Docker; no runtime PASS claimed from static analysis alone
+- [ ] Review private evidence report and log SHA/commit match, original main unchanged and mandatory no-skip results
+- [ ] Keep all PRs unmerged, Windows 11 Pro install, Fedora host acceptance and USB/backup-media operations deferred
