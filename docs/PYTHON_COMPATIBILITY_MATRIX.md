@@ -1,7 +1,8 @@
 # Local Python compatibility matrix (no GitHub Actions)
 
-**Status:** Runner committed, **not yet executed** on the user's Docker
-Desktop. A PASS cannot be claimed until its full log is reviewed.
+**Status:** First Docker Desktop execution FAILED on Python 3.11 due to
+insufficient test tmpfs capacity; runner corrected, **rerun pending**.
+No Python 3.11/3.12/3.13 compatibility PASS has been established yet.
 
 The already tested Fedora 43 container used Python 3.14.7. Nightglass
 declares Python >=3.11, so this opt-in script checks headless Linux
@@ -54,3 +55,28 @@ No GitHub Actions, branch merge, push, rebase, reset or git clean.
 **Even if the matrix passes, this is not real Fedora host acceptance.**
 See [Fedora host preflight](FEDORA_HOST_PREFLIGHT.md) and
 [Fedora physical acceptance](FEDORA_ACCEPTANCE.md).
+
+## First Windows Docker Desktop execution — 2026-10-09
+
+The first matrix execution at commit `adbb1b0` pulled the official
+`python:3.11-slim` container and ran Linux unittest discovery
+offline. It reported **396 tests, 3 failures, 15 errors, 29 skips**
+and stopped before trying Python 3.12 or 3.13.
+
+All 18 observed failures/errors were the same test-container resource
+problem: the original runner mounted `/tmp` on a **256 MiB tmpfs**,
+while Nightglass's backup and recovery planning policy correctly
+requires **256 MiB *free reserve* plus the copied data**. The
+protection fired before the intended synthetic backup/recovery
+behavior could be exercised. It should not be weakened.
+
+The runner now allows a **512 MiB** disposable tmpfs while retaining
+the 1 GiB container-memory cap, rootless UID, read-only source,
+network-denied operation and original 256 MiB application reserve.
+Regression coverage checks the configured space exceeds that reserve
+and confirms the backup/recovery checks still exist.
+
+**This resource correction is committed but has not been re-executed.**
+Rerun the complete three-version matrix. Do not infer that Python
+3.11 passed, that versions 3.12/3.13 were attempted, or that real
+Fedora host isolation has been verified.
