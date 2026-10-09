@@ -208,6 +208,16 @@
 - [ ] Real Fedora/KVM benign-guest install, Kali package check, runtime network/SELinux and independent cold restore tests
 - [ ] Do not automatically install, clone, define or boot a Kali VM without hardware acceptance and explicit user confirmation
 
+## v0.3k — registered Kali disk hardlink and path-alias hardening (draft)
+- [x] Refuse selected qcow2 images with kernel hardlink count other than one, even for hardlinks outside the selected folder
+- [x] Compare lexically normalized registered disk sources across current/inactive and managed-save XML
+- [x] Detect symlinked foreign-guest disk references within the user-selected, previously validated disk directory using lstat only
+- [x] Recheck selected qcow2 disk inode identity and link count after native metadata and libvirt XML reads
+- [x] Keep native disk inspection limited to the single user-selected guest disk; no arbitrary file opens from other VM XML
+- [x] Synthetic regression tests for cross-folder hardlinks, lexical aliases, saved-session aliases, same-folder symlinks and mid-inspection link races
+- [ ] Paths outside the selected storage directory may still refer to the disk via symlink, bind mounts or storage indirection, and are NOT automatically resolved
+- [ ] Real Fedora/KVM isolation, cold backup/restore, package provenance and controlled guest execution acceptance remain pending
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
