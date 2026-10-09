@@ -196,6 +196,18 @@
 - [ ] Supervised Fedora/KVM physical machine acceptance of RAM, storage, ISO installer and network behavior
 - [ ] Real disk-space reservation/verified boot/guest-only installation/rollback are still NOT implemented
 
+## v0.3j — read-only Kali template registration and independent-disk review (draft)
+- [x] Connect each curated Kali setup plan to a registered, MANUALLY installed, SHUT-OFF system-libvirt VM
+- [x] Check current/inactive XML identity, persistent UUID, no managed save, exact one qcow2 disk and initial no-NIC policy
+- [x] Reject mounted installer media, extra disks, unexpected storage types and native qcow2 backing/snapshot/encryption metadata
+- [x] Read-only compare exact selected disk source path across current/inactive/saved definitions of other system libvirt guests
+- [x] Validate guest RAM/vCPU against current host resource caps and reject inaccessible/conflicting libvirt data
+- [x] Add opt-in GUI audit, CLI and NEW private local metadata report with no host/guest writes
+- [x] Unit and offscreen Qt regression tests for cross-guest plan reuse, duplicate disk paths, unknown VM states and unsupported image metadata
+- [ ] Strongly verify same-inode/hardlink/alias disk collisions without trusting libvirt XML alone
+- [ ] Real Fedora/KVM benign-guest install, Kali package check, runtime network/SELinux and independent cold restore tests
+- [ ] Do not automatically install, clone, define or boot a Kali VM without hardware acceptance and explicit user confirmation
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
