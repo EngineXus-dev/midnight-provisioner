@@ -77,11 +77,13 @@ class SafeWindowsLiteProfileTests(unittest.TestCase):
             with self.subTest(pattern=bad):
                 self.assertNotRegex(source, re.compile(bad, re.IGNORECASE))
 
-    def test_guide_preserves_home_licence_and_windows_security(self):
+    def test_guide_respects_reported_pro_key_and_windows_security(self):
         for text in (
             "Windows 11 26H2",
             "Windows 10 Home",
-            "do NOT delete every edition except Pro",
+            "Edition decision updated",
+            "Pro activation key",
+            "Windows 10 Home",
             "Microsoft Defender",
             "Windows Update",
             "Windows Recovery Environment",
