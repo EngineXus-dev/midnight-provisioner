@@ -115,6 +115,7 @@ class LifecycleTest(unittest.TestCase):
     def test_start_permitted_only_after_audit(self):
         runner = FakeRunner({
             virsh('list', '--all', '--name'): 'safevm\n',
+            virsh('dominfo', 'safevm'): 'Managed save: no\n',
             virsh('dumpxml', 'safevm'): domain(LOOPBACK_VNC),
             virsh('start', 'safevm'): 'Domain safevm started\n',
         })
@@ -125,6 +126,7 @@ class LifecycleTest(unittest.TestCase):
     def test_start_blocked_for_insecure_domain(self):
         runner = FakeRunner({
             virsh('list', '--all', '--name'): 'unsafevm\n',
+            virsh('dominfo', 'unsafevm'): 'Managed save: no\n',
             virsh('dumpxml', 'unsafevm'): domain('<interface type="bridge"/>'),
         })
         with self.assertRaises(ToolError):
@@ -197,6 +199,7 @@ class MemoryGuardTest(unittest.TestCase):
     def test_low_ram_blocks_parallel_vms(self):
         runner = FakeRunner({
             virsh('list', '--all', '--name'): 'safevm\nothervm\n',
+            virsh('dominfo', 'safevm'): 'Managed save: no\n',
             virsh('dumpxml', 'safevm'): domain(LOOPBACK_VNC),
             virsh('domstate', 'othervm'): 'running\n',
         })
@@ -208,6 +211,7 @@ class MemoryGuardTest(unittest.TestCase):
     def test_low_ram_blocks_oversized_guest(self):
         runner = FakeRunner({
             virsh('list', '--all', '--name'): 'safevm\n',
+            virsh('dominfo', 'safevm'): 'Managed save: no\n',
             virsh('dumpxml', 'safevm'): '<domain><memory unit="GiB">5</memory><devices>' + LOOPBACK_VNC + '</devices></domain>',
         })
         with patch('nightglass.hypervisor.total_ram_gib', return_value=7.7):
@@ -220,6 +224,7 @@ class HotplugMemoryGuardTest(unittest.TestCase):
         xml = domain(LOOPBACK_VNC).replace('<devices>', '<maxMemory unit="GiB" slots="8">8</maxMemory><devices>')
         runner = FakeRunner({
             virsh('list', '--all', '--name'): 'safevm\n',
+            virsh('dominfo', 'safevm'): 'Managed save: no\n',
             virsh('dumpxml', 'safevm'): xml,
         })
         with patch('nightglass.hypervisor.total_ram_gib', return_value=7.7):
