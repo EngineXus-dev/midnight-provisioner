@@ -4,9 +4,9 @@
   "repository": "EngineXus-dev/nightglass-workspaces",
   "default_branch": "main",
   "note": "Stored on newest candidate branch, read via verified origin/<branch> Git object; do NOT depend on this file existing in main working tree.",
-  "snapshot_status": "PR #1–29 and #31–41 confirmed draft/open/unmerged in prior tool checks; PR #30 returned NOT_FOUND. Snapshot is historical, not live API status.",
+  "snapshot_status": "Historical: PRs #1–29 and #31–42 checked draft/unmerged at respective observation times; PR #30 NOT_FOUND. Refresh live status before any integration.",
   "pr30": "NOT_FOUND",
-  "candidate_branch": "verification/remote-ref-stack-audit",
+  "candidate_branch": "verification/windows-one-command-offline-gates",
   "review_requires": [
     "full_current_GitHub_PR_status_refresh",
     "all_source_diffs_independent_review",
@@ -214,6 +214,11 @@
       "pr": 41,
       "base": "verification/rc-evidence-and-stack-audit",
       "head": "verification/stack-integration-readiness"
+    },
+    {
+      "pr": 42,
+      "base": "verification/stack-integration-readiness",
+      "head": "verification/remote-ref-stack-audit"
     }
   ]
 }
