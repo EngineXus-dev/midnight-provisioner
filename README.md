@@ -284,6 +284,21 @@ writing explicitly requested new JSON records. Guest inventories are
 dependencies or a tested baseline restore. See the
 [setup manifest workflow](docs/KALI_SETUP_MANIFESTS.md).
 
+## Kali guest inventory helper (manual, offline)
+
+The standalone **source-checkout** script `scripts/kali-guest-inventory.py`
+can be run **manually as an ordinary user inside an already-installed benign
+Kali VM** to query locally cached dpkg/apt package versions and produce one
+NEW private guest inventory JSON file. Use
+`nightglass templates guest-help recon` or **Prepare VM → Guest inventory
+instructions** for the non-executable steps.
+
+**Nightglass does not transfer the plan or helper into any VM**, install
+software, run guest commands, or open networking. An independent reviewed
+transfer mechanism is required; do not enable shared folders or clipboard
+to work around its absence. The output is untrusted self-reported data.
+See [guest inventory helper workflow](docs/KALI_GUEST_INVENTORY.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
