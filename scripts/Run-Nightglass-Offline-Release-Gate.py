@@ -27,7 +27,7 @@ import sys
 import tempfile
 import time
 
-BRANCH = "verification/windows-one-command-offline-gates"
+BRANCH = "verification/test-gate-reliability-hardening"
 ORIGIN = re.compile(
     r"^(?:https://github\.com/|git@github\.com:)"
     r"enginexus-dev/nightglass-workspaces(?:\.git)?/?$",
