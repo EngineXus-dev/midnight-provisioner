@@ -121,7 +121,12 @@ class LifecycleTest(unittest.TestCase):
             virsh('dumpxml', 'safevm'): domain(LOOPBACK_VNC),
             virsh('start', 'safevm'): 'Domain safevm started\n',
         })
-        result = Hypervisor(runner).start('safevm', 'isolated')
+        # This is a synthetic policy-path test, not a Docker host RAM test.
+        # A 2 GiB test container must not make its nominal 3 GiB guest fail.
+        # Dedicated low-memory tests separately verify fail-closed limits.
+        with patch("nightglass.hypervisor.total_ram_gib", return_value=16), \
+             patch("nightglass.hypervisor.os.cpu_count", return_value=6):
+            result = Hypervisor(runner).start('safevm', 'isolated')
         self.assertIn('started', result)
         self.assertEqual(runner.calls[-1][0], list(virsh('start', 'safevm')))
 
