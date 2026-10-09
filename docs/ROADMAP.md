@@ -239,6 +239,17 @@
 - [ ] Manual supervised Fedora/KVM staged import preflight, benign new-guest registration, handoff check, boot and actual rollback evidence
 - [ ] Guest package provenance, packet-level isolation and SELinux runtime remain unverified; no automatic import/restore
 
+## v0.3n — registered Kali recovery import handoff (draft)
+- [x] Bind original curated Kali plan, verified cold backup and separate offline recovery stage to MANUALLY REGISTERED new VM
+- [x] Reuse full existing registered recovery handoff policy and QEMU disk metadata checks; require shut-off state/no saved resume
+- [x] Reject recovered VM UUID reuse, missing/inconsistent current/inactive UUID and wrong template/new guest identity
+- [x] Require explicit libvirt autostart OFF; unknown or enabled state fails closed and is rechecked
+- [x] Read-only scan of other registered current/inactive/saved disk-source XML for aliases to recovered qcow2
+- [x] Rehash staging files and recheck recovered VM shutoff status after libvirt observations
+- [x] CLI and opt-in Qt GUI audit plus NEW private non-attestation JSON evidence; synthetic regression tests
+- [ ] Actually boot, exercise and restore a benign Kali VM under supervised Fedora/KVM with packet and SELinux verification
+- [ ] Actual external disk alias resolution, provenance/authenticated backup signatures and automatic guest lifecycle remain out of scope
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
