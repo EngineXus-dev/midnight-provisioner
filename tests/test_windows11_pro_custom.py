@@ -63,9 +63,7 @@ class Windows11ProCustomContract(unittest.TestCase):
         self.assertIn("Get-FileHash", source)
         self.assertIn("CreateRestorePoint", source)
         self.assertIn("Win11Debloat.ps1", source)
-        self.assertIn("Win11Debloat script SHA256 mismatch", source) if False else None
         self.assertIn("Third-party script SHA256 mismatch", source)
-        self.assertIn("ScriptBlock", source) if False else None
         self.assertIn("[System.Management.Automation.Language.Parser]::ParseFile", source)
         self.assertIn("Get-Content -LiteralPath $catalogPath", source)
         self.assertIn("[System.IO.FileMode]::CreateNew", source)
