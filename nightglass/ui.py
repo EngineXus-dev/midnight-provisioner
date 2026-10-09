@@ -7,9 +7,10 @@ import subprocess
 from dataclasses import replace
 from functools import partial
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Qt, QTimer, Signal
+from PySide6.QtGui import QDoubleValidator, QIntValidator
 from PySide6.QtWidgets import (
     QApplication, QCheckBox, QComboBox, QFrame, QGridLayout, QHBoxLayout, QInputDialog,
-    QLabel, QMainWindow, QMessageBox, QPushButton, QScrollArea, QStackedWidget,
+    QLabel, QLineEdit, QMainWindow, QMessageBox, QPushButton, QScrollArea, QStackedWidget,
     QVBoxLayout, QWidget, QPlainTextEdit,
 )
 from .containers import Containers
@@ -347,6 +348,31 @@ class MainWindow(QMainWindow):
         position = self.profile_combo.findData(settings.preset)
         self.profile_combo.setCurrentIndex(max(0, position))
         inner.addWidget(self.profile_combo)
+        advanced = QLabel("Optional fine-tuning (leave blank for automatic)")
+        advanced.setObjectName("SubTitle")
+        inner.addWidget(advanced)
+        controls = QGridLayout()
+        self.ram_override = QLineEdit()
+        self.ram_override.setPlaceholderText("Auto")
+        self.ram_override.setValidator(QDoubleValidator(1.0, 128.0, 2, self))
+        self.ram_override.setText(str(settings.guest_ram_cap_gib or ""))
+        self.vm_override = QLineEdit()
+        self.vm_override.setPlaceholderText("Auto")
+        self.vm_override.setValidator(QIntValidator(1, 128, self))
+        self.vm_override.setText(str(settings.active_vm_cap or ""))
+        self.cpu_override = QLineEdit()
+        self.cpu_override.setPlaceholderText("Auto")
+        self.cpu_override.setValidator(QIntValidator(1, 128, self))
+        self.cpu_override.setText(str(settings.vcpu_cap or ""))
+        for index, (label, widget) in enumerate((
+            ("VM memory cap (GiB)", self.ram_override),
+            ("Concurrent VM limit", self.vm_override),
+            ("Suggested vCPUs (advisory)", self.cpu_override),
+        )):
+            controls.addWidget(QLabel(label), index, 0)
+            controls.addWidget(widget, index, 1)
+            widget.textChanged.connect(self.preview_machine_profile)
+        inner.addLayout(controls)
         self.profile_summary = QLabel("")
         self.profile_summary.setWordWrap(True)
         inner.addWidget(self.profile_summary)
@@ -391,23 +417,33 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(page)
         self.preview_machine_profile()
 
-    def preview_machine_profile(self, *_):
-        mode = self.profile_combo.currentData() or "auto"
-        prefs = MachinePreferences(preset=mode)
-        self.profile_summary.setText(
-            current_budget(prefs).explain() +
-            "\nLimits apply to future VM starts through Nightglass; existing VM RAM allocations aren't rewritten."
+    def machine_preferences_from_form(self) -> MachinePreferences:
+        ram_value = self.ram_override.text().strip()
+        vm_value = self.vm_override.text().strip()
+        cpu_value = self.cpu_override.text().strip()
+        return MachinePreferences(
+            preset=self.profile_combo.currentData() or "auto",
+            guest_ram_cap_gib=float(ram_value) if ram_value else None,
+            active_vm_cap=int(vm_value) if vm_value else None,
+            vcpu_cap=int(cpu_value) if cpu_value else None,
+            automatic_update_checks=self.update_opt_in.isChecked(),
         )
 
-    def save_machine_profile(self):
-        mode = self.profile_combo.currentData() or "auto"
+    def preview_machine_profile(self, *_):
         try:
-            prefs = MachinePreferences(
-                preset=mode,
-                automatic_update_checks=self.update_opt_in.isChecked(),
+            prefs = self.machine_preferences_from_form()
+            self.profile_summary.setText(
+                current_budget(prefs).explain() +
+                "\nHost safety limits always win; existing VM RAM allocations aren't rewritten. "
+                "The vCPU value is a recommendation, not enforced by libvirt."
             )
-            save_machine_preferences(prefs)
-        except (WorkspaceError, OSError) as exc:
+        except (WorkspaceError, ValueError):
+            self.profile_summary.setText("Enter valid resource numbers or leave the fields blank.")
+
+    def save_machine_profile(self):
+        try:
+            save_machine_preferences(self.machine_preferences_from_form())
+        except (WorkspaceError, OSError, ValueError) as exc:
             self.error(str(exc))
             return
         self.preview_machine_profile()
