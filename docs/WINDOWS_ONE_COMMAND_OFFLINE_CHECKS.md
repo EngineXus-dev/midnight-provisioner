@@ -24,7 +24,7 @@ Kali/offline analysis guests or erase any device.
 | `-ExpectedCommit` | Require exact candidate SHA40 | FAIL if the fetched branch differs |
 
 The execution branch is
-`verification/windows-one-command-offline-gates`. The PR stack
+`verification/test-gate-reliability-hardening`. The PR stack
 snapshot now includes **41 predecessor PRs** (#1–29 and #31–42).
 PR #30 is absent. Those predecessor status observations are
 historical and must be refreshed before integration.
@@ -48,7 +48,7 @@ $dir = Join-Path $env:TEMP ("Nightglass-Checks-" + [guid]::NewGuid().ToString("N
 New-Item -ItemType Directory -Path $dir -ErrorAction Stop | Out-Null
 $launcher = Join-Path $dir "Invoke-Nightglass-OfflineChecks.ps1"
 
-$lines = @(git show origin/verification/windows-one-command-offline-gates:scripts/Invoke-Nightglass-OfflineChecks.ps1)
+$lines = @(git show origin/verification/test-gate-reliability-hardening:scripts/Invoke-Nightglass-OfflineChecks.ps1)
 if ($LASTEXITCODE -ne 0 -or $lines.Count -eq 0) { throw "Script retrieval failed" }
 $lines | Set-Content -LiteralPath $launcher -Encoding UTF8
 
@@ -124,3 +124,15 @@ Windows 11 Pro clean-install acceptance remain independent blockers.
   media selection, ISO integrity and explicit user authorization.
 - All Nightglass GitHub PRs remain **draft and unmerged**; neither this
   tool nor synthetic tests approve merge or deployment.
+
+## Phase 9 — missing/skipped tests are blocking failures
+
+The current candidate requires at least 60 collected / 40 executed
+cases in each Python 3.11/3.12/3.13 container, plus five actually
+executed cases with ZERO SKIPS for each Fedora Qt/native suite.
+A regression assertion was corrected for the runner's legitimate
+extra SHA verification before worktree creation.
+
+The original checkout, GitHub Actions status and installation holds
+remain unchanged. The new test paths are committed but NOT YET RUN.
+See [Phase 9 completeness](OFFLINE_TEST_COMPLETENESS.md).
