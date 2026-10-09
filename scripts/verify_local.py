@@ -41,6 +41,7 @@ WINDOWS_PORTABLE_SUITES = (
     "test_install_media_preflight.py",
     "test_release_evidence_audit.py",
     "test_pr_stack_audit.py",
+    "test_candidate_branch_contract.py",
     "test_windows_offline_launcher.py",
     "test_required_integration_suites.py",
     "test_headless_matrix_coverage.py",
