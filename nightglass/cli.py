@@ -16,6 +16,7 @@ from .portability import (
 from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
 from .backups import ColdBackup, verify_backup
+from .recovery import RecoveryStager, verify_staging
 import os
 
 
@@ -59,9 +60,47 @@ def main(argv: list[str] | None = None) -> int:
     bc.add_argument("--yes", action="store_true", help="Explicitly confirm backup creation")
     bv = backup_actions.add_parser("verify", help="Read-only SHA-256 integrity checks")
     bv.add_argument("directory", help="Existing Nightglass backup folder")
+    recover = sub.add_parser("recover", help="Stage cold backups as NEW, disconnected, unregistered VMs")
+    recover_actions = recover.add_subparsers(dest="recover_action")
+    recover_plan = recover_actions.add_parser("plan", help="Read-only verified recovery plan")
+    recover_plan.add_argument("backup", help="Existing Nightglass cold backup folder")
+    recover_plan.add_argument("destination", help="NEW, nonexistent recovery destination")
+    recover_plan.add_argument("new_name", help="NEW, unique libvirt guest name")
+    recover_stage = recover_actions.add_parser("stage", help="Copy verified backup into a NEW isolated staging area")
+    recover_stage.add_argument("backup")
+    recover_stage.add_argument("destination")
+    recover_stage.add_argument("new_name")
+    recover_stage.add_argument("--yes", action="store_true", help="Confirm staging without a terminal prompt")
+    recover_verify = recover_actions.add_parser("verify", help="Re-verify staging hashes and offline XML")
+    recover_verify.add_argument("directory")
     args = parser.parse_args(argv)
     cmd = args.command or "gui"
     try:
+        if cmd == "recover":
+            if args.recover_action == "verify":
+                for line in verify_staging(Path(args.directory)):
+                    print(line)
+                print("Staged files and offline XML verified. VM is NOT defined or boot-tested.")
+                return 0
+            if args.recover_action not in {"plan", "stage"}:
+                parser.error("Choose recover plan, recover stage or recover verify")
+            worker = RecoveryStager()
+            plan = worker.plan(
+                Path(args.backup), Path(args.destination), args.new_name
+            )
+            print(plan.describe())
+            if args.recover_action == "plan":
+                return 0
+            if not args.yes:
+                if not sys.stdin.isatty() or input("Type STAGE to create a new recovery copy: ").strip() != "STAGE":
+                    print("Cancelled; no files created.")
+                    return 1
+            dest = worker.stage(
+                Path(args.backup), Path(args.destination), args.new_name, confirmed=True
+            )
+            print(f"New offline recovery staged: {dest}")
+            print("Next: inspect domain.xml, permissions, firmware and SELinux, then import manually.")
+            return 0
         if cmd == "backup":
             if args.backup_action == "verify":
                 for line in verify_backup(Path(args.directory)):
