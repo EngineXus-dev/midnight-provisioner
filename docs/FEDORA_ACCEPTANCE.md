@@ -52,6 +52,20 @@ has no network reachability, or is safe for malware execution.
 
 See [registered-guest acceptance details](REGISTERED_GUEST_AUDIT.md).
 
+## Compare the actual manually registered guest against staged disks
+
+After the separate manual, benign-guest registration and the read-only
+registered XML audit, use:
+
+```bash
+nightglass recover handoff /path/to/recovered-new-guest
+```
+
+This checks all disk/NVRAM paths and QEMU formats in the registered domain
+against the verified recovered files, including both live/current and
+inactive/persistent definitions. It **does not import or boot** the VM.
+See [recovery handoff policy](RECOVERY_HANDOFF.md).
+
 ## Separate supervised live acceptance (not automated by Nightglass)
 
 | Check | Expected observation |
