@@ -498,3 +498,11 @@
 - [x] Advance exact candidate branch and precursor snapshot through PR #50 (49 predecessors, PR #30 absent)
 - [ ] Run new regression on actual branch using native Windows and isolated Docker Python 3.11–3.13 / Fedora 43
 - [ ] Require private log/evidence matching exact SHA before integration; do not merge or install based on local mock pass
+
+## Phase 17 — exact QEMU regression selection (draft)
+- [x] Confirm the Windows QEMU synthetic subset lists 14 of 15 existing methods, with no currently missing names
+- [x] Replace fragile unittest name filters with exact method inventory checking and zero-skip requirements
+- [x] Exercise 7 locally executed regression tests using the exact committed files and verify matching Git blob hashes
+- [x] Add the new test module to Windows-portable validation and update 50 predecessor PR references
+- [ ] Run all selected cases on the native Windows machine; validate current commit with full Python/Fedora Docker checks
+- [ ] Do not treat synthetic process-label observations as physical SELinux/KVM acceptance; keep Windows/Fedora installs and PR merges deferred
