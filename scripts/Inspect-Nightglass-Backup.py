@@ -240,6 +240,8 @@ def compare(source: Inventory, backup: Inventory, *, verify: bool,
 
 
 def write_report_new(path: Path, payload: dict, roots: tuple[Path, Path]) -> None:
+    # Check the user's original spelling before absolute() can normalize '..'.
+    reject_linked_ancestors(path.parent)
     target = path.absolute()
     try:
         reject_linked_ancestors(target.parent)
