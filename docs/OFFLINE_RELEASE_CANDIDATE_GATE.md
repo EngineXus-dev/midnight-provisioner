@@ -12,7 +12,7 @@ Nightglass has many unmerged stacked draft PRs and no remaining
 hosted GitHub Actions minutes. Earlier successful Fedora 43 Docker
 and Python 3.11/3.12/3.13 tests apply to older Git commits.
 The new offline release gate checks the **entire latest cumulative**
-deployment/readonly-backup-integrity branch without overwriting
+deployment/multi-source-backup-readiness branch without overwriting
 the user's original Windows checkout or consuming GitHub Actions.
 
 Six mandatory checks must all pass:
@@ -61,14 +61,14 @@ than force-removed automatically.
 
 From the user's original nightglass-workspaces PowerShell directory:
 
-    git fetch --no-tags origin deployment/readonly-backup-integrity
+    git fetch --no-tags origin deployment/multi-source-backup-readiness
     if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
     $dir = Join-Path $env:TEMP ("Nightglass-RC-Runner-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $dir | Out-Null
     $runner = Join-Path $dir "Run-Nightglass-Offline-Release-Gate.py"
 
-    $scriptText = & git show origin/deployment/readonly-backup-integrity:scripts/Run-Nightglass-Offline-Release-Gate.py
+    $scriptText = & git show origin/deployment/multi-source-backup-readiness:scripts/Run-Nightglass-Offline-Release-Gate.py
     if ($LASTEXITCODE -ne 0) { throw "Runner retrieval failed" }
     $scriptText | Set-Content -LiteralPath $runner -Encoding UTF8
 
@@ -176,3 +176,13 @@ exclusive-create report rules. They use only disposable temp data
 and do not inspect user data or the portable drive. The
 real latest branch's Windows/Docker test pass remains pending.
 See [backup safety](BACKUP_INTEGRITY_PREFLIGHT.md).
+
+## Phase 11 backup-set regression coverage
+
+The portable Windows/Fedora test catalog now includes
+`tests/test_backup_set_preflight.py`, with multi-directory matching,
+missing/altered content, overlapping roots, empty sources,
+hardlinks, unsafe local manifests and read-only report checks.
+The newest cumulative branch remains unexecuted on the user's
+actual Windows/Docker host; synthetic tests do not authorize
+an OS install or a PR merge.
