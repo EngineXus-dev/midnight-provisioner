@@ -721,3 +721,14 @@ comparison across all selected locations. It includes hidden
 one empty source from producing a false full PASS. No user's actual
 paths, files, portable disk, ISO or OS have been modified, and
 the newest Windows/Docker synthetic test results remain pending.
+
+### Phase 12: backup path boundary hardening
+
+The [linked-parent security review and fix](docs/BACKUP_PATH_BOUNDARY_HARDENING.md)
+prevents ordinary-looking directories under symlinks or Windows
+junctions from silently passing the read-only backup inspector.
+Source, copied-backup, manifest and report ancestors are checked,
+and `..` bypass spelling is refused. The fix is committed on a
+reversible draft branch; native Windows junction and latest
+cumulative Docker tests remain pending. No OS installation,
+personal-file copying, drive formatting or PR merge occurred.
