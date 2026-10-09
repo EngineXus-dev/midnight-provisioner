@@ -92,9 +92,10 @@ class ProcessLabelTests(unittest.TestCase):
         (parent / "cmdline").write_bytes(
             b"\0".join(arg.encode("utf-8") for arg in args) + b"\0"
         )
-        # field 3 is S; field 22 (suffix index 19) is starttime.
+        # field 3 is S (index 0); field 22 is index 19 after ") ".
+        # Exactly 18 filler values between S and starttime.
         (parent / "stat").write_text(
-            str(pid) + " (qemu-system-x86_64) S " + " ".join(["0"] * 19 + [start])
+            str(pid) + " (qemu-system-x86_64) S " + " ".join(["0"] * 18 + [start])
         )
         (parent / "attr/current").write_text(context + "\n")
         return parent
