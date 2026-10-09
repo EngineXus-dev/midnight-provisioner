@@ -104,6 +104,24 @@ https://support.microsoft.com/en-us/windows/deployment/install-upgrade/reinstall
 Read [Windows 11 clean-install staged plan](WINDOWS11_CLEAN_INSTALL_STAGED.md)
 for a non-executing backup and later recovery checklist.
 
+### Key entry is optional at installation time
+
+The Nightglass installer-media planning options include **Activate
+later (default)** and **During setup** for Windows 11 Pro. If
+Microsoft Setup shows **I don't have a product key**, choose it
+when deferring activation; confirm the chosen edition is **Windows
+11 Pro**, especially on a laptop with a possible OEM Home firmware
+key. Later activate using genuine Windows **Settings > System >
+Activation > Change product key**. No product key is bundled in the
+ISO, USB, Nightglass scripts or build settings.
+
+An offline, non-mutating ISO-capacity planner is staged at
+`scripts/Plan-Nightglass-InstallMedia.py`; it can estimate whether
+the real file sizes plus 1 GiB headroom fit a *declared measured
+usable USB byte capacity*. It cannot verify media bootability,
+publisher authenticity or device selection and never formats USB.
+See [activation and media preflight](WINDOWS11_PRO_ACTIVATE_LATER.md).
+
 ### Fedora live boot and final installation
 
 Initially boot Fedora KDE Live from the menu, use **Try Fedora**, test AMD
