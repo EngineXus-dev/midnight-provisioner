@@ -149,7 +149,7 @@ def warn_path(path: str) -> str | None:
         return "GITHUB_WORKFLOW_REVIEW"
     if (leaf.startswith(".env") or leaf in ("id_rsa", "id_ed25519")
             or leaf.endswith((".pem", ".pfx", ".p12", ".key"))
-            or "secret" in segments):
+            or any(segment in ("secret", "secrets") for segment in segments)):
         return "POSSIBLE_SECRET_FILE_REVIEW"
     if leaf.endswith((".exe", ".msi", ".iso", ".dll", ".sys")):
         return "BINARY_ARTIFACT_REVIEW"
