@@ -157,6 +157,87 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
                 self.assertEqual(self.runner.calls, [])
                 del self.hv.docs["someone-else"]
 
+    def test_link_count_blocks_any_second_hardlink_even_outside_storage_folder(self):
+        other_folder = self.root / "separate-existing-vm-folder"
+        other_folder.mkdir()
+        hardlink = other_folder / "alias.qcow2"
+        hardlink.hardlink_to(self.disk)
+        with self.assertRaisesRegex(ToolError, "multiple hardlinks"):
+            self.check()
+        self.assertEqual(self.runner.calls, [])
+        self.assertEqual(self.hv.calls, [])
+        self.assertEqual(hardlink.read_bytes(), self.disk.read_bytes())
+
+    def test_lexically_equivalent_xml_source_is_detected_without_opening_other_disk(self):
+        # XML references can differ textually while resolving to the same path.
+        # The intermediate folder doesn't even have to exist for normpath to
+        # expose a lexical alias; no other disk is opened.
+        alias = str(self.disk.parent / "unused" / ".." / self.disk.name)
+        self.hv.docs["someone-else"] = {
+            "current": domain("someone-else", alias),
+            "inactive": domain("someone-else", str(self.other_disk)),
+            "saved": None,
+        }
+        result = self.check()
+        self.assertFalse(result.ok)
+        self.assertIn("lexical path alias", result.describe())
+        self.assertEqual(self.runner.calls, [])
+
+    def test_same_folder_other_guest_symlink_is_blocked_without_following_it(self):
+        link = self.root / "different-registered-guest.qcow2"
+        link.symlink_to(self.disk)
+        self.hv.docs["someone-else"] = {
+            "current": domain("someone-else", str(link)),
+            "inactive": domain("someone-else", str(self.other_disk)),
+            "saved": None,
+        }
+        result = self.check()
+        self.assertFalse(result.ok)
+        self.assertIn("symlinked disk path", result.describe())
+        self.assertEqual(self.runner.calls, [])
+        self.assertTrue(link.is_symlink())
+
+    def test_saved_state_path_alias_is_also_blocked(self):
+        alias = str(self.disk.parent / "." / self.disk.name)
+        # pathlib normalizes the path; explicitly inject lexical .. spelling.
+        alias = str(self.disk.parent / "unused" / ".." / self.disk.name)
+        self.hv.docs["someone-else"] = {
+            "current": domain("someone-else", str(self.other_disk)),
+            "inactive": domain("someone-else", str(self.other_disk)),
+            "saved": domain("someone-else", alias),
+        }
+        result = self.check()
+        self.assertFalse(result.ok)
+        self.assertIn("Managed-save disk collision", result.describe())
+        self.assertEqual(self.runner.calls, [])
+
+    def test_missing_local_other_guest_disk_does_not_open_or_fail_alias_review(self):
+        absent = self.root / "missing-other-vm.qcow2"
+        self.hv.docs["someone-else"] = {
+            "current": domain("someone-else", str(absent)),
+            "inactive": domain("someone-else", str(absent)),
+            "saved": None,
+        }
+        result = self.check()
+        self.assertTrue(result.ok, result.describe())
+        self.assertEqual(len(self.runner.calls), 1)
+        self.assertFalse(absent.exists())
+
+    def test_hardlink_added_during_qemu_inspection_rejects_stale_clearance(self):
+        link = self.root / "created-later.qcow2"
+        from nightglass import kali_registration
+        original_inspect = kali_registration.inspect_image_metadata
+        def add_link_on_metadata(runner, path, expected_format):
+            data = original_inspect(runner, path, expected_format)
+            link.hardlink_to(self.disk)
+            return data
+        with patch.object(kali_registration, "inspect_image_metadata", side_effect=add_link_on_metadata):
+            result = self.check()
+        self.assertFalse(result.ok)
+        self.assertIn("became unavailable or hardlinked", result.describe())
+        self.assertTrue(link.exists())
+        self.assertEqual(len(self.runner.calls), 1)
+
     def test_independent_other_guest_disks_are_not_opened(self):
         self.hv.docs["someone-else"] = {
             "current": domain("someone-else", str(self.other_disk)),
@@ -232,7 +313,7 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
         self.assertEqual(destination.stat().st_mode & 0o777, 0o600)
         obj = json.loads(destination.read_text())
         self.assertEqual(obj["template_id"], "recon")
-        self.assertIn("same-inode-hardlink-or-alias-check", obj["observations_not_performed"])
+        self.assertIn("outside-folder-symlink-and-other-hypervisor-alias-check", obj["observations_not_performed"])
         self.assertNotIn(str(self.disk), destination.read_text())
         with self.assertRaisesRegex(ToolError, "already exists"):
             save_registration_report(report, destination)
