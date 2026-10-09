@@ -58,6 +58,15 @@ class PowerShellGuardrailTests(unittest.TestCase):
         self.assertIn("-B -c 'from PySide6.QtWidgets import QApplication'", source)
         self.assertNotIn('print("Qt import OK")', source)
 
+    def test_gui_runner_uses_reliable_exit_code_capture(self):
+        source = CHECKED.read_text(encoding="utf-8")
+        self.assertIn("System.Diagnostics.ProcessStartInfo", source)
+        self.assertIn("StandardOutput.ReadToEndAsync()", source)
+        self.assertIn("StandardError.ReadToEndAsync()", source)
+        self.assertIn("WaitForExit($TimeoutSeconds * 1000)", source)
+        self.assertIn("[int]$process.ExitCode", source)
+        self.assertNotIn("Start-Process -FilePath $python", source)
+
     def test_archive_retains_original_zip_and_hashes(self):
         source = ARCHIVER.read_text(encoding="utf-8")
         for token in ("SHA256", "Get-FileHash", "manifest.txt", "summary.csv",
