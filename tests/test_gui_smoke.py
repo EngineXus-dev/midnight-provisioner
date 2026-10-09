@@ -844,6 +844,20 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.window.verify_registered_handoff()
             worker.assert_not_called()
 
+    def test_diagnostics_buttons_dispatch_without_native_slot_registration(self):
+        # Exercise Qt's real clicked signal, but mock all host actions.
+        from PySide6.QtWidgets import QPushButton
+        buttons = {
+            item.text(): item
+            for item in self.window.stack.widget(2).findChildren(QPushButton)
+        }
+        with patch.object(self.window, "work") as background:
+            buttons["Audit Fedora host security"].click()
+            background.assert_called_once()
+        with patch.object(self.window, "refresh_resources") as monitor:
+            buttons["Refresh resource monitor"].click()
+            monitor.assert_called_once_with(activate=True)
+
     def test_read_only_fedora_host_posture_action(self):
         from PySide6.QtWidgets import QPushButton
         from nightglass.host_posture import HostPosture, PostureCheck
