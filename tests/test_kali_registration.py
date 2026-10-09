@@ -4,6 +4,7 @@ from __future__ import annotations
 from contextlib import redirect_stdout
 from io import StringIO
 import json
+import ntpath
 import os
 from pathlib import Path
 import tempfile
@@ -37,17 +38,26 @@ def domain(name, disk, *, identity=UUID, memory=2048, cpus=1,
 # Native Windows cannot perform POSIX fchmod. Isolate this capability only
 # while running synthetic module tests; production Linux enforcement is intact.
 _fixture_mode_patch = None
+_fixture_path_patch = None
 
 
 def setUpModule():
-    global _fixture_mode_patch
+    global _fixture_mode_patch, _fixture_path_patch
     if os.name == "nt":
         _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
         _fixture_mode_patch.start()
+        # Windows synthetic XML uses native C:\\... paths. Swap ONLY the
+        # path parser dependency in the test module's registration inspector,
+        # never the actual fail-closed production implementation.
+        _fixture_path_patch = patch("nightglass.kali_registration.posixpath", ntpath)
+        _fixture_path_patch.start()
 
 
 def tearDownModule():
-    global _fixture_mode_patch
+    global _fixture_mode_patch, _fixture_path_patch
+    if _fixture_path_patch is not None:
+        _fixture_path_patch.stop()
+        _fixture_path_patch = None
     if _fixture_mode_patch is not None:
         _fixture_mode_patch.stop()
         _fixture_mode_patch = None
@@ -260,6 +270,17 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
         self.assertIn("became unavailable or hardlinked", result.describe())
         self.assertTrue(link.exists())
         self.assertEqual(len(self.runner.calls), 1)
+
+    def test_other_guest_relative_disk_path_still_blocks(self):
+        self.hv.docs["someone-else"] = {
+            "current": domain("someone-else", "relative-other-disk.qcow2"),
+            "inactive": domain("someone-else", str(self.other_disk)),
+            "saved": None,
+        }
+        result = self.check()
+        self.assertFalse(result.ok)
+        self.assertIn("relative disk path", result.describe())
+        self.assertEqual(self.runner.calls, [])
 
     def test_independent_other_guest_disks_are_not_opened(self):
         self.hv.docs["someone-else"] = {
