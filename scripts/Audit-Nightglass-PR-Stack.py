@@ -207,11 +207,15 @@ def verify(root: Path, *, manifest: list[dict],
         errors.append("Candidate is behind main: main-only commits exist")
     if ahead <= 0:
         errors.append("Candidate contains no new commits beyond main")
-    paths = git(["diff", "--name-only", "-z",
+    paths = git(["diff", "--no-ext-diff", "--name-only", "-z",
                  refs["main"] + "..." + refs[CANDIDATE]], root=root, raw=True)
     if not isinstance(paths, bytes):
         raise StackError("Diff path listing was not binary-safe")
-    names = [x.decode("utf-8", errors="replace") for x in paths.split(b"\0") if x]
+    try:
+        names = [x.decode("utf-8", errors="strict")
+                 for x in paths.split(b"\0") if x]
+    except UnicodeDecodeError as exc:
+        raise StackError("Non-UTF8 changed path requires independent review") from exc
     alerts = [{"category": warn_path(name), "path": name}
               for name in names if warn_path(name) is not None]
     end = git_ref(root, "refs/heads/main")
