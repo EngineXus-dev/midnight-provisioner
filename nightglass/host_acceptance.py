@@ -50,7 +50,10 @@ class HostPrerequisites:
 
     @property
     def prerequisites_met(self) -> bool:
-        return all(item.status == "PASS" for item in self.gates)
+        required = ("fedora-host", "ordinary-user", "selinux-enforcing",
+                    "kvm-device", "read-only-native-tools", "system-libvirt-readonly")
+        return (tuple(item.key for item in self.gates) == required
+                and all(item.status == "PASS" for item in self.gates))
 
     def evidence(self) -> dict:
         """Export only fixed labels and low-sensitivity release number.
