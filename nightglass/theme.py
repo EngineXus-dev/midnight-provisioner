@@ -7,7 +7,7 @@ color; this module does not alter any virtualization or filesystem behavior.
 """
 from __future__ import annotations
 
-THEME_NAME = "Casual Cyberhacker Dark"
+THEME_NAME = "Casual Cyberhacker Dark · Neon Drift"
 COLORS = {
     "window": "#090d10",
     "surface": "#0d1317",
@@ -21,6 +21,10 @@ COLORS = {
     "accent": "#72b9a2",
     "accent_hover": "#88ccb4",
     "accent_surface": "#19332c",
+    "neon_pink": "#f17aca",
+    "neon_purple": "#b38cff",
+    "pink_surface": "#291b29",
+    "purple_surface": "#272037",
     "text": "#d3dcd9",
     "text_strong": "#e5ebe8",
     "text_muted": "#95a8a5",
@@ -52,6 +56,15 @@ QFrame#Sidebar {
 QFrame#Sidebar QLabel {
     background-color: transparent;
 }
+QFrame#AccentRail {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:0,
+        stop:0 #9e7bea, stop:0.48 #ed79c6, stop:1 #493c51
+    );
+    border: none;
+    min-height: 2px;
+    max-height: 2px;
+}
 QFrame#Sidebar QPushButton {
     background: transparent;
     color: #99aaa7;
@@ -62,14 +75,15 @@ QFrame#Sidebar QPushButton {
     font-weight: 500;
 }
 QFrame#Sidebar QPushButton:hover {
-    background-color: #131e20;
-    color: #d4e7dd;
-    border-color: #283e38;
+    background-color: #1a1824;
+    color: #e6d6fa;
+    border-color: #453653;
 }
 QFrame#Sidebar QPushButton:checked {
-    background-color: #19332c;
-    color: #cde8d9;
-    border: 1px solid #345b4e;
+    background-color: #272037;
+    color: #e3d2ff;
+    border: 1px solid #655080;
+    border-left: 3px solid #f17aca;
     font-weight: 600;
 }
 QFrame#WorkspaceCard, QFrame#Panel {
@@ -77,7 +91,7 @@ QFrame#WorkspaceCard, QFrame#Panel {
     border: 1px solid #26363b;
     border-radius: 13px;
 }
-QFrame#WorkspaceCard:hover { border-color: #35554f; }
+QFrame#WorkspaceCard:hover { border-color: #645279; }
 QLabel {
     background: transparent;
     color: #d3dcd9;
@@ -88,17 +102,18 @@ QLabel#Title {
     color: #e5ebe8;
 }
 QLabel#Brand {
-    color: #a4d5bf;
+    color: #b38cff;
     font-size: 22px;
     font-weight: 700;
     letter-spacing: 1px;
 }
 QLabel#SubTitle { color: #95a8a5; font-size: 12px; }
+QLabel#Tagline { color: #d796c5; font-size: 10px; letter-spacing: 0.5px; }
 QLabel#CardTitle { color: #dee7e2; font-size: 16px; font-weight: 650; }
 QLabel#Badge {
-    background-color: #19312a;
-    border: 1px solid #31554a;
-    color: #b1d4bf;
+    background-color: #291b29;
+    border: 1px solid #734a72;
+    color: #efa5d6;
     border-radius: 7px;
     padding: 4px 8px;
 }
@@ -132,7 +147,7 @@ QPushButton:disabled {
     border-color: #1f2c2d;
 }
 QPushButton:focus {
-    border: 1px solid #72b9a2;
+    border: 1px solid #b38cff;
 }
 QPushButton#Primary {
     background-color: #1c4035;
@@ -172,7 +187,7 @@ QLineEdit:hover, QComboBox:hover, QSpinBox:hover, QDoubleSpinBox:hover {
 }
 QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus,
 QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus {
-    border: 1px solid #689c88;
+    border: 1px solid #9a7acb;
 }
 QLineEdit:disabled, QComboBox:disabled {
     color: #798b85;
@@ -212,8 +227,8 @@ QMenu {
 }
 QMenu::item { padding: 6px 18px; }
 QMenu::item:selected {
-    background-color: #25483d;
-    color: #edf3ec;
+    background-color: #272037;
+    color: #e3d2ff;
 }
 QScrollArea, QScrollArea > QWidget, QScrollArea > QWidget > QWidget,
 QWidget#qt_scrollarea_viewport {
@@ -231,7 +246,7 @@ QScrollBar::handle:vertical {
     border-radius: 5px;
     min-height: 22px;
 }
-QScrollBar::handle:vertical:hover { background-color: #45665a; }
+QScrollBar::handle:vertical:hover { background-color: #6b5485; }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
     height: 0;
     background: transparent;
@@ -271,9 +286,9 @@ QCheckBox::indicator:checked {
 }
 QCheckBox::indicator:disabled { background-color: #192420; border-color: #2a3933; }
 QToolTip {
-    background-color: #172326;
+    background-color: #172026;
     color: #e1eee3;
-    border: 1px solid #34554b;
+    border: 1px solid #574666;
     padding: 6px;
 }
 QStatusBar { background-color: #0b1014; color: #a2b4ab; }
@@ -312,7 +327,7 @@ def apply_theme(app) -> None:
     palette.setColor(role.BrightText, c(COLORS["text_strong"]))
     palette.setColor(role.Highlight, c(COLORS["accent_surface"]))
     palette.setColor(role.HighlightedText, c(COLORS["text_strong"]))
-    palette.setColor(role.Link, c(COLORS["accent"]))
+    palette.setColor(role.Link, c(COLORS["neon_purple"]))
     palette.setColor(role.PlaceholderText, c(COLORS["text_muted"]))
     palette.setColor(QPalette.ColorGroup.Disabled, role.WindowText, c(COLORS["disabled"]))
     palette.setColor(QPalette.ColorGroup.Disabled, role.Text, c(COLORS["disabled"]))
