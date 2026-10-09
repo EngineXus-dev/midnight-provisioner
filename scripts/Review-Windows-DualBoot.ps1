@@ -121,7 +121,11 @@ try {
 Say 'TPM present (advisory)' $tpmPresent
 Say 'TPM ready (advisory)' $tpmReady
 Say 'TPM spec (advisory)' $tpmSpec
-Write-Host 'Windows 11 eligibility is NOT established: confirm using official PC Health Check / Windows Update.'
+if ($null -ne $windows -and $windows.Caption -match 'Windows 11') {
+    Write-Host 'Windows 11 appears installed; this still does not verify driver health, encryption or recovery.'
+} else {
+    Write-Host 'Windows 11 eligibility is NOT established: confirm using official PC Health Check / Windows Update.'
+}
 Write-Host 'Windows upgrade MUST remain separate from Fedora partition/EFI work.'
 
 $fastStartup = 'UNKNOWN'
