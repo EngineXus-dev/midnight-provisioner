@@ -17,6 +17,7 @@ from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
+from .readiness import RecoveryReadiness
 import os
 
 
@@ -73,17 +74,22 @@ def main(argv: list[str] | None = None) -> int:
     recover_stage.add_argument("--yes", action="store_true", help="Confirm staging without a terminal prompt")
     recover_verify = recover_actions.add_parser("verify", help="Re-verify staging hashes and offline XML")
     recover_verify.add_argument("directory")
+    recover_preflight = recover_actions.add_parser("preflight", help="Read-only Fedora/KVM import readiness check")
+    recover_preflight.add_argument("directory")
     args = parser.parse_args(argv)
     cmd = args.command or "gui"
     try:
         if cmd == "recover":
+            if args.recover_action == "preflight":
+                print(RecoveryReadiness().check(Path(args.directory)).describe())
+                return 0
             if args.recover_action == "verify":
                 for line in verify_staging(Path(args.directory)):
                     print(line)
                 print("Staged files and offline XML verified. VM is NOT defined or boot-tested.")
                 return 0
             if args.recover_action not in {"plan", "stage"}:
-                parser.error("Choose recover plan, recover stage or recover verify")
+                parser.error("Choose recover plan, recover stage, recover verify or recover preflight")
             worker = RecoveryStager()
             plan = worker.plan(
                 Path(args.backup), Path(args.destination), args.new_name
