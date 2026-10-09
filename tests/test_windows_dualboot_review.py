@@ -83,6 +83,14 @@ class WindowsDualBootReviewSafety(unittest.TestCase):
         self.assertNotIn("Read-Host", self.source)
         self.assertNotIn("ShouldProcess", self.source)
 
+    def test_os_drive_normalization_never_uses_ambiguous_trimend(self):
+        # The target must be derived from the Windows SystemDrive letter,
+        # never an arbitrary disk/partition number or a write operation.
+        self.assertIn("$osLetter = [string]$env:SystemDrive", self.source)
+        self.assertIn("$osLetter = $osLetter.Substring(0, 1)", self.source)
+        self.assertIn("Get-Partition -DriveLetter $osLetter", self.source)
+        self.assertNotIn(".TrimEnd(", self.source)
+
     def test_checks_native_windows_and_no_reboot_or_secret_report(self):
         self.assertIn("PlatformID]::Win32NT", self.source)
         self.assertIn("Get-CimInstance", self.source)
