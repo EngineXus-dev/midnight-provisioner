@@ -51,6 +51,13 @@ class PowerShellGuardrailTests(unittest.TestCase):
                           "Start-Process setup.exe", "git reset --hard", "git clean -fd"):
             self.assertNotIn(forbidden, source)
 
+    def test_python_qt_probe_has_no_nested_windows_cli_quoting(self):
+        # PowerShell 5.1 drops inner double quotes in python -c arguments.
+        # The old probe print("Qt import OK") reached Python as print(Qt.
+        source = CHECKED.read_text(encoding="utf-8")
+        self.assertIn("-B -c 'from PySide6.QtWidgets import QApplication'", source)
+        self.assertNotIn('print("Qt import OK")', source)
+
     def test_archive_retains_original_zip_and_hashes(self):
         source = ARCHIVER.read_text(encoding="utf-8")
         for token in ("SHA256", "Get-FileHash", "manifest.txt", "summary.csv",
