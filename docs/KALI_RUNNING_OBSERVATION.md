@@ -69,23 +69,6 @@ qcow2 disk. This never invokes VM start.
 - Guest state and autostart are rechecked after the metadata inspection.
   Another privileged process can still change them afterward.
 
-## Optional deeper QEMU process context observation
-
-The earlier running-guest audit confirms **reported** libvirt sVirt XML
-metadata. An additional manual probe can attempt to compare that XML with
-the actual host process security context:
-
-```bash
-nightglass templates process-label ORIGINAL_PLAN.json --guest ALREADY_RUNNING_NEW_GUEST
-```
-
-The GUI offers **Inspect effective QEMU sVirt label**. This read-only,
-nonprivileged `/proc/PID/attr/current` check deliberately fails closed
-if Fedora permissions block it. It does not alter the previous metadata
-report or prove guest OS boot, packet-level network isolation or
-successful restore. See
-[QEMU effective process label guide](KALI_QEMU_PROCESS_LABEL.md).
-
 ## Deliberate omissions
 
 **The active qcow2 image is never hashed, frozen, copied, or queried through
