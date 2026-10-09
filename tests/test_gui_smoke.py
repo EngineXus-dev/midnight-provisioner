@@ -161,6 +161,62 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.assertIn("must not be attached", self.window.provision_result.toPlainText())
             background.assert_not_called()
 
+    def test_new_kali_setup_plan_is_private_and_guest_inventory_is_read_only(self):
+        import json
+        from nightglass.kali_setup import INVENTORY_FORMAT, load_setup_plan
+        from PySide6.QtWidgets import QPushButton
+        self.window.prepare_space("pentest")
+        page = self.window.stack.currentWidget()
+        controls = {button.text() for button in page.findChildren(QPushButton)}
+        self.assertIn("Save private Kali setup plan", controls)
+        self.assertIn("Compare guest inventory", controls)
+        self.window.provision_template.setCurrentIndex(
+            self.window.provision_template.findData("recon")
+        )
+        output = Path(self.temp.name) / "kali-setup.json"
+        with patch.object(self.ui.QFileDialog, "getSaveFileName", return_value=(str(output), "JSON")), \
+             patch.object(self.window, "work") as background:
+            self.window.save_kali_setup_plan()
+            background.assert_not_called()
+        plan = load_setup_plan(output)
+        self.assertEqual(plan["template_id"], "recon")
+        self.assertEqual(plan["status"], "PLANNED_ONLY")
+        self.assertEqual(output.stat().st_mode & 0o777, 0o600)
+        inventory = Path(self.temp.name) / "manual-inventory.json"
+        inventory.write_text(json.dumps({
+            "format": INVENTORY_FORMAT,
+            "version": 1,
+            "guest": plan["guest"],
+            "kali_release": "kali-rolling",
+            "packages": [
+                {"name": name, "installed_version": None, "candidate_version": "1.0"}
+                for name in plan["packages"]
+            ],
+            "dpkg_audit_clean": None,
+        }))
+        with patch.object(
+            self.ui.QFileDialog, "getOpenFileName",
+            side_effect=[(str(output), "JSON"), (str(inventory), "JSON")],
+        ), patch.object(self.window, "work") as background:
+            self.window.compare_kali_guest_inventory()
+            background.assert_called_once()
+            command, received, failed = background.call_args.args
+            self.assertIn("compare_inventory_files", command.__code__.co_names)
+            received(command())
+        self.assertIn("INCOMPLETE", self.window.provision_result.toPlainText())
+        self.assertIn("NOT authenticated", self.window.provision_result.toPlainText())
+        # Any attempt to overwrite a local setup record must be rejected.
+        with patch.object(self.ui.QFileDialog, "getSaveFileName", return_value=(str(output), "JSON")), \
+             patch.object(self.window, "error") as error:
+            self.window.save_kali_setup_plan()
+            error.assert_called_once()
+        self.window.prepare_space("analysis")
+        with patch.object(self.window, "error") as error, \
+             patch.object(self.ui.QFileDialog, "getSaveFileName") as dialog:
+            self.window.save_kali_setup_plan()
+            error.assert_called_once()
+            dialog.assert_not_called()
+
     def test_analysis_profile_cannot_save_running_memory(self):
         with patch.object(self.window, "error") as error, \
              patch.object(self.window, "work") as background:
