@@ -16,7 +16,7 @@ import stat
 import sys
 
 SCHEMA = "nightglass-offline-rc-gate-v2"
-BRANCH = "verification/phase15-portable-suite-coverage"
+BRANCH = "verification/phase16-isolated-import-paths"
 CHECKS = (
     "windows_powershell_ast", "python_source_ast",
     "python_311", "python_312", "python_313", "fedora_43",
