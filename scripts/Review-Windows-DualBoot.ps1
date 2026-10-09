@@ -17,6 +17,10 @@ param()
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if ([System.Environment]::OSVersion.Platform -ne [System.PlatformID]::Win32NT) {
+    Write-Error 'This read-only hardware inspection requires native Windows, not Linux/WSL/containers.'
+    exit 2
+}
 
 function Say {
     param([string]$Label, [string]$Value)
