@@ -27,7 +27,7 @@ from .portability import (
 from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
 from .kali_templates import get_template, list_templates, plan_template
-from .kali_setup import build_setup_plan, save_setup_plan, compare_inventory_files
+from .kali_setup import build_setup_plan, save_setup_plan, compare_inventory_files, guest_inventory_instructions
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -662,6 +662,13 @@ class MainWindow(QMainWindow):
             "No VM or guest commands are executed; supplied metadata is untrusted."
         )
         plan_actions.addWidget(compare_plan)
+        guest_help = QPushButton("Guest inventory instructions")
+        guest_help.setToolTip(
+            "Show manual read-only Kali package inventory steps. "
+            "No host/guest transfer, commands or packages run."
+        )
+        guest_help.clicked.connect(self.show_guest_inventory_instructions)
+        plan_actions.addWidget(guest_help)
         plan_actions.addStretch()
         layout.addLayout(plan_actions)
 
@@ -715,6 +722,18 @@ class MainWindow(QMainWindow):
             self.provision_cpus.clear()
             self.provision_disk.setText(str(template.disk_gib))
         self.provision_result.clear()
+
+    def show_guest_inventory_instructions(self):
+        if self.provision_kind.currentData() != "pentest":
+            self.provision_result.setPlainText(
+                "Kali inventory collection is for manually installed benign pentest VMs only."
+            )
+            return
+        template_id = self.provision_template.currentData()
+        if not template_id:
+            self.provision_result.setPlainText("Choose a curated Kali toolkit first.")
+            return
+        self.provision_result.setPlainText(guest_inventory_instructions(template_id))
 
     def save_kali_setup_plan(self):
         if self.provision_kind.currentData() != "pentest":
