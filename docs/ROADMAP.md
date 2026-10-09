@@ -130,6 +130,16 @@
 - [ ] Supervised benign Fedora/KVM manual-import and network isolation measurements
 - [ ] No automatic import/boot; privileged-host races and arbitrary disk content trust remain unresolved
 
+## v0.3d — read-only running guest SELinux/sVirt metadata observation (draft)
+- [x] Inspect only ALREADY-running restricted guests: never boot malware or invoke guest agents
+- [x] Require host SELinux Enforcing and libvirt-advertised SELinux security model
+- [x] Verify dynamic sVirt process/image label metadata and matching MCS categories, without exporting categories
+- [x] Recheck VM state and existing live/inactive/saved XML policy audit; unknown state fails closed
+- [x] CLI/GUI on-demand observation and private local exclusive-create JSON evidence
+- [x] Synthetic refusal tests for permissive host, missing security labels, category drift and unsafe NICs
+- [ ] Verify on actual Fedora KDE/libvirt with a benign running guest
+- [ ] Independently inspect effective QEMU process and disk inode labels, and measure network denial
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
