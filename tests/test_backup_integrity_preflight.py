@@ -146,6 +146,15 @@ class BackupIntegrityTests(unittest.TestCase):
             with self.assertRaises(backup.BackupError):
                 backup.inventory(src, max_files=100, max_bytes=1)
 
+    def test_empty_directory_bomb_respects_explicit_entry_budget(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder) / "mostly-empty"
+            root.mkdir()
+            for n in range(12):
+                (root / f"empty-{n}").mkdir()
+            with self.assertRaises(backup.BackupError):
+                backup.inventory(root, max_files=10, max_bytes=1024**2)
+
     def test_changes_after_inventory_are_not_marked_verified(self):
         with tempfile.TemporaryDirectory() as folder:
             src, dst = self.make_trees(Path(folder))
