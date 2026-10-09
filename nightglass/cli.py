@@ -27,7 +27,6 @@ from .kali_cold_baseline import KaliColdBaselineInspector, save_cold_baseline_re
 from .kali_recovery_link import KaliRecoveryLink, save_kali_recovery_link
 from .kali_recovery_registration import KaliRecoveryRegistrationInspector, save_registered_recovery
 from .kali_running import KaliRunningInspector, save_kali_running_observation
-from .kali_process_label import KaliProcessLabelInspector, save_kali_process_label
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -148,15 +147,6 @@ def main(argv: list[str] | None = None) -> int:
                                  help="Exact selected running guest qcow2 path (NOT hashed)")
     runtime_observe.add_argument("--report", type=Path,
                                  help="Optional NEW private observation JSON report")
-    process_label = template_commands.add_parser(
-        "process-label",
-        help="Observe actual QEMU /proc SELinux process context for an ALREADY-running benign Kali guest (no sudo)"
-    )
-    process_label.add_argument("plan", type=Path)
-    process_label.add_argument("--guest", required=True,
-                               help="Manually started NEW recovery guest, different from source Kali VM")
-    process_label.add_argument("--report", type=Path,
-                               help="Optional NEW private report; never overwrite")
     wizard = sub.add_parser("provision", help="Read-only VM ISO integrity and guest XML preflight")
     wizard.add_argument("kind", choices=("pentest", "analysis"))
     wizard.add_argument("--iso", required=True)
@@ -206,12 +196,6 @@ def main(argv: list[str] | None = None) -> int:
     cmd = args.command or "gui"
     try:
         if cmd == "templates":
-            if args.template_action == "process-label":
-                report = KaliProcessLabelInspector().inspect(args.plan, args.guest)
-                print(report.describe())
-                if args.report:
-                    print("Private QEMU process-label observation:", save_kali_process_label(report, args.report))
-                return 0 if report.ok else 2
             if args.template_action == "observe-running":
                 report = KaliRunningInspector().inspect(
                     args.plan, args.backup, args.guest, args.disk
@@ -293,7 +277,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 print("PLANS ONLY: each template uses a separate, disconnected Kali VM.")
                 return 0
-            parser.error("Choose templates list, show, export, verify, compare, lock, drift, preflight, registered, baseline, recovery-link, recovery-registered, observe-running, process-label or guest-help")
+            parser.error("Choose templates list, show, export, verify, compare, lock, drift, preflight, registered, baseline, recovery-link, recovery-registered, observe-running or guest-help")
         if cmd == "runtime-label":
             report = RuntimeLabelInspector().inspect(args.guest, args.policy)
             print(report.describe())
