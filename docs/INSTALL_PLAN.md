@@ -1,5 +1,7 @@
 # Windows 10 → Fedora KDE dual-boot rollout (manual, reversible)
 
+> Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
+
 **Do not run disk-partitioning automation.** A UEFI/ESP modification could make the existing Windows installation unbootable if performed incorrectly. This phase is only a plan and read-only diagnostic tooling.
 
 ## Pre-install safety hold (new planning gate)
@@ -15,6 +17,27 @@ Before any OS install, verify a restorable Windows disk image and recovery
 USB, the offline encryption recovery key, exact target disk/ESP/Recovery
 layout, Fedora live USB hardware compatibility, and an independent
 rollback plan. If any is missing, **stop before the installer**.
+
+### Optional Stage 0 — Windows 11 first, with independent recovery
+
+The Windows baseline on 2026-10-09 was Windows 10 Home on **Disk 0**
+(measured system-disk capacity, GPT, UEFI), with Windows ESP/MSR/C:/Recovery partitions.
+**Disk 1 is measured backup-disk capacity GPT but its current contents/bus are unknown**;
+its size alone does not make it an install target. C: has about measured filesystem free space filesystem space, **not unallocated space**. Fast Startup was
+ENABLED, Secure Boot/drive encryption UNKNOWN, and RAM detected RAM capacity usable.
+
+If a Windows 11 upgrade happens **before** dual boot, keep Fedora
+installation fully paused until Windows 11 hardware eligibility is
+verified with official PC Health Check/Windows Update, a tested Windows
+backup/recovery route is available, Windows 11 successfully boots with
+data/driver/encryption state checked, and this host's read-only disk
+inventory is run again. The reported target CPU (verify compatibility) is on Microsoft's
+supported-processor list, but TPM 2.0, Secure Boot capability and
+device-specific Windows 11 eligibility still need validation.
+
+See [Windows 11 first](WINDOWS11_UPGRADE_FIRST.md). The app must not
+start Windows Setup, bypass TPM or Secure Boot requirements, change
+partitioning, or attempt dual-boot deployment automatically.
 
 ### Stage A — on Windows
 
