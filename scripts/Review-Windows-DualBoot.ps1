@@ -131,7 +131,57 @@ try {
     }
 } catch { Unknown 'Disk inventory' }
 
-$osLetter = ([string]$env:SystemDrive).TrimEnd(':','\')
+$osLetter = [string]$env:SystemDrive
+if ($osLetter -match '^[A-Za-z]:\\?
+$osPartition = $null
+if ($osLetter -match '^[A-Za-z]$') {
+    try {
+        $osPartition = Get-Partition -DriveLetter $osLetter -ErrorAction Stop
+    } catch { Unknown 'OS partition identification' }
+} else { Unknown 'OS drive letter' }
+
+if ($null -ne $osPartition) {
+    $targetDisk = @($allDisks | Where-Object { $_.Number -eq $osPartition.DiskNumber })
+    Say 'Windows OS disk number' ([string]$osPartition.DiskNumber)
+    Say 'Windows OS partition size' (Gib $osPartition.Size)
+    if ($targetDisk.Count -eq 1) {
+        Say 'Windows OS disk style' ([string]$targetDisk[0].PartitionStyle)
+        if ($targetDisk[0].PartitionStyle -ne 'GPT') {
+            Write-Host 'HOLD: Windows OS disk is not confirmed GPT. Do not attempt UEFI installation plan.'
+        }
+    } else { Unknown 'Windows OS disk style' }
+    Write-Host ''
+    Write-Host 'PARTITIONS ON WINDOWS OS DISK (DO NOT DELETE OR FORMAT)' -ForegroundColor Yellow
+    try {
+        $parts = @(Get-Partition -DiskNumber $osPartition.DiskNumber -ErrorAction Stop)
+        foreach ($part in $parts) {
+            Say ("Partition " + [string]$part.PartitionNumber) ("Size={0}; Type={1}; Drive={2}" -f
+                (Gib $part.Size), $part.Type,
+                $(if ($null -eq $part.DriveLetter) { '-' } else { [string]$part.DriveLetter }))
+        }
+    } catch { Unknown 'Windows OS disk partitions' }
+    try {
+        $volume = Get-Volume -DriveLetter $osLetter -ErrorAction Stop
+        Say 'Free space INSIDE OS volume' (Gib $volume.SizeRemaining)
+        Write-Host 'Filesystem free space is NOT unallocated partition space. No shrink recommendation is made.'
+    } catch { Unknown 'OS filesystem available space' }
+}
+
+Write-Host ''
+Write-Host 'DEPLOYMENT CHECKPOINTS — ALL REQUIRE EXPLICIT HUMAN REVIEW' -ForegroundColor Yellow
+Write-Host '[PENDING] Independently tested full Windows/disk backup on disconnected media'
+Write-Host '[PENDING] Windows recovery USB tested and BitLocker/device-encryption recovery key stored offline'
+Write-Host '[PENDING] OEM/firmware boot menu identified; disk/ESP/Recovery partition layout independently reviewed'
+Write-Host '[PENDING] Genuine Fedora KDE installer ISO checksum/source verified; live USB hardware trial'
+Write-Host '[PENDING] Target SSD and installer changes reviewed by a human, with Windows partitions preserved'
+Write-Host '[PENDING] Post-install BOTH Windows and Fedora boot and restore-path verification'
+Write-Host 'NO INSTALL/SHRINK/FORMAT/EFI/BOOTLOADER CHANGES AUTHORIZED.'
+Write-Host 'The script made no intentional system changes and created no report files.' -ForegroundColor Green
+) {
+    $osLetter = $osLetter.Substring(0, 1)
+} else {
+    $osLetter = ''
+}
 $osPartition = $null
 if ($osLetter -match '^[A-Za-z]$') {
     try {
