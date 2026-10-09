@@ -182,3 +182,15 @@ can recover. See [backup integrity guide](BACKUP_INTEGRITY_PREFLIGHT.md).
 **No clean install is authorized.** The portable example backup-drive capacity drive remains
 backup-only, not an OS or USB target, and Pro activation can happen
 later through genuine Windows Settings.
+
+## Multiple backup locations, not just one repository
+
+The future Windows 11 Pro clean installation requires checking
+important data across all user-chosen locations—not only the current
+Nightglass working tree. Phase 11 introduces a private multi-folder
+catalog and SHA-256 comparison [guide](MULTI_SOURCE_BACKUP_READINESS.md).
+Nothing is copied automatically. A successful content match of
+explicitly named roots still does **not** prove an actual restore,
+full system coverage or the independent identity of the user's
+example backup-drive capacity portable drive. Windows setup, drive erasure and Fedora
+installation remain HOLD until separately approved.
