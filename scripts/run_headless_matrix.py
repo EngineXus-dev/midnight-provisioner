@@ -22,6 +22,11 @@ def run_matrix() -> int:
             or not source.is_dir()):
         print("[BLOCKED] Must run in isolated Nightglass source tree", file=sys.stderr)
         return 2
+    # Python invoked via 'scripts/run_headless_matrix.py' otherwise
+    # has scripts/ and tests/ but NOT the checkout root on sys.path.
+    # The synthetic modules legitimately import nightglass.
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
     loader = unittest.TestLoader()
     suite = loader.discover(str(source), pattern="test*.py")
     collected = suite.countTestCases()
