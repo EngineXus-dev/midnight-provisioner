@@ -163,6 +163,17 @@
 - [ ] Integrate real guest attestations, release pinning, rollback tests and supervised Fedora/KVM acceptance
 - [ ] Automatic tool provisioning and VM cloning remain disabled until these guarantees are independently verified
 
+## v0.3g — opt-in Kali guest inventory collection, without installation (draft)
+- [x] Standalone, standard-library Python helper for explicit execution inside an ALREADY-INSTALLED, benign Kali guest
+- [x] Local read-only dpkg-query, apt-cache policy and dpkg --audit commands — no apt install/update or network access
+- [x] Fail closed on unknown distro, root execution, missing/malformed local package data or changed safety flags
+- [x] Save only a NEW private guest inventory matching the host v0.3f schema, with no secret/disk collection
+- [x] GUI and CLI show the manual guest steps without executing guest commands or transferring files
+- [x] Synthetic tests for missing packages, malformed metadata, insufficient permissions, symlinks and no-overwrite
+- [ ] Supervised Kali/Fedora hardware validation of actual dpkg/apt output and package availability
+- [ ] Implement/test a separately approved quarantined host↔guest transfer channel (NOT enabled here)
+- [ ] Independently verify signed Kali package provenance, dependency closure and rollback before tool installation automation
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
