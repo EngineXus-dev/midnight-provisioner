@@ -47,8 +47,8 @@ def guest_inventory_instructions(identifier: str) -> str:
         "4. If a separately validated transfer back to the host is available:",
         "   nightglass templates compare /path/to/new-plan.json /path/to/NEW-inventory.json",
         "No package installs, apt update, VM start, networking or host writes are",
-        "performed by the helper. Collected package metadata is untrusted, not a",
-        "verified snapshot, authenticated guest report or proof of Kali provenance.",
+        "performed by the helper. The output is NOT authenticated, does not attest",
+        "to installed package contents or prove signed Kali provenance.",
     ))
 
 
