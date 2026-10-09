@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -23,6 +24,25 @@ def domain(name, extra=""):
         '<graphics type="vnc" listen="127.0.0.1"/>' + extra
         + '</devices></domain>'
     )
+
+
+# Native Windows cannot perform POSIX fchmod. Isolate this capability only
+# while running synthetic module tests; production Linux enforcement is intact.
+_fixture_mode_patch = None
+
+
+def setUpModule():
+    global _fixture_mode_patch
+    if os.name == "nt":
+        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch.start()
+
+
+def tearDownModule():
+    global _fixture_mode_patch
+    if _fixture_mode_patch is not None:
+        _fixture_mode_patch.stop()
+        _fixture_mode_patch = None
 
 
 class FakeRunner:
@@ -124,7 +144,10 @@ class KaliPreflightTests(unittest.TestCase):
 
     def test_storage_directory_symlink_or_nonexistent_path_rejected(self):
         alias = self.folder / "linked-storage"
-        alias.symlink_to(self.folder, target_is_directory=True)
+        try:
+            alias.symlink_to(self.folder, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies creation of synthetic symlinks")
         self.assertIn("symlink", self.audit(storage=alias).describe())
         self.assertFalse(self.audit(storage=alias).ok)
         self.assertFalse(self.audit(storage=self.folder / "missing").ok)
