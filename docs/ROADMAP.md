@@ -423,3 +423,13 @@
 - [ ] Run Windows PowerShell AST and cumulative Python/Fedora Docker tests for the newest candidate, using the user's 8GB host only with explicit approval
 - [ ] Independently audit exact-SHA local test logs and verify current GitHub PR status before any user-approved integration
 - [ ] Real Fedora SELinux/sVirt, guest isolation, backup restore and Windows 11 Pro installation remain separately held
+
+## v0.4d — fail-closed offline test completeness (draft)
+- [x] Fix detached-worktree regression wrongly assuming worktree add was always Git command #2
+- [x] Require actual non-skipped Fedora GUI and native QEMU/libvirt cases, at least five each
+- [x] Missing Linux Bash syntax validation under `--all` now fails
+- [x] Require 60 discovered / 40 executed cases in each Python 3.11–3.13 container
+- [x] Add mocked regression tests for zero tests, skipped tests and partial execution
+- [x] Extend PR snapshot through #43 with #30 accurately absent
+- [ ] Run real Windows PowerShell AST and cumulative Docker suites for the newest exact SHA
+- [ ] Audit resulting private v2 logs and examine workflow actions before any separately approved merge
