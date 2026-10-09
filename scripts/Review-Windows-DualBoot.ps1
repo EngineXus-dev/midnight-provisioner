@@ -44,9 +44,9 @@ function BootMode {
     return 'UNKNOWN'
 }
 
-Write-Host 'NIGHTGLASS — WINDOWS DUAL-BOOT READINESS OBSERVATION' -ForegroundColor Cyan
+Write-Host 'NIGHTGLASS — WINDOWS 10/11 + FEDORA READINESS OBSERVATION' -ForegroundColor Cyan
 Write-Host 'QUERY ONLY: no sudo/admin, partition changes, bootloader edits, BitLocker/TPM changes or output files.'
-Write-Host 'This script can NEVER authorize installation: backup/keys/live-USB/manual review remain mandatory.'
+Write-Host 'This script cannot authorize a Windows upgrade or Fedora installation: backup/keys/eligibility/live-USB review remain mandatory.'
 Write-Host ''
 
 $windows = $null
@@ -74,6 +74,9 @@ try {
     if ($cpu.Count -gt 0) {
         $logicalCores = ($cpu | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum
         Say 'Logical CPU cores' ([string]$logicalCores)
+        # The CPU model is for a human check against Microsoft's current supported list.
+        # It is not sufficient to certify Windows 11 eligibility.
+        Say 'CPU model (advisory)' ([string]$cpu[0].Name)
         foreach ($prop in @('VMMonitorModeExtensions', 'VirtualizationFirmwareEnabled',
                              'SecondLevelAddressTranslationExtensions')) {
             $vals = @($cpu | ForEach-Object { $_.$prop } | Select-Object -Unique)
@@ -93,6 +96,33 @@ try {
     $secure = Confirm-SecureBootUEFI -ErrorAction Stop
     Say 'Secure Boot observed' ([string][bool]$secure)
 } catch { Unknown 'Secure Boot observed' }
+Write-Host 'Secure Boot status often requires an elevated query; this reviewer will not elevate.'
+
+# Windows 11 upgrade prerequisite: TPM 2.0. Do not print the full Get-Tpm
+# object; it can contain TPM ownership/authorization-related properties.
+# We read and display only non-secret presence/readiness/version fields.
+$tpmPresent = 'UNKNOWN'
+$tpmReady = 'UNKNOWN'
+$tpmSpec = 'UNKNOWN'
+if (Get-Command -Name Get-Tpm -ErrorAction SilentlyContinue) {
+    try {
+        $tpm = Get-Tpm -ErrorAction Stop
+        if ($null -ne $tpm.TpmPresent) { $tpmPresent = [string][bool]$tpm.TpmPresent }
+        if ($null -ne $tpm.TpmReady) { $tpmReady = [string][bool]$tpm.TpmReady }
+    } catch {}
+}
+try {
+    $tpmCim = Get-CimInstance -Namespace 'root\CIMV2\Security\MicrosoftTpm' -ClassName Win32_Tpm -ErrorAction Stop
+    $rawSpec = [string]$tpmCim.SpecVersion
+    # Return only a bounded spec marker; never dump a complete CIM object.
+    if ($rawSpec -match '(^|[,; ])2\.0([,; ]|$)') { $tpmSpec = '2.0 reported' }
+    elseif ($rawSpec -match '(^|[,; ])1\.2([,; ]|$)') { $tpmSpec = '1.2 reported' }
+} catch {}
+Say 'TPM present (advisory)' $tpmPresent
+Say 'TPM ready (advisory)' $tpmReady
+Say 'TPM spec (advisory)' $tpmSpec
+Write-Host 'Windows 11 eligibility is NOT established: confirm using official PC Health Check / Windows Update.'
+Write-Host 'Windows upgrade MUST remain separate from Fedora partition/EFI work.'
 
 $fastStartup = 'UNKNOWN'
 try {
@@ -126,8 +156,8 @@ try {
     Write-Host 'DISK INVENTORY (number/size/style only; not a target selection)' -ForegroundColor Yellow
     if ($allDisks.Count -eq 0) { Unknown 'Disk inventory' }
     foreach ($disk in $allDisks) {
-        Say ("Disk " + [string]$disk.Number) ("Size={0}; Style={1}; Health={2}" -f
-            (Gib $disk.Size), $disk.PartitionStyle, $disk.HealthStatus)
+        Say ("Disk " + [string]$disk.Number) ("Size={0}; Style={1}; Bus={2}; Health={3}" -f
+            (Gib $disk.Size), $disk.PartitionStyle, $disk.BusType, $disk.HealthStatus)
     }
 } catch { Unknown 'Disk inventory' }
 
@@ -172,10 +202,32 @@ if ($null -ne $osPartition) {
 }
 
 Write-Host ''
+Write-Host 'OTHER DISKS: READ-ONLY PARTITION SUMMARY (NOT INSTALL TARGETS)' -ForegroundColor Yellow
+if ($null -ne $osPartition) {
+    foreach ($disk in $allDisks) {
+        if ($disk.Number -eq $osPartition.DiskNumber) { continue }
+        Write-Host ("Disk {0} ({1} bus); do not format based on size or bus type." -f
+            $disk.Number, $disk.BusType)
+        try {
+            $extras = @(Get-Partition -DiskNumber $disk.Number -ErrorAction Stop)
+            if ($extras.Count -eq 0) { Write-Host '  No partitions reported (NOT proof of an unused disk).' }
+            foreach ($part in $extras) {
+                Say ("  Partition " + [string]$part.PartitionNumber) ("Size={0}; Type={1}; Drive={2}" -f
+                    (Gib $part.Size), $part.Type,
+                    $(if ($null -eq $part.DriveLetter) { '-' } else { [string]$part.DriveLetter }))
+            }
+        } catch { Unknown ("Disk " + [string]$disk.Number + " partition inventory") }
+    }
+} else {
+    Write-Host 'Windows OS partition cannot be identified. Do not choose an installation disk.'
+}
+Write-Host ''
+
 Write-Host 'DEPLOYMENT CHECKPOINTS — ALL REQUIRE EXPLICIT HUMAN REVIEW' -ForegroundColor Yellow
 Write-Host '[PENDING] Independently tested full Windows/disk backup on disconnected media'
 Write-Host '[PENDING] Windows recovery USB tested and BitLocker/device-encryption recovery key stored offline'
 Write-Host '[PENDING] OEM/firmware boot menu identified; disk/ESP/Recovery partition layout independently reviewed'
+Write-Host '[PENDING] If upgrading Windows first: official PC Health Check eligible; full backup/recovery; Windows 11 boots and drivers verified'
 Write-Host '[PENDING] Genuine Fedora KDE installer ISO checksum/source verified; live USB hardware trial'
 Write-Host '[PENDING] Target SSD and installer changes reviewed by a human, with Windows partitions preserved'
 Write-Host '[PENDING] Post-install BOTH Windows and Fedora boot and restore-path verification'
