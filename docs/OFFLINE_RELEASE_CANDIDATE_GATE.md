@@ -12,7 +12,7 @@ Nightglass has many unmerged stacked draft PRs and no remaining
 hosted GitHub Actions minutes. Earlier successful Fedora 43 Docker
 and Python 3.11/3.12/3.13 tests apply to older Git commits.
 The new offline release gate checks the **entire latest cumulative**
-verification/test-gate-reliability-hardening branch without overwriting
+deployment/readonly-backup-integrity branch without overwriting
 the user's original Windows checkout or consuming GitHub Actions.
 
 Six mandatory checks must all pass:
@@ -61,14 +61,14 @@ than force-removed automatically.
 
 From the user's original nightglass-workspaces PowerShell directory:
 
-    git fetch --no-tags origin verification/test-gate-reliability-hardening
+    git fetch --no-tags origin deployment/readonly-backup-integrity
     if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
     $dir = Join-Path $env:TEMP ("Nightglass-RC-Runner-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $dir | Out-Null
     $runner = Join-Path $dir "Run-Nightglass-Offline-Release-Gate.py"
 
-    $scriptText = & git show origin/verification/test-gate-reliability-hardening:scripts/Run-Nightglass-Offline-Release-Gate.py
+    $scriptText = & git show origin/deployment/readonly-backup-integrity:scripts/Run-Nightglass-Offline-Release-Gate.py
     if ($LASTEXITCODE -ne 0) { throw "Runner retrieval failed" }
     $scriptText | Set-Content -LiteralPath $runner -Encoding UTF8
 
@@ -165,3 +165,14 @@ is also a blocker, not a silent NOT RUN.
 
 Read [strict test completeness](OFFLINE_TEST_COMPLETENESS.md).
 These changes have not yet been run on the Windows/Docker host.
+
+## Phase 10 backup integrity synthetic suite
+
+The latest cumulative candidate includes
+`tests/test_backup_integrity_preflight.py`, synthetic tests of
+preview-only behavior, content changes without size changes, extra
+and missing files, Windows reparse/symlink blocking, and
+exclusive-create report rules. They use only disposable temp data
+and do not inspect user data or the portable drive. The
+real latest branch's Windows/Docker test pass remains pending.
+See [backup safety](BACKUP_INTEGRITY_PREFLIGHT.md).
