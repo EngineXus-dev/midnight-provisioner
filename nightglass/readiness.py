@@ -44,6 +44,35 @@ class ReadinessReport:
         ])
 
 
+def inspect_image_metadata(runner: Runner, path: Path, expected_format: str) -> dict:
+    """Read metadata from a local disk image without converting or repairing it.
+
+    This validates a native QEMU response, not just a filename extension.
+    The caller must separately validate the path and image file integrity.
+    """
+    if expected_format not in {"qcow2", "raw"}:
+        raise ToolError("Unknown disk image format")
+    data = runner.run(
+        ["qemu-img", "info", "--output=json", str(path)], timeout=90
+    ).stdout
+    try:
+        meta = json.loads(data)
+    except (ValueError, TypeError) as exc:
+        raise ToolError(f"Malformed qemu-img metadata for {path.name}") from exc
+    if not isinstance(meta, dict):
+        raise ToolError("qemu-img did not return a single disk metadata object")
+    if meta.get("format") != expected_format:
+        raise ToolError(f"Disk format mismatch for {path.name}")
+    if any(meta.get(k) for k in (
+        "backing-filename", "full-backing-filename", "backing-filename-format",
+        "encrypted", "snapshots",
+    )):
+        raise ToolError(f"Layered, encrypted or snapshotted disk requires manual review: {path.name}")
+    if type(meta.get("virtual-size")) is not int or meta["virtual-size"] <= 0:
+        raise ToolError(f"Invalid virtual disk size reported by qemu-img: {path.name}")
+    return meta
+
+
 class RecoveryReadiness:
     """Read-only checks involving libvirt, virt-xml-validate and qemu-img."""
 
@@ -90,25 +119,9 @@ class RecoveryReadiness:
             if item["kind"] != "disk":
                 continue
             path = directory / item["path"]
-            # qemu-img info reads image metadata; it must not be permitted to
-            # rewrite, flatten, convert or repair a possibly hostile image.
-            data = self.runner.run(
-                ["qemu-img", "info", "--output=json", str(path)], timeout=90
-            ).stdout
-            try:
-                meta = json.loads(data)
-            except (ValueError, TypeError) as exc:
-                raise ToolError(f"Malformed qemu-img metadata for {item['path']}") from exc
-            if not isinstance(meta, dict):
-                raise ToolError("qemu-img did not return a single disk metadata object")
+            # Metadata reads are only performed after hash/path verification.
             expected_format = item["path"].rsplit(".", 1)[-1]
-            if meta.get("format") != expected_format or expected_format not in {"qcow2", "raw"}:
-                raise ToolError(f"Disk format mismatch for {item['path']}")
-            if any(meta.get(k) for k in (
-                "backing-filename", "full-backing-filename", "backing-filename-format",
-                "encrypted", "snapshots",
-            )):
-                raise ToolError(f"Layered, encrypted or snapshotted disk requires manual review: {item['path']}")
+            inspect_image_metadata(self.runner, path, expected_format)
             disks += 1
 
         # Machine budgets are advisory readiness gates and do not rewrite a VM.
