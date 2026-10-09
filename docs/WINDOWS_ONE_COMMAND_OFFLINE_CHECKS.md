@@ -156,3 +156,12 @@ acceptance for skipped platform-specific cases. The new checker
 was exercised in a 7-test isolated local fixture, **not**
 the real Windows target environment. See
 [Phase 15](PHASE15_PORTABLE_TEST_COMPLETENESS.md).
+
+## Phase 16 — script-discovery import fix
+
+Portable/GUI/native Python runners now explicitly prioritize the
+candidate project root so test modules importing `nightglass`
+can be found when launched from the `scripts/` directory.
+The new subprocess regression runs solely on disposable fake
+project trees; it does not install packages or start VMs.
+See [import-path regression evidence](PHASE16_IMPORT_PATH_VERIFICATION.md).
