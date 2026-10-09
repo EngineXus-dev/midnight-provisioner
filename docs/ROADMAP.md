@@ -185,6 +185,17 @@
 - [ ] Real Fedora/Kali inventory/lock drift acceptance, reproducible signed dependencies and cold restore validation
 - [ ] Authenticated guest state evidence and independently reviewed transfer remain unavailable
 
+## v0.3i — Kali guest ISO and host-readiness preflight (draft)
+- [x] Link immutable separate-VM Kali template manifest to real local publisher-claimed ISO SHA-256 verification
+- [x] Reuse both real `virt-install --dry-run --print-xml` stages and exact guest identity/network policy checks
+- [x] Refuse already-used guest name; enforce hardware-aware RAM/concurrency limits for system-libvirt guests
+- [x] Read-only free-space heuristic for an existing target volume with full qcow2 expansion caution
+- [x] Block missing RAM, failed system-libvirt inspection, exhausted guest cap, low headroom, mismatched ISO, invalid XML
+- [x] Read-only CLI and explicit GUI action bound to saved template/guest identity; no VM or disk writes
+- [x] Synthetic regression tests for failures and offscreen Qt UI selection/cancel flow
+- [ ] Supervised Fedora/KVM physical machine acceptance of RAM, storage, ISO installer and network behavior
+- [ ] Real disk-space reservation/verified boot/guest-only installation/rollback are still NOT implemented
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
