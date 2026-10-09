@@ -38,6 +38,7 @@ WINDOWS_PORTABLE_SUITES = (
     "test_windows11_lite_profile.py",
     "test_windows11_pro_custom.py",
     "test_offline_release_gate.py",
+    "test_install_media_preflight.py",
 )
 
 # Cross-platform synthetic /proc process checks only: excludes the strict
