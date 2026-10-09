@@ -34,17 +34,17 @@ class StackAuditTests(unittest.TestCase):
         cls.snapshot = json.loads(MANIFEST.read_text(encoding="utf-8"))
         cls.chain = audit.validate_manifest(cls.snapshot)
 
-    def test_exact_observed_49_pr_chain_and_missing_30(self):
-        self.assertEqual(len(self.chain), 49)
+    def test_exact_observed_50_pr_chain_and_missing_30(self):
+        self.assertEqual(len(self.chain), 50)
         self.assertEqual(self.chain[0], {
             "pr": 1, "base": "main", "head": "feat/nightglass-phase-01"
         })
-        self.assertEqual(self.chain[-1]["pr"], 50)
+        self.assertEqual(self.chain[-1]["pr"], 51)
         self.assertEqual(self.chain[-1]["head"],
-                         "verification/phase15-portable-suite-coverage")
+                         "verification/phase16-isolated-import-paths")
         self.assertNotIn(30, [p["pr"] for p in self.chain])
         self.assertEqual(self.snapshot["candidate_branch"],
-                         "verification/phase16-isolated-import-paths")
+                         "verification/phase17-qemu-subset-integrity")
 
     def test_non_linear_duplicate_wrong_repo_and_made_up_pr_rejected(self):
         mutations = (
@@ -104,7 +104,7 @@ class StackAuditTests(unittest.TestCase):
         raw = MANIFEST.read_bytes()
         with patch.object(audit, "git", return_value=raw) as local_git:
             entries = audit.read_manifest_at_ref(ROOT, candidate_sha=CANDIDATE_SHA)
-        self.assertEqual(len(entries), 49)
+        self.assertEqual(len(entries), 50)
         local_git.assert_called_once_with(
             ["show", CANDIDATE_SHA + ":" + audit.MANIFEST_PATH],
             root=ROOT, raw=True)
