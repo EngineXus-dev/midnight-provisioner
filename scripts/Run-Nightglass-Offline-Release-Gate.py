@@ -4,7 +4,7 @@
 Default: plan only; no Git/network/Docker/filesystem mutation.
 --run: fetch ONE named release-candidate branch into a NEW detached sibling
 worktree (Git metadata changes only in the original repo), validate all
-PowerShell source with the native parser, run the Windows-portable subset
+PowerShell source with the native parser, run Python source syntax
 and isolated Linux Docker synthetic/Qt/native-fixture suites sequentially.
 
 No installation, USB writing, partition, VM launch, GitHub Actions,
@@ -13,6 +13,7 @@ automatic merge/reset/clean, environment-file overwrite or elevated shell.
 from __future__ import annotations
 
 import argparse
+import ast
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -34,7 +35,7 @@ ORIGIN = re.compile(
 )
 VERSIONS = ("3.11", "3.12", "3.13")
 FEDORA_CONTAINERFILE = Path("docker/Containerfile.fedora-verification")
-CHECKS = ("windows_powershell_ast", "windows_portable", "python_311",
+CHECKS = ("windows_powershell_ast", "python_source_ast", "python_311",
           "python_312", "python_313", "fedora_43")
 VERDICT = {"PASS", "FAIL", "BLOCKED", "NOT_RUN"}
 
@@ -121,6 +122,23 @@ def power_shell_ast(checkout: Path) -> list[str]:
     command = base64.b64encode(script.encode("utf-16le")).decode("ascii")
     return ["powershell.exe", "-NoProfile", "-NonInteractive",
             "-ExecutionPolicy", "Bypass", "-EncodedCommand", command]
+
+
+def source_ast(checkout: Path) -> int:
+    """Parse fetched Python source without running arbitrary tests on Windows."""
+    count = 0
+    for name in ("nightglass", "tests", "scripts"):
+        folder = checkout / name
+        if not folder.is_dir() or folder.is_symlink():
+            raise GateError("Missing or symlinked Python source folder.")
+        for source in folder.rglob("*.py"):
+            if source.is_symlink() or not source.is_file():
+                raise GateError("Unexpected symlink/non-file Python source.")
+            ast.parse(source.read_text(encoding="utf-8"), filename=source.name)
+            count += 1
+    if count < 20:
+        raise GateError("Suspiciously incomplete Python source tree.")
+    return count
 
 
 def branch_checkout(root: Path) -> tuple[Path, str, Path, Path]:
@@ -217,15 +235,22 @@ def verify(*, root: Path, allow_pull: bool, allow_build: bool) -> int:
             log.write(f"Nightglass OFFLINE INTEGRATION GATE\n"
                       f"Source SHA: {sha}\nBranch: {BRANCH}\n"
                       "Never share full logs without reviewing private paths.\n")
-            # Parse-only PowerShell, then Windows-portable tests.
+            # Parse-only PowerShell; never execute fetched tests on host Windows.
             for key, args, timeout in (
                 ("windows_powershell_ast", power_shell_ast(checkout), 45),
-                ("windows_portable", [sys.executable, "-B",
-                     "scripts/verify_local.py"], 900),
             ):
                 results[key] = "PASS" if run_logged(args, cwd=checkout, stream=log,
                                                     seconds=timeout) else "FAIL"
                 print(f"{key}: {results[key]}")
+            # Pure syntax tree; fetched unit tests execute only in rootless Docker.
+            try:
+                count = source_ast(checkout)
+                log.write(f"[PASS] Python AST parsed {count} source files (no imports).\n")
+                results["python_source_ast"] = "PASS"
+            except (OSError, SyntaxError, UnicodeError, GateError) as exc:
+                log.write("[FAIL] Python AST: " + type(exc).__name__ + "\n")
+                results["python_source_ast"] = "FAIL"
+            print("python_source_ast:", results["python_source_ast"])
             # Run each interpreter independently, never concurrently on an 8GB host.
             for version in VERSIONS:
                 key = "python_" + version.replace(".", "")
@@ -302,7 +327,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.run:
         print("PLAN ONLY (default): no fetch, new worktree, file, Docker or host changes.")
         print("Opt-in: --run; missing test images require explicit pull/build flags.")
-        print("Phases: Windows PowerShell AST, portable suite, Python 3.11–3.13 Docker, Fedora 43 Qt/native.")
+        print("Phases: Windows PowerShell and Python AST (parse-only), Python 3.11–3.13 Docker, Fedora 43 Qt/native.")
         print("No GitHub Actions or merges. Real Fedora hardware acceptance still pending.")
         return 0
     if os.name != "nt":
