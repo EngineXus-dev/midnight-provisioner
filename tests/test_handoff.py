@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -11,6 +12,24 @@ from unittest.mock import patch
 from nightglass.handoff import RecoveryHandoff, save_handoff
 from nightglass.portability import budget_for
 from nightglass.runner import Output, ToolError
+
+# Mock POSIX-only file-mode operation in Windows synthetic fixtures only.
+_fixture_mode_patch = None
+
+
+def setUpModule():
+    global _fixture_mode_patch
+    if os.name == "nt":
+        _fixture_mode_patch = patch("nightglass.acceptance.os.fchmod", create=True)
+        _fixture_mode_patch.start()
+
+
+def tearDownModule():
+    global _fixture_mode_patch
+    if _fixture_mode_patch is not None:
+        _fixture_mode_patch.stop()
+        _fixture_mode_patch = None
+
 
 UUID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 OTHER_UUID = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff"
@@ -212,7 +231,10 @@ class HandoffTests(unittest.TestCase):
         destination = self.root / "original.qcow2"
         destination.write_bytes(self.disk.read_bytes())
         self.disk.unlink()
-        self.disk.symlink_to(destination)
+        try:
+            self.disk.symlink_to(destination)
+        except (OSError, NotImplementedError):
+            self.skipTest('OS denies synthetic symlink creation')
         with self.assertRaisesRegex(ToolError, "symlinked staging file"):
             self.audit()
         self.assertEqual(self.hv.calls, [])
@@ -230,7 +252,8 @@ class HandoffTests(unittest.TestCase):
         report = self.audit()
         target = self.root / "handoff-evidence.json"
         self.assertEqual(save_handoff(report, target), target)
-        self.assertEqual(target.stat().st_mode & 0o777, 0o600)
+        if os.name != 'nt':
+            self.assertEqual(target.stat().st_mode & 0o777, 0o600)
         document = json.loads(target.read_text(encoding="utf-8"))
         self.assertTrue(document["registered_metadata_matches_staging"])
         self.assertIn("packet-level-network-denial", document["observations_not_performed"])
