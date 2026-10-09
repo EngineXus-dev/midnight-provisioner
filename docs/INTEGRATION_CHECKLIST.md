@@ -1,5 +1,7 @@
 # Nightglass integration and no-Actions verification
 
+> Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
+
 **Status: FEDORA CONTAINER VERIFICATION PASSED / HOST ACCEPTANCE HOLD — no merges until real Fedora/KVM gates and explicit reviewer/owner approval.**
 
 Nightglass is developed as a cumulative chain of **29 open draft pull
@@ -239,3 +241,30 @@ code commits, not the newly changed deployment branch. Do not merge PRs or
 alter Windows hardware as part of this change. See
 [dual-boot deployment gates](DEPLOYMENT_SAFETY_GATES.md) and
 [private decision template](DEPLOYMENT_DECISION_TEMPLATE.md).
+
+## Optional Windows 11-first planning (additional draft PR)
+
+User-supplied Windows 10 Home hardware review passed the native
+PowerShell AST parser and the read-only query script on 2026-10-09.
+Observations: UEFI, Windows GPT Disk 0 with ESP/MSR/C:/Recovery,
+another measured backup-disk capacity GPT disk with **unknown bus/contents**, Windows C:
+measured filesystem free space filesystem free (NOT unallocated), detected RAM capacity usable RAM,
+firmware virtualization enabled, Secure Boot/encryption unknown and
+Fast Startup enabled.
+
+The next draft branch `deployment/windows11-upgrade-first-planning`
+adds Windows 10/11 reviewer TPM advisory fields and other-disk
+read-only partition/bus details, updated tests and an **optional**
+Windows 11 upgrade-first plan. Microsoft's supported-CPU list includes
+the reported target CPU (verify compatibility), but actual Windows 11 device readiness
+(including TPM 2.0, Secure Boot capability, graphics/drivers) must be
+checked via the official PC Health Check/Windows Update.
+
+**Pending:** the revised PowerShell parser + actual non-admin
+Windows execution. Prior successful Windows reviewer logs apply to
+the earlier script only. No Windows 11 upgrade, Fedora dual boot,
+partition writes or live KVM security acceptance has occurred.
+Windows 11 (if elected) must be completed, backed up and re-baselined
+before Fedora target-disk selection. All PRs remain draft/unmerged,
+no Actions or release status change. Read
+[Windows 11-first plan](WINDOWS11_UPGRADE_FIRST.md).
