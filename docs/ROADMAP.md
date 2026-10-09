@@ -140,6 +140,18 @@
 - [ ] Verify on actual Fedora KDE/libvirt with a benign running guest
 - [ ] Independently inspect effective QEMU process and disk inode labels, and measure network denial
 
+## v0.3e — curated Kali VM tool templates (draft)
+- [x] Seven purpose-specific white-hat and red-team templates with small package selections
+- [x] One planned unique Kali VM name and separate qcow2 disk per template; no all-tools image
+- [x] Conservative RAM/CPU/disk suggestions clamped to actual host limits (8 GiB laptop compatible)
+- [x] GUI/CLI catalog selection integrated with existing Kali installer SHA-256 and two-phase XML dry-run
+- [x] Keep all initial VM definitions network-disconnected, with no default host shares or USB passthrough
+- [x] Read-only package suggestions; never auto-install, auto-download, clone, define or start a guest
+- [x] Unit and Qt GUI smoke coverage for catalog, unsafe packages, template/analysis separation
+- [ ] Verify actual Kali apt package availability/dependency versions inside a benign Fedora/KVM guest
+- [ ] Independently tested per-guest installation/rollback manifests, template snapshots and manual package setup
+- [ ] Only consider user-confirmed guest-scoped automation after real Fedora isolation testing
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
