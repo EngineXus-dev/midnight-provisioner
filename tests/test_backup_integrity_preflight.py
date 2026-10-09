@@ -205,6 +205,19 @@ class BackupIntegrityTests(unittest.TestCase):
                 backup.checked_root(unsafe)
             self.assertEqual(backup.checked_root(normal), normal.resolve())
 
+    def test_report_parent_traversal_is_blocked_before_normalization(self):
+        with tempfile.TemporaryDirectory() as home:
+            root = Path(home)
+            intended = root / "real"
+            intended.mkdir()
+            wrong = intended / "child"
+            wrong.mkdir()
+            destination = wrong / ".." / "out.json"
+            with self.assertRaises(backup.BackupError):
+                backup.write_report_new(destination, {"test": True},
+                                        (root / "source", root / "backup"))
+            self.assertFalse((intended / "out.json").exists())
+
     def test_large_file_and_count_limits_fail_closed(self):
         with tempfile.TemporaryDirectory() as folder:
             src, dst = self.make_trees(Path(folder))
