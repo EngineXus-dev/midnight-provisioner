@@ -317,8 +317,13 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(area)
 
     def _build_diagnostics(self):
+        # Security evidence can grow longer than a compact laptop screen.
+        # Scroll the whole page rather than clipping lower inspection controls.
+        page = QScrollArea()
+        page.setWidgetResizable(True)
         shell = QWidget()
         layout = QVBoxLayout(shell)
+        layout.setSpacing(12)
         text = QLabel("Read-only host readiness checks. No disks, EFI settings, partitions or Windows data are modified.")
         text.setWordWrap(True)
         text.setObjectName("SubTitle")
@@ -386,7 +391,8 @@ class MainWindow(QMainWindow):
         run = QPushButton("Run host checks")
         run.clicked.connect(self.check_host)
         layout.addWidget(run)
-        self.stack.addWidget(shell)
+        page.setWidget(shell)
+        self.stack.addWidget(page)
 
     def _build_machine(self):
         """Machine-local tuning never recreates VMs or touches Windows."""
