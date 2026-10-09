@@ -16,7 +16,7 @@ import stat
 import sys
 
 SCHEMA = "nightglass-offline-rc-gate-v2"
-BRANCH = "verification/windows-one-command-offline-gates"
+BRANCH = "verification/test-gate-reliability-hardening"
 CHECKS = (
     "windows_powershell_ast", "python_source_ast",
     "python_311", "python_312", "python_313", "fedora_43",
