@@ -16,11 +16,13 @@ current choice. Before a future installation, review version-specific
 known issues and firmware drivers, and acquire the genuine unmodified
 ISO from https://www.microsoft.com/software-download/windows11.
 
-**Do NOT delete every edition except Pro.** The current machine
-was observed running **Windows 10 Home**. A Home digital licence
-does NOT confer a Pro licence. Use Windows 11 Home if that is
-the user's valid entitlement, or Pro **only with a validated,
-separately held Pro licence**. The ISO is multi-edition; evaluate
+**Edition decision updated:** the current machine was observed running
+**Windows 10 Home**, but the selected edition requires a valid **Windows Pro
+activation key**. The planned future image may retain **only Windows 11
+Pro** after verifying that the key is genuine and valid for Windows 11 Pro.
+Never embed the key in any NTLite preset, unattended image, repository,
+USB boot menu or diagnostics log. The previous Home digital entitlement
+does not itself license Pro. The ISO is multi-edition; evaluate
 the genuine image edition indices before removal. Do not use
 unsupported activation workarounds or Windows 11 compatibility bypasses.
 
@@ -240,3 +242,20 @@ and Fedora graphical installation require separate, explicit user
 approval and independent backups/recovery readiness.
 
 See ONE_USB_MULTIBOOT_PLAN.md and WINDOWS11_CLEAN_INSTALL_STAGED.md.
+
+## Selected Pro customization profile
+
+The user provided 32 detailed post-install preferences plus OneDrive,
+promotional apps/Widgets and AI suite removal preferences.
+A new [35-item execution-plan catalog](../config/windows11-pro-custom.json)
+with reviewed/core versus separate-consent phases is documented in
+[Windows 11 Pro 32-point profile](WINDOWS11_PRO_32_POINT_PROFILE.md).
+
+The script `scripts/Invoke-Nightglass-Win11ProCustom.ps1` defaults to a
+read-only preview. Optional future `ApplyCore` is strictly gated on
+an actually installed Windows 11 Pro system, backup confirmation,
+explicit consent, an administrator terminal and an independently
+reviewed and SHA256-pinned **local** Win11Debloat.ps1. It deliberately
+refuses the supplied remote-downloader Get.ps1. It never performs app
+uninstalls, disables Windows Update/security, decrypts BitLocker or
+enables Sandbox/WSL as part of core. Native execution is UNVERIFIED.
