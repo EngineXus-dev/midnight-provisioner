@@ -215,9 +215,10 @@ class KaliColdBaselineTests(unittest.TestCase):
         self.backed_disk.unlink()
         self.backed_disk.hardlink_to(self.disk)
         self.write_manifest()
-        result = self.inspect()
-        self.assertFalse(result.ok)
-        self.assertIn("hardlinked/shared", result.describe())
+        # The earlier registration preflight refuses the selected live disk
+        # once it has a second hardlink; it must fail before reading the backup.
+        with self.assertRaisesRegex(ToolError, "multiple hardlinks"):
+            self.inspect()
         self.assertEqual(self.runner.calls, [])
         self.assertEqual(self.disk.read_bytes(), self.original)
 
