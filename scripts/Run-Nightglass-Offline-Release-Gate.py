@@ -282,8 +282,7 @@ def verify(*, root: Path, allow_pull: bool, allow_build: bool,
                          "-e", "XDG_CONFIG_HOME=/tmp/ng-config",
                          "-e", "PYTHONDONTWRITEBYTECODE=1",
                          "-e", "PYTHONNOUSERSITE=1", image,
-                         "python", "-B", "-m", "unittest", "discover",
-                         "-s", "tests", "-p", "test*.py", "-q"]
+                         "python", "-B", "scripts/run_headless_matrix.py"]
                 results[key] = ("PASS" if run_logged(args, cwd=checkout,
                                    stream=log) else "FAIL")
                 print(f"{key}: {results[key]}")
