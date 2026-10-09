@@ -57,6 +57,15 @@
 - [ ] Fedora/KVM boot and recovery drill, SELinux/firmware validation and permission review
 - [ ] Future automatic NEW-VM definition only after disposable isolated restore tests
 
+## v0.2.3 — Fedora import readiness checks (draft)
+- [x] Read-only staged-image integrity and installed libvirt domain schema check
+- [x] Read-only QEMU image format, backing-chain and snapshot inspection
+- [x] Verify KVM access, unused VM name and host-aware guest RAM limits
+- [x] GUI/CLI readiness check and explicit Fedora smoke-test script
+- [x] Synthetic tests for refusal cases and no VM mutation
+- [ ] Real Fedora/KVM smoke results and supervised guest boot/network acceptance evidence
+- [ ] Automatic NEW-VM import remains disabled until actual host acceptance
+
 ## v0.3 — defense in depth
 - [ ] Polkit actions and minimal privileged policy service, no trusted XML audit from user-editable settings
 - [ ] SELinux device/volume access review; stronger VM security architecture tests
