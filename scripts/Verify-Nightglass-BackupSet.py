@@ -57,6 +57,7 @@ def checker_module():
 def read_manifest(path: Path, module) -> list[tuple[str, Path, Path]]:
     """Regular, size-limited, duplicate-key-free JSON from explicit local path."""
     try:
+        module.reject_linked_ancestors(path)
         before = path.lstat()
         if module.is_link_or_reparse(path, before) or not stat.S_ISREG(before.st_mode):
             raise SetError("Manifest must be a regular file, not a link/reparse point")
