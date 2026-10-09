@@ -41,6 +41,7 @@ WINDOWS_QEMU_CASES = (
     "test_different_original_vm_name_is_rejected_before_proc_reads",
     "test_duplicate_matching_process_is_ambiguous_and_refused",
     "test_invalid_or_changed_libvirt_xml_blocks",
+    "test_linux_proc_stat_starttime_field_22_fixture_is_exact",
     "test_missing_process_and_unreadable_other_process",
     "test_one_unique_qemu_and_actual_label_produce_non_attestation_pass",
     "test_process_disappears_during_recheck",
