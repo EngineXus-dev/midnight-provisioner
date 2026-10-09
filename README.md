@@ -474,6 +474,19 @@ python3 -B scripts/verify_local.py --gui       # only with PySide6 installed
 python3 -B scripts/verify_local.py --native    # only with native tools installed
 ```
 
+**On Windows**, the default verifier now runs a clearly labeled
+**portable subset** rather than the full Fedora-only test suite.
+It never invokes the Windows WSL `bash.exe` launcher. Checks requiring
+Linux symlinks, POSIX `0600` permissions, SELinux, system libvirt and
+actual running QEMU processes remain **NOT RUN / pending Fedora**.
+Do not enable Windows Developer Mode or install WSL to make the security
+tests appear green.
+
+Re-run the existing `Run-Nightglass-Checks.ps1` from the original
+Nightglass checkout to fetch the updated integration branch into another
+**new independent worktree**; it does not pull or overwrite existing
+`.env`, `.venv` or untracked files.
+
 This workflow change does **not** globally disable existing automatic
 workflows in other PR branches. A repository owner can disable the
 **Verify source** workflow in GitHub's Actions UI while minutes are
