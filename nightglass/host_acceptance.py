@@ -82,7 +82,8 @@ class HostPrerequisites:
             *(f"{gate.status:7s} {gate.key}: {gate.detail}" for gate in self.gates),
             "HOST PREREQUISITES: " + ("MET" if self.prerequisites_met else "BLOCKED"),
             "HARDWARE SECURITY ACCEPTANCE: PENDING (not a guest-isolation certification)",
-            "No root, sudo, VM boot, VM definition, network changes or disk writes.",
+            "No root, sudo, VM boot, VM definition or host configuration changes.",
+            "Only an explicitly requested NEW private evidence report writes a file.",
         ]
         return "\n".join(lines)
 
@@ -175,7 +176,7 @@ def main(argv: list[str] | None = None) -> int:
             save_private_evidence(report, args.report)
         except (OSError, ValueError) as exc:
             # Avoid echoing paths/usernames possibly present in OS exception text.
-            print(f"[BLOCKED] Evidence file not created safely ({type(exc).__name__})",
+            print(f"[BLOCKED] Evidence write failed ({type(exc).__name__}); no existing file overwritten.",
                   file=sys.stderr)
             return 2
         print("New private JSON evidence file created; keep it local.")
