@@ -585,3 +585,29 @@ tests remain NOT RUN**. The guard is a conservative preflight,
 not an atomic directory-handle sandbox; concurrent attackers may
 still swap paths. No PR merge or deployment has occurred.
 See [boundary hardening details](BACKUP_PATH_BOUNDARY_HARDENING.md).
+
+## Phase 14 — latest-commit release gate reference repair (UNVERIFIED RUNTIME)
+
+The Phase 13 draft kept its backup-security code but failed to
+advance the test runner, PR graph validator, independent evidence
+auditor and Windows launcher from Phase 12's branch. Testing such
+scripts could silently check an **older commit**, so Phase 13 was
+not an integrable release candidate.
+
+The `verification/phase14-release-gate-repair` draft updates the
+47-predecessor dependency snapshot through PR #48, explicitly
+preserving absent PR #30. All active runner/auditor/launcher
+branch constants and source regression expectations now agree
+with that snapshot. The new portable
+`tests/test_candidate_branch_contract.py` enforces those
+invariants in future tests and checks that current runbooks point
+to the same candidate. It does not fetch, install or modify the
+project from inside a test.
+
+**No native Windows, Docker, Fedora Qt/QEMU or real hardware
+verification was performed here.** Exact candidate SHA, parsed
+PowerShell source, real test counts and local log-digest evidence
+are separate required gates before a user-approved merge.
+No changes to user-installed Windows, local files, USB, backup
+disk or Fedora host. See
+[offline release gate](OFFLINE_RELEASE_CANDIDATE_GATE.md).
