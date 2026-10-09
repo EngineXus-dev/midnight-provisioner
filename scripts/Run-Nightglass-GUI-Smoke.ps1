@@ -74,16 +74,38 @@ try {
     @($probe | ForEach-Object { [string]$_ }) | Out-File -LiteralPath $qtLog -Encoding UTF8
     if ($probeExit -eq 0) { Add-Content -LiteralPath $qtLog -Value 'PySide6.QtWidgets imported successfully.' }
     if ($probeExit -eq 0) {
-        $process = Start-Process -FilePath $python -PassThru -NoNewWindow -WorkingDirectory $checkoutRoot -ArgumentList @('-B','-m','unittest','discover','-s','tests','-p',$test,'-v') -RedirectStandardOutput $stdout -RedirectStandardError $stderr
-        $finished = $process.WaitForExit($TimeoutSeconds * 1000)
-        if (-not $finished) {
-            try { $process.Kill() } catch { }
-            $process.WaitForExit()
-            $exitCode = 124
-            $status = 'GUI_TEST_TIMEOUT'
-        } else {
-            $exitCode = $process.ExitCode
-            $status = if ($exitCode -eq 0) { 'SUITE_EXITED_ZERO_REVIEW_LOG' } else { 'GUI_TEST_FAILED' }
+        # Use .NET Process with asynchronous redirected streams instead of
+        # Start-Process -PassThru, whose ExitCode can be null in PS5.1.
+        $psi = New-Object System.Diagnostics.ProcessStartInfo
+        $psi.FileName = $python
+        $psi.Arguments = "-B -m unittest discover -s tests -p $test -v"
+        $psi.WorkingDirectory = $checkoutRoot
+        $psi.UseShellExecute = $false
+        $psi.CreateNoWindow = $true
+        $psi.RedirectStandardOutput = $true
+        $psi.RedirectStandardError = $true
+        $process = New-Object System.Diagnostics.Process
+        $process.StartInfo = $psi
+        try {
+            if (-not $process.Start()) { throw 'Could not start the GUI test process.' }
+            $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+            $stderrTask = $process.StandardError.ReadToEndAsync()
+            $finished = $process.WaitForExit($TimeoutSeconds * 1000)
+            if (-not $finished) {
+                try { $process.Kill() } catch { }
+                $process.WaitForExit()
+            }
+            [IO.File]::WriteAllText($stdout, $stdoutTask.Result)
+            [IO.File]::WriteAllText($stderr, $stderrTask.Result)
+            if (-not $finished) {
+                $exitCode = 124
+                $status = 'GUI_TEST_TIMEOUT'
+            } else {
+                $exitCode = [int]$process.ExitCode
+                $status = if ($exitCode -eq 0) { 'SUITE_EXITED_ZERO_REVIEW_LOG' } else { 'GUI_TEST_FAILED' }
+            }
+        } finally {
+            $process.Dispose()
         }
     } else {
         [IO.File]::WriteAllText($stdout, '')
