@@ -5,6 +5,7 @@ from contextlib import redirect_stdout
 import hashlib
 from io import StringIO
 import json
+import os
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -31,6 +32,25 @@ def domain(disk, *, name=GUEST, uuid=UUID, nvram=None, extra=""):
         f'<source file="{disk}"/><target dev="vda" bus="virtio"/></disk>'
         f'{extra}</devices></domain>'
     )
+
+
+# Native Windows cannot perform POSIX fchmod. Isolate this capability only
+# while running synthetic module tests; production Linux enforcement is intact.
+_fixture_mode_patch = None
+
+
+def setUpModule():
+    global _fixture_mode_patch
+    if os.name == "nt":
+        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch.start()
+
+
+def tearDownModule():
+    global _fixture_mode_patch
+    if _fixture_mode_patch is not None:
+        _fixture_mode_patch.stop()
+        _fixture_mode_patch = None
 
 
 class FakeHV:
@@ -249,7 +269,10 @@ class KaliColdBaselineTests(unittest.TestCase):
             self.inspect()
         (self.backup / "INCOMPLETE").unlink()
         alias = self.root / "alias-backup"
-        alias.symlink_to(self.backup, target_is_directory=True)
+        try:
+            alias.symlink_to(self.backup, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies creation of synthetic symlinks")
         with self.assertRaisesRegex(ToolError, "symlink"):
             KaliColdBaselineInspector(
                 hypervisor=self.hv, runner=self.runner, registered=self.registered
@@ -259,7 +282,8 @@ class KaliColdBaselineTests(unittest.TestCase):
         result = self.inspect()
         output = self.root / "new-private-audit.json"
         self.assertEqual(save_cold_baseline_report(result, output), output)
-        self.assertEqual(output.stat().st_mode & 0o777, 0o600)
+        if os.name != "nt":
+            self.assertEqual(output.stat().st_mode & 0o777, 0o600)
         text = output.read_text()
         self.assertNotIn(str(self.disk), text)
         self.assertNotIn(str(self.backup), text)
