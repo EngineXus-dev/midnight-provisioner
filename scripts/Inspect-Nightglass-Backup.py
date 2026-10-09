@@ -62,8 +62,8 @@ def checked_root(path: Path) -> Path:
         if is_link_or_reparse(path, before) or not stat.S_ISDIR(before.st_mode):
             raise BackupError("Selected root is linked/reparsed or is not a directory")
         return path.resolve(strict=True)
-    except OSError as exc:
-        raise BackupError("Selected directory is missing or inaccessible") from exc
+    except (OSError, RuntimeError) as exc:
+        raise BackupError("Selected directory is missing, linked or inaccessible") from exc
 
 
 def separated(source: Path, backup: Path) -> bool:
@@ -96,6 +96,8 @@ def inventory(root: Path, *, max_files: int, max_bytes: int) -> Inventory:
             if folded in canonical:
                 raise BackupError("Case-ambiguous path detected")
             canonical.add(folded)
+            if len(canonical) > max_files:
+                raise BackupError("Entry count limit exceeded; narrow the selected tree or increase --max-files")
             try:
                 info = entry.stat(follow_symlinks=False)
             except OSError as exc:
@@ -208,8 +210,8 @@ def write_report_new(path: Path, payload: dict, roots: tuple[Path, Path]) -> Non
         # Reject alternate path spellings through an earlier parent link.
         # The destination must not resolve into either inspected tree.
         resolved = target.resolve(strict=False)
-    except OSError as exc:
-        raise BackupError("Report parent is inaccessible") from exc
+    except (OSError, RuntimeError) as exc:
+        raise BackupError("Report parent is inaccessible or circularly linked") from exc
     for root in roots:
         if (target == root or root in target.parents
                 or resolved == root or root in resolved.parents):
