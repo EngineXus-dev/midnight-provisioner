@@ -116,6 +116,24 @@ This is **not** one-click rollback or a tested restore procedure: source XML
 contains machine-specific paths, and a verified hash does not prove a guest
 can boot. See [cold backup and manual recovery](docs/COLD_BACKUP.md).
 
+## Recover a backup into a NEW offline staging area
+
+Nightglass can verify a cold backup and make a separate, **disconnected**
+recovery copy, generating a proposed VM XML with a fresh identity. Source
+disks and existing guest definitions are untouched. Use **Backup & verify →
+Recover into NEW folder** and **Verify staged recovery**, or run:
+
+```bash
+nightglass recover plan /path/to/backup /path/to/NEW-dir recovered-vm
+nightglass recover stage /path/to/backup /path/to/NEW-dir recovered-vm
+nightglass recover verify /path/to/NEW-dir
+```
+
+**The new VM is not defined or started.** Review firmware, SELinux labels,
+permissions and XML before a manual import on an isolated test host. This
+is not one-click rollback, a hypervisor security guarantee or a proven
+bootable restore. See [recovery staging instructions](docs/RECOVERY_STAGING.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
