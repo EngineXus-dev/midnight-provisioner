@@ -222,6 +222,39 @@ class BackupSetTests(unittest.TestCase):
             with self.assertRaises(settool.SetError):
                 settool.read_manifest(link, self.base)
 
+    def test_manifest_with_linked_parent_is_rejected(self):
+        with tempfile.TemporaryDirectory() as home:
+            root = Path(home)
+            real = root / "real-manifest-dir"
+            real.mkdir()
+            roots = self.fixture(root)
+            manifest = self.manifest(real, roots)
+            alias = root / "alias"
+            try:
+                alias.symlink_to(real, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("Directory symlink creation unavailable")
+            self.assertFalse((alias / manifest.name).is_symlink())
+            with self.assertRaises(self.base.BackupError):
+                settool.read_manifest(alias / manifest.name, self.base)
+            with redirect_stderr(io.StringIO()), redirect_stdout(io.StringIO()):
+                self.assertEqual(settool.main([
+                    "--mode", "Verify", "--manifest",
+                    str(alias / manifest.name)]), 2)
+
+    def test_manifest_parent_traversal_is_rejected(self):
+        with tempfile.TemporaryDirectory() as home:
+            root = Path(home)
+            roots = self.fixture(root)
+            real = root / "real-manifest-dir"
+            real.mkdir()
+            manifest = self.manifest(real, roots)
+            nested = real / "child"
+            nested.mkdir()
+            with self.assertRaises(self.base.BackupError):
+                settool.read_manifest(nested / ".." / manifest.name,
+                                      self.base)
+
     def test_exclusive_report_is_outside_every_selected_root(self):
         with tempfile.TemporaryDirectory() as temp:
             home = Path(temp)
