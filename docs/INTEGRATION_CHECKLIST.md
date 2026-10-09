@@ -247,7 +247,8 @@ alter Windows hardware as part of this change. See
 User-supplied Windows 10 Home hardware review passed the native
 PowerShell AST parser and the read-only query script on 2026-10-09.
 Observations: UEFI, Windows GPT Disk 0 with ESP/MSR/C:/Recovery,
-another measured backup-disk capacity GPT disk with **unknown bus/contents**, Windows C:
+another measured backup-disk capacity GPT disk **now user-confirmed portable** and
+EXCLUDED from OS installation/USB media formatting, Windows C:
 measured filesystem free space filesystem free (NOT unallocated), detected RAM capacity usable RAM,
 firmware virtualization enabled, Secure Boot/encryption unknown and
 Fast Startup enabled.
@@ -268,3 +269,16 @@ Windows 11 (if elected) must be completed, backed up and re-baselined
 before Fedora target-disk selection. All PRs remain draft/unmerged,
 no Actions or release status change. Read
 [Windows 11-first plan](WINDOWS11_UPGRADE_FIRST.md).
+
+## Dedicated multiboot USB — planning only
+
+The user confirmed **Disk 1 (measured backup-disk capacity) is a portable drive**.
+It must not be used as a Fedora OS target, USB writer target or empty
+storage assumption. Planning now favours a **third, explicitly empty USB**
+holding independently verified official Windows 11 and Fedora KDE ISO files
+through a multiboot boot menu. Ventoy Secure Boot policy and firmware
+compatibility remain unverified. This is a convenience proposal, not an
+automated Windows+Fedora install, approval to erase USB media, or a
+change to real disks. Windows 11 upgrade (if elected) is performed inside
+Windows first; Fedora remains later manual installation after backups.
+See [Nightglass one-USB plan](ONE_USB_MULTIBOOT_PLAN.md).
