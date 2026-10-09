@@ -36,7 +36,7 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
         self.assertIn("No GitHub Actions or merges", out.getvalue())
 
     def test_authorized_branch_and_origin_only(self):
-        self.assertEqual(gate.BRANCH, "security/backup-boundary-fix"
+        self.assertEqual(gate.BRANCH, "verification/phase14-release-gate-repair"
         self.assertTrue(gate.ORIGIN.fullmatch(
             "https://github.com/EngineXus-dev/nightglass-workspaces.git"))
         self.assertTrue(gate.ORIGIN.fullmatch(
