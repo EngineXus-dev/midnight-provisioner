@@ -34,7 +34,7 @@ def main(argv: list[str] | None = None) -> int:
             if space is None or space.kind != "vm":
                 parser.error("inspect requires a configured VM workspace key")
             audit = Hypervisor().audit(space.identifier, space.policy)
-            print(f"{space.name}: {audit.summary} ({space.policy})")
+            print(f"{space.name}: {audit.summary} ({space.policy}; managed save: {'yes' if audit.saved_state else 'no'})")
             for note in audit.warnings:
                 print(f"  - {note}")
             return 0 if audit.ok else 2
