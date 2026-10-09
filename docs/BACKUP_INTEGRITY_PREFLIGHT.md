@@ -153,3 +153,16 @@ without copying or writing user files. The original checker also
 refuses a content match where copied files are merely hard links
 sharing the same nonzero inode and device identifier as originals.
 This is a safety check, **not proof of physical media independence**.
+
+## Phase 12: linked ancestors are blocked
+
+The read-only checker no longer accepts a normal-looking source or
+backup directory whose **parent** is a symlink or Windows reparse/
+junction. Report output paths are checked before and after lexical
+normalization. Parent-traversal `..` paths are rejected. This can
+block paths redirected through legitimate OneDrive or folder
+junctions; choose and verify a physical directory explicitly.
+This guard is not atomic against concurrent path swaps.
+
+See [backup path security review](BACKUP_PATH_BOUNDARY_HARDENING.md).
+Native Windows junction testing remains pending.
