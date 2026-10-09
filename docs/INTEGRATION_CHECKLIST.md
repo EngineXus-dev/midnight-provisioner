@@ -349,6 +349,28 @@ execution, Win11Debloat sourced version compatibility, actual ISO
 customization, app removals, new OS installation, USB writing, or Fedora
 hardware acceptance. Existing local Windows and main remain untouched.
 
+## Stage: Windows 11 Pro activation later option and media capacity preflight
+
+User has a Pro key and requests the option to **activate after a clean
+installation** instead of typing the key into Setup immediately. Both
+modes are modeled; activate_later is the default. Genuine Setup's
+'I don't have a product key' choice may be used if available; OEM
+Home key auto-detection requires verifying Pro edition selection.
+Nightglass never accepts, stores or applies the actual key.
+
+A new pure-Python plan-only script can *read* two separately downloaded
+official ISOs, compute their sizes and optional SHA256, and estimate
+whether their combined sizes plus 1 GiB headroom fit the user's
+measured USB usable byte capacity. **No download, USB detection,
+formatting, ISO editing, Windows Setup, disk writing, activation or
+Fedora deployment happens.** Neither a hash nor capacity estimate
+authenticates the ISO publisher or UEFI Secure Boot behavior.
+
+New source and regression tests are committed but **not yet executed**
+on the user's latest branch. All PRs remain draft/unmerged and hardware
+acceptance remains pending. See
+[Pro activation and USB preflight](WINDOWS11_PRO_ACTIVATE_LATER.md).
+
 ## New cumulative offline release gate — not yet executed (draft)
 
 A new stacked branch `verification/offline-release-candidate-gate` adds
