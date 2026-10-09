@@ -64,6 +64,8 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
     def test_version_matrix_and_fedora_image_are_explicit(self):
         self.assertEqual(gate.VERSIONS, ("3.11", "3.12", "3.13"))
         self.assertEqual(len(gate.CHECKS), 6)
+        self.assertIn("python_source_ast", gate.CHECKS)
+        self.assertNotIn("windows_portable", gate.CHECKS)
         with tempfile.TemporaryDirectory() as home:
             worktree = Path(home)
             (worktree / "docker").mkdir()
@@ -85,6 +87,25 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
         self.assertNotIn("Invoke-Expression", raw)
         self.assertNotIn("Start-Process", raw)
         self.assertNotIn("& $p", raw)
+
+    def test_python_ast_does_not_import_or_execute_fetched_code(self):
+        with tempfile.TemporaryDirectory() as home:
+            root = Path(home)
+            for folder in ("nightglass", "tests", "scripts"):
+                (root / folder).mkdir()
+            for index in range(21):
+                folder = ("nightglass", "tests", "scripts")[index % 3]
+                (root / folder / f"fixture_{index}.py").write_text(
+                    "assert False, 'Would execute if imported'\n", encoding="utf-8")
+            self.assertEqual(gate.source_ast(root), 21)
+            bad = root / "tests" / "bad.py"
+            bad.write_text("def invalid(:\n", encoding="utf-8")
+            with self.assertRaises(SyntaxError):
+                gate.source_ast(root)
+            bad.unlink()
+            (root / "tests" / "alias.py").symlink_to(root / "tests" / "fixture_1.py")
+            with self.assertRaises(gate.GateError):
+                gate.source_ast(root)
 
     def test_missing_image_remains_blocked_by_default(self):
         with patch.object(gate, "image_cached", return_value=False):
