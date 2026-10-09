@@ -401,3 +401,14 @@
 - [ ] Independently refresh GitHub PR draft/review/merge status before any merge; offline Git cannot do this
 - [ ] Review complete cumulative source and workflow diff, test evidence and Fedora hardware acceptance separately
 - [ ] DO NOT integrate/merge/change Windows/USB/Fedora without specific user authorization
+
+## v0.4b — original-main compatible stack audit and CI trigger review (draft)
+- [x] Identify and fix prior defect: old auditor looked for unmerged config manifest in user's original main checkout
+- [x] Read versioned 40-predecessor-PR snapshot from exact fetched candidate Git SHA, no checkout or tracked/untracked file overwrites
+- [x] Extend ancestor chain to PR #41, while explicitly retaining PR #30 as NOT_FOUND, not invented
+- [x] Validate manual workflow_dispatch and global contents:read from same pinned Git object; flag mutable action version tags
+- [x] Strictly reject malformed/ambiguous UTF-8 diff names, duplicate manifest fields and unexpected workflow trigger/permission blocks
+- [x] Commit additional offline unit fixtures for pinned manifest, auto-trigger injection, token privilege escalation, and diff decoding
+- [ ] Run new Python unit/PowerShell syntax checks on Windows/Docker; current branch remains untested on actual workstation
+- [ ] Independently inspect action mutable tags, workflow job contents and exact SHA references before ever enabling GitHub Actions
+- [ ] Latest cumulative Docker/Fedora acceptance, all PR diff review, native Fedora KVM/sVirt and OS deployment remain HOLD
