@@ -132,7 +132,7 @@ class SpaceCard(QFrame):
         if self.viewer:
             self.viewer.setEnabled(running)
         if self.save:
-            self.save.setEnabled(running)
+            self.save.setEnabled(running and self.space.policy != "isolated")
 
 
 class MainWindow(QMainWindow):
@@ -344,7 +344,9 @@ class MainWindow(QMainWindow):
                         state = self.hv.state(space.identifier)
                         running = state.lower().startswith(("running", "paused", "idle"))
                         audit = self.hv.audit(space.identifier, space.policy)
-                        details = "Configuration approved" if audit.ok else "POLICY BLOCK: " + "; ".join(audit.warnings)
+                        details = ("Configuration and saved session approved" if audit.saved_state else "Configuration approved") if audit.ok else "POLICY BLOCK: " + "; ".join(audit.warnings)
+                        if audit.saved_state and not running:
+                            state = "Saved session — audited resume available"
                         result[space.key] = (state, details, audit.ok, running)
                     except ToolError as exc:
                         result[space.key] = ("Status error", str(exc), False, False)
@@ -396,8 +398,11 @@ class MainWindow(QMainWindow):
 
     def save_space(self, key: str):
         space = self.get_space(key)
-        if QMessageBox.question(self, "Save VM memory state", f"Suspend {space.name} by saving memory to disk? This consumes storage and is not a snapshot or backup.", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No) == QMessageBox.StandardButton.Yes:
-            self.work(lambda: self.hv.managed_save(space.identifier), lambda msg: (self.inform(msg), self.refresh()), self.error)
+        if space.policy == "isolated":
+            self.error("Memory-state saving is disabled for potentially malicious guests. Shut down and restore them from a clean baseline instead.")
+            return
+        if QMessageBox.question(self, "Save VM memory state", f"Suspend {space.name} by saving memory to disk? This consumes storage, persists sensitive RAM, and is not a snapshot or backup.", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No) == QMessageBox.StandardButton.Yes:
+            self.work(lambda: self.hv.managed_save(space.identifier, space.policy), lambda msg: (self.inform(msg), self.refresh()), self.error)
 
     def view_space(self, key: str):
         space = self.get_space(key)
