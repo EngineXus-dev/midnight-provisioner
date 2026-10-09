@@ -4,6 +4,7 @@ from __future__ import annotations
 from contextlib import redirect_stdout
 from io import StringIO
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -18,6 +19,25 @@ from nightglass.kali_setup import (
     INVENTORY_FORMAT, build_setup_plan, save_setup_plan, save_version_lock,
 )
 from nightglass.runner import ToolError
+
+
+# Native Windows cannot perform POSIX fchmod. Isolate this capability only
+# while running synthetic module tests; production Linux enforcement is intact.
+_fixture_mode_patch = None
+
+
+def setUpModule():
+    global _fixture_mode_patch
+    if os.name == "nt":
+        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch.start()
+
+
+def tearDownModule():
+    global _fixture_mode_patch
+    if _fixture_mode_patch is not None:
+        _fixture_mode_patch.stop()
+        _fixture_mode_patch = None
 
 
 class KaliVersionDriftTests(unittest.TestCase):
@@ -174,7 +194,10 @@ class KaliVersionDriftTests(unittest.TestCase):
     def test_symlinked_or_oversized_inventory_and_lock_are_rejected(self):
         self.current_path.write_text(json.dumps(self.inventory), encoding="utf-8")
         link = self.folder / "linked-lock.json"
-        link.symlink_to(self.lock_path)
+        try:
+            link.symlink_to(self.lock_path)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies creation of synthetic symlinks")
         with self.assertRaisesRegex(ToolError, "Symlinked"):
             compare_version_lock_files(self.plan_path, link, self.current_path)
         huge = self.folder / "huge.json"
@@ -186,7 +209,8 @@ class KaliVersionDriftTests(unittest.TestCase):
         result = self.review()
         destination = self.folder / "review.json"
         self.assertEqual(save_drift_review(result, destination), destination)
-        self.assertEqual(destination.stat().st_mode & 0o777, 0o600)
+        if os.name != "nt":
+            self.assertEqual(destination.stat().st_mode & 0o777, 0o600)
         document = json.loads(destination.read_text(encoding="utf-8"))
         self.assertIn("UNTRUSTED_USER_SUPPLIED_METADATA", document["source"])
         self.assertNotIn(str(self.folder), destination.read_text(encoding="utf-8"))
