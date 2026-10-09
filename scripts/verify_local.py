@@ -44,6 +44,7 @@ WINDOWS_PORTABLE_SUITES = (
     "test_candidate_branch_contract.py",
     "test_portable_suite_coverage.py",
     "test_isolated_runner_imports.py",
+    "test_windows_qemu_subset_integrity.py",
     "test_windows_offline_launcher.py",
     "test_required_integration_suites.py",
     "test_headless_matrix_coverage.py",
@@ -217,7 +218,7 @@ def main(argv=None) -> int:
                 ))
         failed |= bool(run_command(
             "Synthetic QEMU /proc cases (Windows-compatible subset)",
-            unit_args("test_kali_process_label.py", matches=WINDOWS_QEMU_CASES),
+            [sys.executable, "-B", "scripts/run_windows_qemu_subset.py"],
             dry_run=args.dry_run,
         ))
         print(
