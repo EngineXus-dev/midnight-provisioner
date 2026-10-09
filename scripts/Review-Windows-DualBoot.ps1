@@ -33,7 +33,7 @@ function Gib {
 }
 function Unknown {
     param([string]$What)
-    Say $What 'UNKNOWN — manual verification required'
+    Say $What 'UNKNOWN  -  manual verification required'
 }
 function BootMode {
     try {
@@ -44,7 +44,7 @@ function BootMode {
     return 'UNKNOWN'
 }
 
-Write-Host 'NIGHTGLASS — WINDOWS 10/11 + FEDORA READINESS OBSERVATION' -ForegroundColor Cyan
+Write-Host 'NIGHTGLASS  -  WINDOWS 10/11 + FEDORA READINESS OBSERVATION' -ForegroundColor Cyan
 Write-Host 'QUERY ONLY: no sudo/admin, partition changes, bootloader edits, BitLocker/TPM changes or output files.'
 Write-Host 'This script cannot authorize a Windows upgrade or Fedora installation: backup/keys/eligibility/live-USB review remain mandatory.'
 Write-Host ''
@@ -227,7 +227,7 @@ if ($null -ne $osPartition) {
 }
 Write-Host ''
 
-Write-Host 'DEPLOYMENT CHECKPOINTS — ALL REQUIRE EXPLICIT HUMAN REVIEW' -ForegroundColor Yellow
+Write-Host 'DEPLOYMENT CHECKPOINTS  -  ALL REQUIRE EXPLICIT HUMAN REVIEW' -ForegroundColor Yellow
 Write-Host '[PENDING] Independently tested full Windows/disk backup on disconnected media'
 Write-Host '[PENDING] Windows recovery USB tested and BitLocker/device-encryption recovery key stored offline'
 Write-Host '[PENDING] OEM/firmware boot menu identified; disk/ESP/Recovery partition layout independently reviewed'
