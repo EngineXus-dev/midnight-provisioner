@@ -12,7 +12,7 @@ Nightglass has many unmerged stacked draft PRs and no remaining
 hosted GitHub Actions minutes. Earlier successful Fedora 43 Docker
 and Python 3.11/3.12/3.13 tests apply to older Git commits.
 The new offline release gate checks the **entire latest cumulative**
-verification/stack-integration-readiness branch without overwriting
+verification/remote-ref-stack-audit branch without overwriting
 the user's original Windows checkout or consuming GitHub Actions.
 
 Six mandatory checks must all pass:
@@ -61,14 +61,14 @@ than force-removed automatically.
 
 From the user's original nightglass-workspaces PowerShell directory:
 
-    git fetch --no-tags origin verification/stack-integration-readiness
+    git fetch --no-tags origin verification/remote-ref-stack-audit
     if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
     $dir = Join-Path $env:TEMP ("Nightglass-RC-Runner-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $dir | Out-Null
     $runner = Join-Path $dir "Run-Nightglass-Offline-Release-Gate.py"
 
-    $scriptText = & git show origin/verification/stack-integration-readiness:scripts/Run-Nightglass-Offline-Release-Gate.py
+    $scriptText = & git show origin/verification/remote-ref-stack-audit:scripts/Run-Nightglass-Offline-Release-Gate.py
     if ($LASTEXITCODE -ne 0) { throw "Runner retrieval failed" }
     $scriptText | Set-Content -LiteralPath $runner -Encoding UTF8
 
