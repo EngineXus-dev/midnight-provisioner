@@ -330,3 +330,15 @@
 - [ ] Verify actual copied backups and USB media/ISO checksums; no current execution authorization
 - [ ] Confirm Windows 11 hardware eligibility and clean-install EFI/partition target by physical identity, not existing disk numbers
 - [ ] Do NOT schedule, boot, install, partition, format or merge PRs until user explicitly requests each next stage
+
+## v0.3v — Windows 11 Lite image build policy (draft / no ISO built)
+- [x] Verify official Windows 11 download now lists 26H2; reject stale 25H2-only assumption
+- [x] Require licensed Home (existing Windows) or separately licensed Pro, not automatically Pro-only media
+- [x] Specify two-stage NTLite Free edition/working-WIM -> conservative app tweaks -> final install.esd / bootable ISO, retaining original untouched ISO
+- [x] Keep Windows Update/WinRE/Defender/firewall, TPM/Secure Boot/BitLocker, Store/WebView2, AMD drivers, WSL2/Hyper-V and developer runtime dependencies
+- [x] Explicitly reject 3 GB ISO / 2 GB RAM / 9 GB install as guarantees or required size targets
+- [x] Avoid stacking WinUtil + Win11Debloat + invasive RemoveWindowsAI system component removals
+- [x] Commit opt-in HKCU-only dark/quiet preferences helper with preview default, consent gating, exclusive snapshot and undo
+- [ ] Validate helper syntax via Windows PowerShell AST, run synthetic tests and test Apply/Undo on disposable Windows 11 VM first
+- [ ] Check actual official Windows/Fedora ISO sizes vs separate 16 GB USB before any download/USB writing
+- [ ] Do not build ISO, format USB, run setup, install Windows/Fedora, weaken security or merge draft PRs without separate future approval
