@@ -1,5 +1,7 @@
 # Windows 10 + Fedora KDE deployment: non-destructive readiness gates
 
+> Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
+
 **Status: INSTALLATION HOLD — prepare and inspect, do NOT modify disks.**
 This phase is separate from Fedora VM security testing. Nightglass
 does not partition disks, manage firmware entries or install an OS.
@@ -50,6 +52,36 @@ updates Git fetch metadata. It does not overwrite the repository,
 env/venv, other folders, Windows partitions, or boot configuration.
 Inspect output before sharing; withhold hardware identifiers, personal
 paths, disk IDs, and all recovery keys.
+
+## Optional Windows 11 first (before touching Fedora storage)
+
+The Windows 10 Home baseline on 2026-10-09 reports UEFI, a
+**measured system-disk capacity GPT Windows Disk 0** with C: and system/recovery partitions,
+and a separate **measured backup-disk capacity GPT Disk 1 with unknown contents/bus type**.
+Neither disk is authorized for repartition. C: has measured filesystem free space free
+*inside its existing Windows volume*, not free unallocated disk space.
+On this detected RAM capacity usable-RAM laptop, Nightglass still recommends one
+small VM at a time.
+
+If Windows 11 may be installed before Fedora, **finish and validate
+Windows 11 first**. The revised reviewer has read-only TPM presence,
+readiness and version observations plus limited Disk 1 partition and
+bus metadata; it never certifies eligibility, prints TPM ownership
+details or modifies any state. Use Microsoft PC Health Check and
+Windows Update, and separately verify Windows encryption/recovery.
+Secure Boot and encryption were UNKNOWN in the initial non-admin
+readout, and Fast Startup was ENABLED.
+
+Before any Windows 11 upgrade, verify external bootable recovery media,
+offline encryption recovery keys if applicable, image backups, and
+supported device eligibility. Following the upgrade, rerun the
+read-only review on Windows 11 and independently confirm disk layout,
+boot/recovery, drivers and data before attempting Fedora live USB
+testing. Neither Windows 11 upgrade nor Fedora installation is
+automatic.
+
+See the full [optional Windows 11-first plan](WINDOWS11_UPGRADE_FIRST.md)
+and the [manual deployment decision template](DEPLOYMENT_DECISION_TEMPLATE.md).
 
 ## Human-only gates — all mandatory before installation
 
