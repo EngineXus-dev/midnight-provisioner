@@ -26,6 +26,7 @@ class FakeRunner:
         self.values = {
             virsh('list', '--all', '--name'): 'sample\n',
             virsh('dumpxml', 'sample'): domain(VNC),
+            virsh('dumpxml', '--inactive', 'sample'): domain(VNC),
             virsh('dominfo', 'sample'): info if info is not None else ('Managed save: yes\n' if saved is not None else 'Managed save: no\n'),
         }
         if saved is not None:
