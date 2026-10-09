@@ -4,6 +4,7 @@ from __future__ import annotations
 from contextlib import redirect_stdout
 from io import StringIO
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -31,6 +32,25 @@ def domain(name, disk, *, identity=UUID, memory=2048, cpus=1,
         f'<source file="{disk}"/><target dev="vda" bus="virtio"/></disk>'
         f'{extra}</devices></domain>'
     )
+
+
+# Native Windows cannot perform POSIX fchmod. Isolate this capability only
+# while running synthetic module tests; production Linux enforcement is intact.
+_fixture_mode_patch = None
+
+
+def setUpModule():
+    global _fixture_mode_patch
+    if os.name == "nt":
+        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch.start()
+
+
+def tearDownModule():
+    global _fixture_mode_patch
+    if _fixture_mode_patch is not None:
+        _fixture_mode_patch.stop()
+        _fixture_mode_patch = None
 
 
 class FakeHV:
@@ -185,7 +205,10 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
 
     def test_same_folder_other_guest_symlink_is_blocked_without_following_it(self):
         link = self.root / "different-registered-guest.qcow2"
-        link.symlink_to(self.disk)
+        try:
+            link.symlink_to(self.disk)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies creation of synthetic symlinks")
         self.hv.docs["someone-else"] = {
             "current": domain("someone-else", str(link)),
             "inactive": domain("someone-else", str(self.other_disk)),
@@ -286,7 +309,10 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
 
     def test_missing_or_symlinked_disk_is_never_passed_to_qemu_img(self):
         link = self.root / "link.qcow2"
-        link.symlink_to(self.disk)
+        try:
+            link.symlink_to(self.disk)
+        except (OSError, NotImplementedError):
+            self.skipTest("OS denies creation of synthetic symlinks")
         with self.assertRaisesRegex(ToolError, "symlink"):
             self.check(link)
         with self.assertRaises(ToolError):
@@ -310,7 +336,8 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
         report = self.check()
         destination = self.root / "new-audit.json"
         self.assertEqual(save_registration_report(report, destination), destination)
-        self.assertEqual(destination.stat().st_mode & 0o777, 0o600)
+        if os.name != "nt":
+            self.assertEqual(destination.stat().st_mode & 0o777, 0o600)
         obj = json.loads(destination.read_text())
         self.assertEqual(obj["template_id"], "recon")
         self.assertIn("outside-folder-symlink-and-other-hypervisor-alias-check", obj["observations_not_performed"])
