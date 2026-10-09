@@ -12,7 +12,7 @@ Nightglass has many unmerged stacked draft PRs and no remaining
 hosted GitHub Actions minutes. Earlier successful Fedora 43 Docker
 and Python 3.11/3.12/3.13 tests apply to older Git commits.
 The new offline release gate checks the **entire latest cumulative**
-deployment/multi-source-backup-readiness branch without overwriting
+security/backup-boundary-fix branch without overwriting
 the user's original Windows checkout or consuming GitHub Actions.
 
 Six mandatory checks must all pass:
@@ -61,14 +61,14 @@ than force-removed automatically.
 
 From the user's original nightglass-workspaces PowerShell directory:
 
-    git fetch --no-tags origin deployment/multi-source-backup-readiness
+    git fetch --no-tags origin security/backup-boundary-fix
     if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
     $dir = Join-Path $env:TEMP ("Nightglass-RC-Runner-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $dir | Out-Null
     $runner = Join-Path $dir "Run-Nightglass-Offline-Release-Gate.py"
 
-    $scriptText = & git show origin/deployment/multi-source-backup-readiness:scripts/Run-Nightglass-Offline-Release-Gate.py
+    $scriptText = & git show origin/security/backup-boundary-fix:scripts/Run-Nightglass-Offline-Release-Gate.py
     if ($LASTEXITCODE -ne 0) { throw "Runner retrieval failed" }
     $scriptText | Set-Content -LiteralPath $runner -Encoding UTF8
 
@@ -186,3 +186,11 @@ hardlinks, unsafe local manifests and read-only report checks.
 The newest cumulative branch remains unexecuted on the user's
 actual Windows/Docker host; synthetic tests do not authorize
 an OS install or a PR merge.
+
+## Phase 12: current backup security integration candidate
+
+The latest cumulative candidate includes new path-boundary tests in
+`tests/test_backup_integrity_preflight.py` and
+`tests/test_backup_set_preflight.py`. They must pass as part of the
+same pinned SHA release gate; the prior isolated fixture test cannot
+substitute for a native Windows junction acceptance.
