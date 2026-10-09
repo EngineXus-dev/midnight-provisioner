@@ -61,18 +61,30 @@ of any existing files).
 
 ## 3. Run completely local verification
 
-For source syntax and the full synthetic unit suite, no sudo or actual
-VM is required:
+On **Fedora/Linux**, the default runs source syntax and the full
+Python synthetic unit suite (and bash syntax when bash is available):
 
 \`\`\`bash
 python3 -B scripts/verify_local.py
 \`\`\`
 
-To narrow down just the latest Kali security/recovery changes:
+On **Windows 10/11**, the same command deliberately runs only five
+portable unit modules plus selected synthetic QEMU process-label tests.
+It does **not** claim the full suite passed: Windows cannot reproduce
+Linux chmod 0600 permissions, Linux symlink semantics, SELinux,
+os.geteuid, system libvirt filesystem paths or live Fedora isolation.
+It reports **WINDOWS-PORTABLE SUBSET PASSED ONLY** if these checks pass.
 
-\`\`\`bash
-python3 -B scripts/verify_local.py --focused
+To narrow down those QEMU synthetic fixtures:
+
+\`\`\`powershell
+python -B scripts/verify_local.py --focused
 \`\`\`
+
+Use \`--full\` on Windows only when deliberately investigating
+Linux-specific false failures; it is **not** an acceptance test.
+Windows \`bash.exe\` may be the WSL launcher with no distro installed;
+the verifier no longer invokes it or asks you to install WSL.
 
 With **PySide6 already installed locally**, opt into the actual Qt
 offscreen smoke tests:
@@ -102,12 +114,22 @@ prove malicious guest isolation.
 
 ## 4. What remains blocked
 
-- Fix and rerun genuine code regressions using local results. An
-  identified recent defect in \`tests/test_kali_process_label.py\`
-  placed the synthetic \`/proc/PID/stat\` process start time one column
-  early (field 21 instead of Linux field 22); the fixture is corrected
-  on this integration branch. This is **not** proof that it was the only
-  failure in PR #29's hosted CI.
+- **Windows baseline, 2026-10-09:** the first isolated local run parsed
+  61 Python sources but reported 372 tests: **41 failures, 35 errors,
+  28 skips**. Many were Windows-only artifacts: symlink creation denied
+  (WinError 1314), absent POSIX \`os.geteuid()\`, non-POSIX reported
+  \`st_mode\` permissions, POSIX-only paths and the unconfigured WSL
+  \`bash.exe\` launcher. Do not call that run a passing Fedora test or
+  assume 76 separate product defects.
+- Corrected a **genuine synthetic QEMU fixture defect** from an earlier
+  mistaken change: after Linux \`/proc/PID/stat\`'s state field (field 3,
+  split-field index 0), the process start time is field 22 (index 19).
+  Therefore the fixture needs exactly **18 filler fields** between state
+  and starttime, not 19. Added an explicit field-22 regression test
+  and POSIX executable basename semantics for Windows fixture runs.
+  The user still needs to rerun the checks; this is NOT proof of real
+  Fedora process-label or network isolation.
+
 - Test the entire latest cumulative code on Python 3.11/3.12/3.13
   where available, Qt offscreen and native fixtures.
 - Check PR #28/#29 ancestry and forward-revert interactions before
