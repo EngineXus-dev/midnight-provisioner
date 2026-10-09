@@ -31,6 +31,7 @@ WINDOWS_PORTABLE_SUITES = (
     "test_resources.py",
     "test_svirt_policy.py",
     "test_kali_templates.py",
+    "test_fedora_docker_runner.py",
 )
 
 # Cross-platform synthetic /proc process checks only: excludes the strict
