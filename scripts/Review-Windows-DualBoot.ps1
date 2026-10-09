@@ -132,7 +132,11 @@ try {
 } catch { Unknown 'Disk inventory' }
 
 $osLetter = [string]$env:SystemDrive
-if ($osLetter -match '^[A-Za-z]:\\?
+if ($osLetter.Length -ge 2 -and $osLetter[1] -eq ':') {
+    $osLetter = $osLetter.Substring(0, 1)
+} else {
+    $osLetter = ''
+}
 $osPartition = $null
 if ($osLetter -match '^[A-Za-z]$') {
     try {
