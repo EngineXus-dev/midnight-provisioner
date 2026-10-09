@@ -28,6 +28,7 @@ from .updates import SourceUpdater
 from .provisioning import OfflineProvisioner, build_plan
 from .kali_templates import get_template, list_templates, plan_template
 from .kali_setup import build_setup_plan, save_setup_plan, compare_inventory_files, guest_inventory_instructions
+from .kali_drift import compare_version_lock_files
 from .backups import ColdBackup, verify_backup
 from .recovery import RecoveryStager, verify_staging
 from .readiness import RecoveryReadiness
@@ -671,6 +672,19 @@ class MainWindow(QMainWindow):
         plan_actions.addWidget(guest_help)
         plan_actions.addStretch()
         layout.addLayout(plan_actions)
+        drift_actions = QHBoxLayout()
+        drift_button = QPushButton("Review package version drift")
+        drift_button.setToolTip(
+            "Compare an existing Kali setup plan, previously saved version lock, "
+            "and a newly supplied guest inventory. No guest operations or file writes."
+        )
+        drift_button.clicked.connect(self.review_kali_version_drift)
+        drift_actions.addWidget(drift_button)
+        drift_note = QLabel("Three local JSON files · self-reported metadata, not attestation")
+        drift_note.setObjectName("SubTitle")
+        drift_note.setWordWrap(True)
+        drift_actions.addWidget(drift_note, 1)
+        layout.addLayout(drift_actions)
 
         controls = QHBoxLayout()
         self.provision_preview_button = QPushButton("Verify ISO + preview VM")
@@ -787,6 +801,36 @@ class MainWindow(QMainWindow):
             lambda message: self.provision_result.setPlainText(
                 "GUEST INVENTORY UNVERIFIED — " + message +
                 "\nNo software, guest or system settings were modified."
+            ),
+        )
+
+    def review_kali_version_drift(self):
+        if self.provision_kind.currentData() != "pentest":
+            self.provision_result.setPlainText(
+                "Package drift review applies only to separately provisioned benign Kali VMs."
+            )
+            return
+        paths = []
+        for caption in (
+            "Select Kali setup plan JSON",
+            "Select previously saved Kali package version lock",
+            "Select NEW manually obtained guest inventory JSON",
+        ):
+            selected, _ = QFileDialog.getOpenFileName(
+                self, caption, "", "JSON files (*.json)"
+            )
+            if not selected:
+                return
+            paths.append(Path(selected))
+        self.provision_result.setPlainText(
+            "Reviewing only three bounded local JSON files; no VM will be contacted …"
+        )
+        self.work(
+            lambda: compare_version_lock_files(*paths),
+            lambda result: self.provision_result.setPlainText(result.describe()),
+            lambda message: self.provision_result.setPlainText(
+                "KALI VERSION DRIFT UNVERIFIED — " + message +
+                "\nNo guest, system configuration or file was modified."
             ),
         )
 
