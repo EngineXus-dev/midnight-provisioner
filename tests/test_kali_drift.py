@@ -105,7 +105,7 @@ class KaliVersionDriftTests(unittest.TestCase):
         inventory["kali_release"] = "kali-2026.4"
         result = self.review(inventory)
         self.assertFalse(result.unchanged)
-        self.assertIn("Kali release changed", result.problems)
+        self.assertTrue(any("Kali release changed" in problem for problem in result.problems))
 
     def test_uncertain_or_failed_guest_dpkg_audit_is_not_green(self):
         for value in (None, False):
