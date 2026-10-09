@@ -1,6 +1,6 @@
 # Nightglass integration and no-Actions verification
 
-**Status: INTEGRATION HOLD — do not merge until tests and reviewer approval.**
+**Status: FEDORA CONTAINER VERIFICATION PASSED / HOST ACCEPTANCE HOLD — no merges until real Fedora/KVM gates and explicit reviewer/owner approval.**
 
 Nightglass is developed as a cumulative chain of **29 open draft pull
 requests** as of October 9, 2026. No PR has been merged. PR #1 targets
@@ -126,10 +126,16 @@ suite, actual PySide6 offscreen Qt widgets and native QEMU/libvirt
 fixture validators. The initial image build may download packages,
 while test execution itself has no network connectivity.
 
-No Docker engine is available in this assistant's container, so this
-path is **implemented and statically inspected but not yet executed on
-the user's Docker Desktop**. No claim of full Fedora container PASS
-exists until the user supplies that run's output.
+**Docker Desktop verification now PASSED on 2026-10-09:** the user supplied
+a successful, offline Fedora 43 container log for integration commit
+`d4bf4b9d7748b1d75c077e4f37031374bd9d2029`:
+62 Python sources parsed; Bash syntax passed; 381 full Linux unit
+tests completed with 23 GUI-only tests skipped in unit discovery;
+the same 23 GUI tests all passed in the explicit PySide6 offscreen
+suite; and 6 native QEMU/libvirt fixture tests passed. All requested
+container stages returned zero. No Nightglass VMs, host disk alterations,
+GitHub Actions or PR merges were involved. This is container evidence,
+**not real host security acceptance**.
 
 See [Fedora Docker verification instructions](FEDORA_DOCKER_VERIFICATION.md).
 This still cannot certify an actual running Fedora/KVM guest, host
@@ -176,5 +182,7 @@ base, diff, tests, and effect on pending stacked branches. Do not
 automatically close, squash, cherry-pick, reset, delete or rebase the
 whole stack.
 
-This guide is procedural. It is not a claim that the suite has passed
-locally or that the existing draft PRs have been merged.
+This guide records the verified Fedora container test result on commit
+`d4bf4b9`; it does not establish real-host SELinux/sVirt/KVM, guest isolation,
+packet-level network denial, guest cold restore or Python 3.11–3.13 results.
+Existing draft PRs remain unmerged.
