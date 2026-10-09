@@ -145,3 +145,14 @@ parent-traversal inputs and simulated Windows reparse metadata.
 The Windows launcher's default mode is still preview-only and the
 exact-SHA candidate should be audited before running Docker tests.
 No real Windows junction acceptance is claimed yet.
+
+## Phase 15: safer Windows-portable verifier
+
+For a native Windows `python scripts/verify_local.py` run,
+every file in the portable allowlist now uses
+`scripts/run_portable_suite.py` to reject zero-test and
+all-skipped unittest results. It does not claim Fedora security
+acceptance for skipped platform-specific cases. The new checker
+was exercised in a 7-test isolated local fixture, **not**
+the real Windows target environment. See
+[Phase 15](PHASE15_PORTABLE_TEST_COMPLETENESS.md).
