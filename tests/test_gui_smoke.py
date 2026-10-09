@@ -194,7 +194,8 @@ class OffscreenMainWindowTests(unittest.TestCase):
     def test_read_only_fedora_host_posture_action(self):
         from PySide6.QtWidgets import QPushButton
         from nightglass.host_posture import HostPosture, PostureCheck
-        self.window.goto(2)
+        with patch.object(self.window, "check_host"):
+            self.window.goto(2)
         controls = {button.text() for button in self.window.stack.currentWidget().findChildren(QPushButton)}
         self.assertIn("Audit Fedora host security", controls)
         with patch.object(self.window, "work") as background:
