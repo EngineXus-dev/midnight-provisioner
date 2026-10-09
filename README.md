@@ -456,6 +456,26 @@ The connected GitHub integration does not currently expose *repository creation*
 
 The script creates a fresh `nightglass-workspaces` **private** repository through `gh repo create`, initializes only this project directory if needed, refuses existing `origin` remotes and dirty existing Git checkouts, and **never force-pushes or pulls existing work**. You may rename the repo using `-RepoName custom-name`.
 
+## Windows-to-Fedora dual-boot preparation (NO installation)
+
+The next draft phase adds a **read-only Windows 10 readiness reviewer** for
+UEFI/BIOS, disk layout, Fast Startup, CPU/RAM and BitLocker status.
+It does **not** edit Windows, partition drives, install Fedora, alter
+Secure Boot/TPM, request recovery keys or reboot. Do not run any
+partitioning or OS install task from Nightglass.
+
+See [Windows dual-boot safety gates](docs/DEPLOYMENT_SAFETY_GATES.md)
+and the [private manual decision template](docs/DEPLOYMENT_DECISION_TEMPLATE.md).
+The new PowerShell script is on the unmerged
+`deployment/windows-dualboot-readiness-gates` draft branch. It is
+retrieved to a **new temporary path**, leaving the original local
+`main` checkout and its untracked files untouched. Its actual
+Windows PowerShell execution has not yet been verified.
+
+No Windows/Fedora dual-boot, physical Fedora hardware acceptance,
+benign KVM VM boot or cold rollback has been performed on the user's
+machine by this project.
+
 ## Threat model and roadmap
 
 See [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md), [docs/INSTALL_PLAN.md](docs/INSTALL_PLAN.md), and [docs/ROADMAP.md](docs/ROADMAP.md).
