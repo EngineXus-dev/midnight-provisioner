@@ -342,3 +342,14 @@
 - [ ] Validate helper syntax via Windows PowerShell AST, run synthetic tests and test Apply/Undo on disposable Windows 11 VM first
 - [ ] Check actual official Windows/Fedora ISO sizes vs separate 16 GB USB before any download/USB writing
 - [ ] Do not build ISO, format USB, run setup, install Windows/Fedora, weaken security or merge draft PRs without separate future approval
+
+## v0.3w — Windows 11 Pro privacy and 32-request profile (draft)
+- [x] Record valid Pro licence claim without storing key; require Windows 11 Pro activation validation
+- [x] Map 32 preferences plus OneDrive/Widgets/promotional apps and AI suite to 35 reviewed groups
+- [x] Inspect user-provided Get.ps1 launcher and WinUtil ZIP; do not run remote downloader or broad default preset
+- [x] Stage read-only Preview / exclusive-new ExportPlan / explicitly gated later ApplyCore based on pinned local Win11Debloat.ps1 SHA256
+- [x] Separate app uninstalls, automatic device encryption, Start pin clearing, Sandbox, WSL2 and Brave/Chrome policies from reversible core
+- [x] Keep security patches, Defender, firewall, BitLocker capability, TPM/Secure Boot, WinRE, Store/WebView2 and WSL/Docker development dependencies
+- [ ] Parse new PowerShell with native Windows 11 Pro; run unit tests and disposable VM Apply/Undo before user use
+- [ ] Independently verify vendor script hash/flags/rollback semantics and each requested setting on 26H2
+- [ ] No installed Windows, ISO/USB, backups, Fedora disk layout or PR merges altered as part of planning
