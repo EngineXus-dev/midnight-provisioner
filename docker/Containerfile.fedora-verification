@@ -23,7 +23,7 @@ WORKDIR /workspace
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONNOUSERSITE=1 \
     QT_QPA_PLATFORM=offscreen \
-    NIGHTGLASS_GUI_SMOKE=1 \
+    NIGHTGLASS_GUI_SMOKE=0 \
     HOME=/tmp \
     XDG_CONFIG_HOME=/tmp/nightglass-config \
     XDG_DATA_HOME=/tmp/nightglass-data \
