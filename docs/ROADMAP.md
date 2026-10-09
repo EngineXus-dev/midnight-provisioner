@@ -229,6 +229,16 @@
 - [ ] Signed backup manifest and effective guest/host network/SELinux verification remain unavailable
 - [ ] Do not automate Kali package installs or in-place rollback based on hash matches alone
 
+## v0.3m — Kali backup-to-offline-recovery linkage (draft)
+- [x] Bind independently staged NEW offline recovery guest to exact original curated Kali plan, original VM name and lab policy
+- [x] Rehash verified cold backup and staged copy before trusting any XML/disk metadata
+- [x] Refuse nested backup/staging destinations, missing/mismatched qcow2 or NVRAM assets, link-count and inode reuse
+- [x] Compare canonical staged XML to deterministic offline transformation of original verified backup XML
+- [x] Reject copied images that changed even after someone rewrote staging manifest checksums, and reverify file/inode state after comparison
+- [x] CLI/GUI read-only source-copy verification with optional NEW private report and synthetic tests
+- [ ] Manual supervised Fedora/KVM staged import preflight, benign new-guest registration, handoff check, boot and actual rollback evidence
+- [ ] Guest package provenance, packet-level isolation and SELinux runtime remain unverified; no automatic import/restore
+
 ## v0.4 — distro switching and portable workspaces
 - [ ] Safe distrobox templates and apps for multiple trusted distros with exported launchers
 - [ ] Controlled VM export/import bundles (only with user-confirmed paths and snapshot hygiene)
