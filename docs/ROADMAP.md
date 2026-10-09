@@ -93,6 +93,16 @@
 - [ ] Validate on Fedora KDE with real 8/16/32 GB RAM pressure and out-of-band VM starts
 - [ ] Actual VM allocation/reservation accounting and measured host-pressure behaviors
 
+## v0.3a — Fedora host security posture read-only baseline (draft)
+- [x] Inspect SELinux mode, KVM character-device permissions, and non-root process state
+- [x] Report firewalld daemon state and IPv4/IPv6 host forwarding as INFO only, never isolation proof
+- [x] Fail to UNKNOWN on missing, inconsistent or unreadable mandatory host settings
+- [x] Reject restricted VM/disk XML explicitly disabling security labels or relabeling
+- [x] Host security CLI command and on-demand Diagnostics GUI action
+- [x] Synthetic host-policy and sVirt opt-out regression tests; offscreen Qt button coverage
+- [ ] Real Fedora enforcing/sVirt label and polkit functionality acceptance
+- [ ] Independently measured guest-to-host and guest-to-Internet traffic isolation
+
 ## v0.3 — defense in depth
 - [ ] Polkit actions and minimal privileged policy service, no trusted XML audit from user-editable settings
 - [ ] SELinux device/volume access review; stronger VM security architecture tests
