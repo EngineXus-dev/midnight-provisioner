@@ -166,3 +166,7 @@ This guard is not atomic against concurrent path swaps.
 
 See [backup path security review](BACKUP_PATH_BOUNDARY_HARDENING.md).
 Native Windows junction testing remains pending.
+
+## Phase 13 identity check
+
+The backup checker now rejects a backup hardlink to any source file in its selected source tree, even when filenames differ. Physical drive independence remains unverified.
