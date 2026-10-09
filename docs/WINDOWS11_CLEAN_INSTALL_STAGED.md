@@ -165,3 +165,20 @@ staged in [Windows 11 Pro configuration](WINDOWS11_PRO_32_POINT_PROFILE.md).
 Privacy/AI toggles are distinct from app uninstall, automatic-encryption
 security choice, Windows Sandbox and WSL feature enablement.
 No changes have been applied to current Windows 10.
+
+## Phase 10 — locally verify a copied backup without modifying the portable drive
+
+The source and copied project folders can be checked with the
+preview-first `scripts/Inspect-Nightglass-Backup.py` tool **after**
+the user independently makes a backup. Default `Preview` reads
+nothing; `Inspect` compares presence/sizes and `Verify` streams
+SHA-256 hashes of regular files on both sides. Hidden `.env`,
+`.venv` and `.git` files are INCLUDED, not dismissed as Git
+reconstructible. No drive selection, USB/SSD formatting, file copying
+or restore is performed. A match does not prove personal files
+outside the selected roots are backed up, or that an entire system
+can recover. See [backup integrity guide](BACKUP_INTEGRITY_PREFLIGHT.md).
+
+**No clean install is authorized.** The portable example backup-drive capacity drive remains
+backup-only, not an OS or USB target, and Pro activation can happen
+later through genuine Windows Settings.
