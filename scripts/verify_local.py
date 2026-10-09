@@ -34,6 +34,7 @@ WINDOWS_PORTABLE_SUITES = (
     "test_fedora_docker_runner.py",
     "test_host_acceptance.py",
     "test_python_matrix_runner.py",
+    "test_windows_dualboot_review.py",
 )
 
 # Cross-platform synthetic /proc process checks only: excludes the strict
