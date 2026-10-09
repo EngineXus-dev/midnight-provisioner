@@ -749,3 +749,5 @@ result from being mistaken for latest-candidate evidence.
 The updated suite still needs native Windows/Docker execution.
 All Nightglass PRs remain draft and unmerged; Windows/Fedora
 installation and media writes remain deferred.
+
+The [Phase 14 verification record](docs/PHASE14_RELEASE_GATE_REPAIR.md) separates the locally executed 8-test positive/negative synthetic fixture from the still-pending complete Windows/Docker release gate.
