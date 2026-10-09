@@ -4,6 +4,25 @@ Nightglass's safety model must be evaluated on the **actual Fedora host** before
 a recovered VM is registered. CI tests use simulated libvirt commands and do
 not establish isolation or successful recovery.
 
+## Phase start: safe Fedora host prerequisite audit (no VM required)
+
+A separate non-root audit is now available for an actual Fedora test
+installation. It does not require a staged backup or an existing guest:
+
+    bash scripts/fedora-host-acceptance.sh
+
+Optional NEW 0600 local status-only evidence (never uploads or overwrites):
+
+    bash scripts/fedora-host-acceptance.sh --report "$HOME/nightglass-host-prerequisites-new.json"
+
+It checks Fedora identity, ordinary-user privileges, SELinux enforcing
+state, accessible KVM, native validation utilities and read-only
+system-libvirt inventory availability. A successful prerequisite result
+is NOT proof of real sVirt process/disk labels, guest packet isolation,
+benign boot or cold rollback. **Actual Fedora hardware acceptance
+remains PENDING.** Use the [full gate plan](FEDORA_HOST_PREFLIGHT.md);
+do not run with sudo to suppress permissions failures.
+
 ## Automated *read-only* prerequisite
 
 On a Fedora KDE test machine, install the Nightglass app and the reviewed
