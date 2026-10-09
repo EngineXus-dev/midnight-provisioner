@@ -33,11 +33,24 @@ class PythonMatrixRunnerTests(unittest.TestCase):
             '"--pull", "never"',
             'target=/workspace,readonly',
             '"--memory", "1024m"',
-            '"--tmpfs", "/tmp:rw,nosuid,nodev,size=256m"',
+            '"--tmpfs", "/tmp:rw,nosuid,nodev,size=512m"',
         ):
             self.assertIn(required, text)
         for forbidden in ('"--privileged"', '"/dev/kvm"', '"/var/run/docker.sock"'):
             self.assertNotIn(forbidden, text)
+
+    def test_temporary_space_exceeds_backup_recovery_safety_reserve(self):
+        # The application intentionally reserves 256 MiB beyond the real
+        # backup/recovery fixture payload; a 256m tmpfs is insufficient.
+        runner = RUNNER.read_text(encoding="utf-8")
+        found = re.search(r'--tmpfs", "/tmp:rw,nosuid,nodev,size=(\\d+)m"', runner)
+        self.assertIsNotNone(found)
+        capacity_mib = int(found.group(1))
+        self.assertGreater(capacity_mib, 256)
+        self.assertLessEqual(capacity_mib, 768)  # Keep workstation usage low.
+        for module in ("backups.py", "recovery.py"):
+            content = (ROOT / "nightglass" / module).read_text(encoding="utf-8")
+            self.assertIn("256 * 1024 * 1024", content)
 
     def test_checkout_is_unique_detached_branch_only_and_no_history_rewrite(self):
         text = RUNNER.read_text(encoding="utf-8")
