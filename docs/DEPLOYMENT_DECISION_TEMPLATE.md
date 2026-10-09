@@ -1,31 +1,33 @@
 # Nightglass deployment decision record (copy privately; never publish secrets)
 
+> Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
+
 **Template only. Every item starts unverified.**
 No software automatically fills this in or approves a partition/OS change.
 Store any completed record locally outside the source repository.
 
 ## Optional Windows 11-first decision
 
-- [ ] Decision explicitly recorded: stay on Windows 10 / in-place
-      Windows 11 upgrade / separate new-install plan (not automatic)
+- [x] User preference recorded (2026-10-09): clean-install Windows 11 LATER
+      (not in-place upgrade, not currently authorized)
 - [ ] Microsoft PC Health Check/Windows Update eligibility reviewed,
       including TPM 2.0, Secure Boot capability, graphics and driver support
 - [ ] Windows 10 offline full-image backup, tested recovery USB and
       privately secured encryption/recovery keys available *before* upgrade
-- [ ] If Windows 11 was chosen: new installation boots repeatedly,
-      user applications/data/drivers/activation checked, and backup and
-      Windows recovery paths still work
+- [ ] After future clean Windows 11 install: it boots repeatedly; chosen
+      Windows edition activates, drivers work, intended files have been
+      restored, apps are reinstalled and Windows recovery still works
 - [ ] If Windows 11 was chosen: **new post-upgrade read-only**
       Windows disk/TPM/encryption/firmware inventory reviewed
 - [ ] User-confirmed portable Disk 1 is explicitly protected from
       Fedora installation, USB formatting, partitioning and overwrites;
       its data/backup role is reviewed privately if needed
-- [ ] Fedora installation is explicitly on HOLD until all the Windows
-      upgrade and recovery checks are complete
+- [ ] Fedora installation is ON HOLD until clean Windows 11 installation,
+      file restoration and recovery checks are independently complete
 
-The Windows 11 upgrade is not required if the user chooses another
-supported Windows strategy; it must not be conflated with Fedora
-partitioning or an automatic OS upgrade. No recovery keys in this file.
+The chosen clean Windows 11 install is not immediate; it must not be
+conflated with Fedora partitioning or any unattended OS deployment.
+No recovery keys in this file.
 
 ## Machine and rollback gate (BEFORE touching storage)
 
@@ -83,9 +85,26 @@ See DEPLOYMENT_SAFETY_GATES.md for stop and rollback paths.
 - [ ] Official Windows 11 x64 and Fedora KDE Live ISO sources verified
 - [ ] Multiboot USB Secure Boot behavior tested, or two independent
       official USB installers used if incompatible
-- [ ] Windows 11 *in-place* upgrade run from Windows, never mistaken for
-      the clean-install action shown by booting the Windows ISO
+- [ ] User-selected clean Windows 11 install is NOT performed until
+      file backups, recovery, TPM 2.0, firmware and physical target
+      are checked and explicit future approval is given
 - [ ] Fedora Live USB successfully tried without partitioning
 - [ ] Portable Disk 1 never selected as USB writer or OS install target
 
 See ONE_USB_MULTIBOOT_PLAN.md.
+
+## Backup to portable drive (planned, not performed)
+
+- [ ] Preserve desired documents, media, programs/licence records, browser
+      data, Nightglass/local Git trees including ignored/untracked changes,
+      local .env/config, secure credentials, and valuable user databases
+- [ ] Copy reviewed data to the user-confirmed portable example backup-drive capacity drive;
+      validate sizes, hashes and spot-check opening restored copies
+- [ ] Disconnect the portable backup drive BEFORE booting installer media
+- [ ] Separately consider a verified full Windows system image and recovery
+      USB if restoring the entire current machine would be needed
+- [ ] User reports a separate 16 GB USB; verify actual capacity, identity,
+      contents and combined ISO sizes before any USB writer operation
+- [ ] No installation or USB formatting until the user finishes other work
+
+See WINDOWS11_CLEAN_INSTALL_STAGED.md.
