@@ -213,3 +213,29 @@ cold recovery, and explicit integration/merge approval remain pending.
 Do not merge any draft PR as part of this phase. See
 [Fedora host prerequisite plan](FEDORA_HOST_PREFLIGHT.md) and
 [Python compatibility matrix](PYTHON_COMPATIBILITY_MATRIX.md).
+
+## Deployment preparation draft phase: Windows dual-boot safety gates
+
+A further stacked draft branch `deployment/windows-dualboot-readiness-gates`
+prepares (but **does not perform**) the Windows-to-Fedora dual-boot transition.
+The native PowerShell reader observes current Windows OS/firmware/secure-boot,
+BitLocker **status only**, Fast Startup flag, sanitized partition/disk inventory,
+RAM and virtualization hints, with **NO** partition/boot/firmware/encryption
+writes, disk selection, elevation, recovery-key collection or report creation.
+Read-only status is never installation permission.
+
+The branch includes static Python safety contract checks, adds these to the
+portable Windows verifier allowlist, and documents manual **HOLD** gates:
+tested disconnected Windows backup and recovery USB; offline recovery keys;
+independently reviewed disk/ESP/Recovery/firmware plan; Fedora live-USB trial;
+and actual post-install Windows/Fedora boots plus rollback path. The install
+and physical Fedora acceptance stages remain **UNVERIFIED**, requiring
+separate explicit owner approval.
+
+**Verification:** the new Windows reviewer has not been executed on a real
+Windows host or passed a Windows PowerShell AST parser run yet. Prior Fedora
+Docker and Python 3.11–3.13 PASS results apply to their previously recorded
+code commits, not the newly changed deployment branch. Do not merge PRs or
+alter Windows hardware as part of this change. See
+[dual-boot deployment gates](DEPLOYMENT_SAFETY_GATES.md) and
+[private decision template](DEPLOYMENT_DECISION_TEMPLATE.md).
