@@ -5,14 +5,13 @@ from dataclasses import replace
 import sys
 from .settings import load_workspaces
 from .models import WorkspaceError
-from .diagnostics import collect_checks, resource_advice
+from .diagnostics import collect_checks, resource_advice, total_ram_gib
 from .hypervisor import Hypervisor
 from .runner import ToolError
 from .portability import (
     MachinePreferences, budget_for, current_budget, load_machine_preferences,
     save_machine_preferences,
 )
-from .diagnostics import total_ram_gib
 from .updates import SourceUpdater
 import os
 
@@ -28,8 +27,8 @@ def main(argv: list[str] | None = None) -> int:
     profile = sub.add_parser("profile", help="Inspect or switch portable hardware profiles")
     profiles = profile.add_subparsers(dest="profile_action")
     profiles.add_parser("show", help="Show active hardware resource limits")
-    apply_profile = profiles.add_parser("apply", help="Apply one of the two machine setup profiles")
-    apply_profile.add_argument("target", choices=("8gb", "up-to-32gb"))
+    apply_profile = profiles.add_parser("apply", help="Select machine profile (Auto detects hardware)")
+    apply_profile.add_argument("target", choices=("auto", "compact", "balanced", "performance"))
     apply_profile.add_argument("--yes", action="store_true", help="Confirm without an interactive prompt")
 
     updates = sub.add_parser("update", help="Safe opt-in source updates from official main branch")
@@ -48,19 +47,12 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             current = load_machine_preferences()
             ram = total_ram_gib()
-            if args.target == "8gb" or ram is None or ram < 11:
-                preset = MachinePreferences(
-                    preset="compact", guest_ram_cap_gib=3.0,
-                    active_vm_cap=1, vcpu_cap=2,
-                    automatic_update_checks=current.automatic_update_checks,
-                )
-                if args.target != "8gb":
-                    print("Less than 11 GiB RAM detected: using the 8 GB-safe profile.")
-            else:
-                preset = MachinePreferences(
-                    preset=("performance" if ram >= 28 else "balanced"),
-                    automatic_update_checks=current.automatic_update_checks,
-                )
+            # The selected mode is only a *preference*: the effective limits
+            # are always clamped to actual host capacity on every VM launch.
+            preset = MachinePreferences(
+                preset=args.target,
+                automatic_update_checks=current.automatic_update_checks,
+            )
             preview = budget_for(ram, os.cpu_count(), preset)
             print(preview.explain())
             print("Only Nightglass machine.json will change; no VM disk, network, bootloader, or workspace definition changes.")
