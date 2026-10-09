@@ -124,6 +124,19 @@ class ReadinessTests(unittest.TestCase):
         with self.assertRaisesRegex(ToolError, "format mismatch"):
             self.check()
 
+    def test_declared_raw_driver_on_qcow2_disk_fails_before_native_tools(self):
+        # Recompute the staged manifest to model an internally consistent
+        # but semantically unsafe XML definition.
+        self.xml.write_text(
+            self.xml.read_text(encoding="utf-8").replace(
+                'type="qcow2"', 'type="raw"'
+            ), encoding="utf-8"
+        )
+        self.reset_manifest()
+        with self.assertRaisesRegex(ToolError, "driver format"):
+            self.check()
+        self.assertEqual(self.runner.calls, [])
+
     def test_backing_chain_or_embedded_snapshots_fail(self):
         for variant in (
             {"format": "qcow2", "backing-filename": "/dev/sda"},
