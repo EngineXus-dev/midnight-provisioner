@@ -365,6 +365,23 @@ and warns about backups on the same storage device as the live VM.
 A passing hash/definition comparison is **not proof that the backup will
 restore or boot**. See [Kali cold baseline workflow](docs/KALI_COLD_BASELINES.md).
 
+## Confirm each Kali VM recovery copy belongs to its template
+
+A read-only check now ties a curated Kali VM setup plan and original
+checksum-verified cold backup to an independently staged NEW offline
+recovery guest:
+
+```bash
+nightglass templates recovery-link ./kali-plan.json \
+  --backup /path/to/original-cold-backup \
+  --staged /path/to/new-offline-staging
+```
+
+Or use **Prepare VM → Verify Kali recovery copy**. It rechecks both
+manifests/files, source guest and policy, separate disk/NVRAM copies
+and exact safe offline XML transformation. It does not create, import,
+boot or restore a VM. See [Kali recovery copy binding](docs/KALI_RECOVERY_LINK.md).
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
