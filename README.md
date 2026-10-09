@@ -204,6 +204,19 @@ label opt-outs. Successful local checks are **not** proof of effective sVirt,
 firewall isolation, packet-level network denial or malware containment.
 See [Fedora security posture limitations](docs/HOST_POSTURE.md).
 
+## Guarded VM launch checks across live, inactive and saved XML
+
+For restricted VM workspaces, `nightglass inspect <workspace>` and the
+normal **Start / Enter** action inspect the live/current, next-boot/inactive
+and any managed-save libvirt domain definitions. A prohibited interface,
+host-integration device, explicit SELinux label opt-out or mismatched
+identity in **any** version blocks Nightglass-issued start. The local RAM
+guard considers all of these definitions, including hotplug maxima.
+
+This does **not** prevent a privileged application from editing libvirt
+definitions after the audit, starting guests outside Nightglass or altering
+host firewall policy. No new automatic VM import/start has been enabled.
+
 ## Useful controls
 
 | Workspace | Backend | Persistent? | Network default | Security promise |
