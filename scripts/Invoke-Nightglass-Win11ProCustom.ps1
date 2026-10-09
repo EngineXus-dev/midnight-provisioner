@@ -16,6 +16,8 @@ param(
   [string]$Win11DebloatPath = '',
   [string]$ExpectedSha256 = '',
   [string]$Consent = '',
+  [ValidateSet('ActivateLater','DuringSetup')]
+  [string]$ActivationTiming = 'ActivateLater',
   [switch]$BackupVerified,
   [switch]$AllowBrowserTweaks
 )
@@ -95,6 +97,14 @@ if ($reviewItems.Count -ne $reviewIds.Count) {
 }
 Write-Host 'Nightglass / WINDOWS 11 PRO privacy + minimal customization'
 Write-Host ('Mode: ' + $Mode)
+Write-Host ('Future Windows Pro activation timing: ' + $ActivationTiming)
+Write-Host "No product key is requested, read, stored or logged by this planner."
+if ($ActivationTiming -eq 'ActivateLater') {
+  Write-Host "At future authentic Microsoft Setup: choose 'I don't have a product key' if offered, then ensure Windows 11 Pro is selected."
+  Write-Host "After the clean install: Settings > System > Activation > Change product key."
+} else {
+  Write-Host "At future authentic Microsoft Setup: enter the Pro key privately there, not in Nightglass."
+}
 Write-Host ('Catalog: ' + $catalogPath)
 Write-Host ('CORE proposed switches: ' + $requested.Count)
 Write-Host 'ApplyCore never performs app uninstall, disables encryption, enables Sandbox/WSL, or formats a drive.'
@@ -138,6 +148,9 @@ if ($Mode -eq 'Preview' -or $Mode -eq 'ExportPlan') {
     schema = 'nightglass.windows11.pro.preview.v1'
     createdUtc = [datetime]::UtcNow.ToString('o')
     edition = 'Pro; activation to verify after clean installation'
+    activationTiming = $ActivationTiming
+    productKey = 'NOT_STORED'
+    activationStatus = 'NOT_YET_INSTALLED'
     deploymentStatus = 'NOT INSTALLED / NOT APPLIED / HOLD'
     reviewedCoreSwitches = $requested
     deferredReviewIds = $reviewIds
