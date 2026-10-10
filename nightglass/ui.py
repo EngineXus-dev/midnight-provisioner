@@ -46,6 +46,7 @@ from .resources import collect_resources
 from .host_posture import inspect_host_posture
 from .runtime_labels import RuntimeLabelInspector
 from .system_discovery import collect_system, describe as describe_discovery
+from .install_disclosure import disclosure_for, ACKNOWLEDGMENT
 
 class NoWheelComboBox(QComboBox):
     """Prevent incidental wheel scrolling from changing a saved profile."""
@@ -1635,7 +1636,7 @@ class MainWindow(QMainWindow):
         controls.addWidget(title)
         self.discovery_intent = NoWheelComboBox()
         self.discovery_intent.addItem("Not decided — default", "undecided")
-        self.discovery_intent.addItem("Dedicated, independently verified blank drive", "blank")
+        self.discovery_intent.addItem("Freshly format selected target (delete its data)", "format_target")
         self.discovery_intent.addItem("Alongside an existing OS (higher risk)", "coexist")
         self.discovery_intent.currentIndexChanged.connect(
             lambda *_args: self.preview_discovery_intent())
@@ -1644,6 +1645,16 @@ class MainWindow(QMainWindow):
         self.discovery_intent_status.setWordWrap(True)
         self.discovery_intent_status.setObjectName("SubTitle")
         controls.addWidget(self.discovery_intent_status)
+        self.discovery_format_warning = QLabel("")
+        self.discovery_format_warning.setWordWrap(True)
+        self.discovery_format_warning.setObjectName("SubTitle")
+        controls.addWidget(self.discovery_format_warning)
+        self.discovery_backup_acknowledged = QCheckBox(ACKNOWLEDGMENT)
+        self.discovery_backup_acknowledged.setChecked(False)
+        self.discovery_backup_acknowledged.setToolTip(
+            "Acknowledges the data-loss notice only; NOT evidence of backups, "
+            "safe target identity, or permission to format.")
+        controls.addWidget(self.discovery_backup_acknowledged)
         self.discovery_folder_names = QCheckBox(
             "Also inspect personal directory NAMES (opt-in; local only, no files read)")
         self.discovery_folder_names.setChecked(False)
@@ -1667,10 +1678,12 @@ class MainWindow(QMainWindow):
             "No storage device is selected or certified. Review recognition results here.")
         layout.addWidget(self.discovery_output)
         warning = QLabel(
-            "BLANK DRIVE POLICY: A genuinely unused target disk has no old data to "
-            "back up. But existing Windows, EFI/boot entries, other disks and keys "
-            "still need independent review before ANY installer can modify them. "
-            "This page never authorizes formatting, OS installation or VM startup."
+            "BACKUP RESPONSIBILITY: During a future OS installation, formatting "
+            "the selected drive or partitions will delete data there. Nightglass "
+            "will not create or verify your backups. It assumes you have backed "
+            "up anything you want to keep yourself before allowing a destructive "
+            "installation workflow. This discovery page cannot authorize formatting, "
+            "OS installation or VM startup."
         )
         warning.setWordWrap(True)
         warning.setObjectName("SubTitle")
@@ -1681,24 +1694,30 @@ class MainWindow(QMainWindow):
         self.preview_discovery_intent()
 
     def preview_discovery_intent(self):
-        intent = self.discovery_intent.currentData()
+        intent = self.discovery_intent.currentData() or "undecided"
         explanations = {
             "undecided": (
-                "UNDECIDED: target disk identity, current contents, encryption, "
-                "boot path and backup scope remain UNKNOWN. No action is authorized."
+                "UNDECIDED: target identity, current contents, encryption and "
+                "boot path remain UNKNOWN. No installation is authorized."
             ),
-            "blank": (
-                "CLAIMED BLANK DRIVE: no backup is needed for data that never existed "
-                "on that disk, but software will NOT believe a disk is empty from its "
-                "label, partition count or your preference alone. Independent "
-                "identification and confirmation are still necessary. Protect all other drives."
+            "format_target": (
+                "PLANNED REFORMAT: a future installer would replace the selected "
+                "drive or partitions, deleting existing data. This is the intended "
+                "operation, NOT evidence that the disk is empty, safely identified "
+                "or approved. You are personally responsible for backups."
             ),
             "coexist": (
-                "EXISTING OS: independently verified system/data backups, recovery keys, "
-                "rollback plan and explicit partition approval are required before any install."
+                "ALONGSIDE EXISTING OS: partition and EFI/boot changes still risk "
+                "data loss or loss of boot access. Your backups are your responsibility; "
+                "the future installer must show its exact target and changes."
             ),
         }
         self.discovery_intent_status.setText(explanations.get(intent, explanations["undecided"]))
+        self.discovery_format_warning.setText(disclosure_for(intent).warning)
+        # An intent change invalidates the old acknowledgment. This checkbox
+        # never grants write permission or asserts actual backup completeness.
+        self.discovery_backup_acknowledged.setChecked(False)
+        self.discovery_backup_acknowledged.setEnabled(intent != "undecided")
 
     def begin_system_discovery(self):
         if getattr(self, "_discovery_scanning", False):
