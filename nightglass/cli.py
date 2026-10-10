@@ -72,6 +72,13 @@ def main(argv: list[str] | None = None) -> int:
                          help="User has acknowledged the warning; NOT backup or erasure proof")
     changes.add_argument("--json", action="store_true",
                          help="Emit local no-write advisory data, no file names or disk serials")
+    proposal = sub.add_parser(
+        "proposal-review",
+        help="Read-only review of an EXPLICIT, UNTRUSTED operation-list JSON file")
+    proposal.add_argument("--file", type=Path, required=True,
+                          help="Local proposal JSON to inspect, not a disk or installer command")
+    proposal.add_argument("--json", action="store_true",
+                          help="Print held review with bounded opaque IDs; no file writes")
     info = sub.add_parser("inspect", help="Read-only policy audit of a configured VM")
     info.add_argument("key", help="Workspace key, e.g. pentest or analysis")
     profile = sub.add_parser("profile", help="Inspect or switch portable hardware profiles")
@@ -456,6 +463,22 @@ def main(argv: list[str] | None = None) -> int:
                 print(SourceUpdater().apply(confirmed=True))
                 return 0
             parser.error("Specify: update check, update apply, or update checks on/off")
+        if cmd == "proposal-review":
+            from .install_proposal_review import (
+                ProposalError, read_proposal_file, review_proposal, describe_proposal,
+            )
+            try:
+                report = review_proposal(read_proposal_file(args.file))
+            except ProposalError as exc:
+                print("Nightglass proposal rejected: " + str(exc), file=sys.stderr)
+                return 2
+            if args.json:
+                import json
+                from dataclasses import asdict
+                print(json.dumps(asdict(report), indent=2, sort_keys=True))
+            else:
+                print(describe_proposal(report))
+            return 0  # Held report only. No installer operation is possible.
         if cmd == "install-changes":
             from .system_discovery import collect_system
             from .install_change_review import review_from_discovery, describe_change_review
