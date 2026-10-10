@@ -25,6 +25,20 @@ Nightglass is **independent of all other projects**. Its restrained dark/neon pr
 - It cannot prevent users/admins/other processes from editing libvirt outside Nightglass. A post-audit modification race is possible. The low-memory guard also applies only to Nightglass-issued launches. For malware, a **dedicated analysis host** is safer than relying on this preview.
 - It does not secure native host personal activity against the compromise of the host OS.
 
+## New computer recognition — no assumptions
+
+Nightglass now includes a **System discovery** page in the Fedora UI, and a read-only `nightglass discover` command for Windows/Fedora. The app initiates a bounded local hardware and disk recognition on GUI startup; source-specific folder names are **not** inspected unless the user opts in. No disk is assumed to be empty or selected automatically; uncertainties are labeled **UNKNOWN** and left to the operator.
+
+A verified truly blank, dedicated installation drive has no existing data to back up. Backup and recovery obligations still apply to any other existing OS, EFI or data disks that might be touched. All boot, firmware, USB and disk writes remain separately unauthorized. See [Phase 23 first-run discovery](docs/PHASE23_FIRST_RUN_DISCOVERY.md).
+
+```bash
+nightglass discover                     # no changes or private folder-name scanning
+nightglass discover --folder-names      # optional local names scan only
+nightglass gui                          # Fedora desktop, seventh tab
+```
+
+On Windows with Python and the source checkout, use `python -m nightglass discover`. The desktop GUI remains Fedora-only. This is not an OS installer or backup tool.
+
 ## Windows 10 first — zero-change prep
 
 Nightglass's controller runs on **Fedora**, not Windows. On the current Windows machine, PowerShell can inspect hardware and storage **without making changes**:
