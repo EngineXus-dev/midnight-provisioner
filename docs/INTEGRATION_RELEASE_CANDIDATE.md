@@ -1,5 +1,8 @@
 # Nightglass Cumulative Source Release Candidate
 
+> **Current merge status and next-AI handoff:** See [OWNER_MERGE_HANDOFF.md](OWNER_MERGE_HANDOFF.md). Cumulative PR #66 is prepared for the human owner's review, but the latest integration-commit Windows/Fedora verification is not established; no physical Fedora or installation acceptance is implied.
+
+
 **Purpose:** one reproducible, testable Fedora KDE Nightglass application SOURCE baseline for the next engineer. Not a Windows executable, finished Fedora OS installer, boot image, hardened appliance, or production release.
 
 ## GitHub integration inventory
