@@ -29,7 +29,8 @@ WINDOWS_QUERY = (
     "$ErrorActionPreference='Stop'; "
     "$d=@(Get-Disk | Select-Object Number,Size,PartitionStyle,IsBoot,IsSystem,IsReadOnly,BusType); "
     "$p=@(Get-Partition | Select-Object DiskNumber,DriveLetter); "
-    "@{disks=$d;partitions=$p}|ConvertTo-Json -Compress -Depth 4"
+    "$m=$null; try{$m=(Get-CimInstance Win32_ComputerSystem -ErrorAction Stop).TotalPhysicalMemory}catch{}; "
+    "@{disks=$d;partitions=$p;memory_bytes=$m}|ConvertTo-Json -Compress -Depth 4"
 )
 LINUX_QUERY = ("lsblk", "-J", "-b", "-o",
                "NAME,TYPE,SIZE,RM,RO,TRAN,MOUNTPOINTS")
@@ -248,6 +249,10 @@ def collect_system(*, include_folder_names: bool = False,
             storage_data = _run_fixed(LINUX_QUERY)
         else:
             storage_data = None
+    if ram is None and system == "Windows" and isinstance(storage_data, dict):
+        measured = _safe_size(storage_data.get("memory_bytes"))
+        if measured is not None:
+            ram = round(measured / 1024**3, 1)
     storage = (windows_storage(storage_data) if system == "Windows"
                else linux_storage(storage_data) if system == "Linux" else [])
     return {
