@@ -22,7 +22,8 @@ Nightglass is **independent of all other projects**. Its restrained dark/neon pr
 
 ### What this release does **not** do
 
-- It does not install Fedora, edit Windows, format partitions, change EFI settings, or replace a bootloader.
+- The Nightglass app itself does not install Fedora, edit Windows, format partitions, change EFI settings, or replace a bootloader.
+- The optional **dual-boot installer ISO** ([`scripts/iso/`](scripts/iso/README.md)) is Fedora's official netinstall plus a Nightglass kickstart. Fedora's installer does the disk work, and the disk and encryption are always chosen by you on its *Installation Destination* screen.
 - It does not create Kali/analysis guest images for you. Use **virt-manager** to install guests, then click **Bind VM** in Nightglass.
 - It does not implement a trusted file transfer broker, snapshot creation/rollback, sealed VM templates, traffic filtering on the host/bridge, guest hardening, or clipboard enforcement at runtime. These are roadmap work.
 - It cannot prevent users/admins/other processes from editing libvirt outside Nightglass. A post-audit modification race is possible. The low-memory guard also applies only to Nightglass-issued launches. For malware, a **dedicated analysis host** is safer than relying on this preview.
