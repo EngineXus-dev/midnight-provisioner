@@ -152,6 +152,28 @@ class TargetPreviewTests(unittest.TestCase):
         self.assertEqual(plan.target_observed_label, "NOT_SELECTED")
         self.assertFalse(plan.disk_write_authorized)
 
+    def test_cli_risk_preview_uses_readonly_discovery_and_own_backup_warning(self):
+        from nightglass.cli import main
+        from unittest.mock import patch
+        import io
+        import json
+        sample = observation()
+        with patch("nightglass.system_discovery.collect_system",
+                   return_value=sample) as scan, \
+             patch("sys.stdout", new_callable=io.StringIO) as out:
+            code = main([
+                "install-preview", "--intent", "format_target",
+                "--disk-index", "1", "--ack-warning", "--json",
+            ])
+        self.assertEqual(code, 0)
+        scan.assert_called_once_with(include_folder_names=False)
+        doc = json.loads(out.getvalue())
+        self.assertEqual(doc["target_observed_label"], "Disk 1")
+        self.assertTrue(doc["user_backup_warning_acknowledged"])
+        self.assertFalse(doc["disk_write_authorized"])
+        self.assertFalse(doc["os_install_authorized"])
+        self.assertIn("does not make or verify", doc["warning"])
+
     def test_source_has_no_install_format_or_writes(self):
         import nightglass.install_target_preview as m
         source = Path(m.__file__).read_text(encoding="utf-8")
