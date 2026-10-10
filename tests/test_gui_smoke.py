@@ -82,7 +82,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
         tagline = self.window.findChildren(QLabel, "Tagline")
         self.assertEqual(len(tagline), 1)
         self.assertIn("RESTORE", tagline[0].text())
-        self.assertEqual(len(self.window.nav_buttons), 6)
+        self.assertEqual(len(self.window.nav_buttons), 7)
         self.assertTrue(self.window.nav_buttons[0].isChecked())
         self.window.goto(3)
         self.assertTrue(self.window.nav_buttons[3].isChecked())
@@ -91,7 +91,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.assertTrue(self.window.nav_buttons[5].isChecked())
 
     def test_real_qt_pages_and_workspace_cards_construct(self):
-        self.assertEqual(self.window.stack.count(), 6)
+        self.assertEqual(self.window.stack.count(), 7)
         self.assertEqual(len(self.window.cards), 4)
         self.assertIn("Nightglass", self.window.windowTitle())
         for index in (0, 1, 3, 4, 5):
@@ -102,6 +102,35 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.window.goto(2)
             doctor.assert_called_once()
         self.assertEqual(self.window.stack.currentIndex(), 2)
+
+    def test_system_discovery_page_is_never_an_installer_or_silent_file_scan(self):
+        from nightglass.system_discovery import collect_system
+        from PySide6.QtWidgets import QPlainTextEdit
+        self.window.goto(6)
+        self.assertEqual(self.window.stack.currentIndex(), 6)
+        self.assertEqual(self.window.discovery_intent.currentData(), "undecided")
+        self.assertFalse(self.window.discovery_folder_names.isChecked())
+        self.assertIn("UNKNOWN", self.window.discovery_intent_status.text())
+        self.window.discovery_intent.setCurrentIndex(
+            self.window.discovery_intent.findData("blank")
+        )
+        self.assertIn("independent", self.window.discovery_intent_status.text().lower())
+        self.assertTrue(self.window.discovery_output.isReadOnly())
+        sample = collect_system(
+            system="Linux", storage_data={"blockdevices": []},
+            run_live=False, home=Path(self.temp.name)
+        )
+        with patch.object(self.ui, "collect_system", return_value=sample), \
+             patch.object(self.window, "work") as work:
+            self.window.begin_system_discovery()
+            task, done, error = work.call_args.args
+            result = task()
+            self.assertFalse(result["folder_names_opted_in"])
+            self.assertFalse(result["installation_authorized"])
+            done(result)
+        self.assertIn("NO TRUSTED DISK INVENTORY", self.window.discovery_output.toPlainText())
+        self.assertTrue(self.window.discovery_button.isEnabled())
+        self.assertIn("UNVERIFIED", self.window.discovery_status.text())
 
     def test_preset_controls_are_safe_and_saved_only_to_temp_home(self):
         import nightglass.portability as portability
