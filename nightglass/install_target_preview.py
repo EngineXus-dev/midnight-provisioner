@@ -63,7 +63,7 @@ def build_target_preview(
     """Produce a frozen, fail-closed advisory record: ALWAYS HOLD.
 
     target_index refers only to this particular in-memory snapshot. It must
-    never be turned into a /dev path, Windows diskpart index or write command.
+    never be turned into a Linux device path, Windows disk number or write command.
     """
     disclosure = disclosure_for(intent)
     if type(backup_warning_acknowledged) is not bool:
