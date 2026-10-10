@@ -64,6 +64,17 @@ python -m nightglass install-changes --intent format_target --disk-index 1 --jso
 
 Disk indices are ephemeral observations, **not target permissions**. Installation and disk-writing functions remain absent. Users are responsible for backing up any data they wish to retain; Nightglass does not create or certify those backups. See [Phase 26 impact review](docs/PHASE26_INSTALL_CHANGE_REVIEW.md).
 
+### Reviewing an optional installer operation proposal (Phase 27)
+
+Nightglass can inspect a user-selected **untrusted** operation-list JSON file and flag proposed changes to the target, other drives, and boot/EFI components. It does **not** prove the list is complete or from a real installer, and it never executes those operations.
+
+```powershell
+# The repository includes a safe example with fake opaque disk references:
+python -m nightglass proposal-review --file "$PWD/examples/untrusted-install-proposal.json"
+```
+
+The GUI has the same manual-review control in **System discovery**. Nothing is read automatically and no disk or boot operation is authorized. If you install to a freshly formatted target, existing contents will be removed; you are responsible for backing up anything you want to retain. See [Phase27 untrusted proposal review](docs/PHASE27_UNTRUSTED_PROPOSAL_REVIEW.md).
+
 ## Windows 10 first — zero-change prep
 
 Nightglass's controller runs on **Fedora**, not Windows. On the current Windows machine, PowerShell can inspect hardware and storage **without making changes**:
