@@ -48,6 +48,7 @@ from .runtime_labels import RuntimeLabelInspector
 from .system_discovery import collect_system, describe as describe_discovery
 from .install_disclosure import disclosure_for, ACKNOWLEDGMENT
 from .install_target_preview import build_target_preview, describe_target_preview
+from .install_change_review import build_change_review, describe_change_review
 
 class NoWheelComboBox(QComboBox):
     """Prevent incidental wheel scrolling from changing a saved profile."""
@@ -1681,6 +1682,17 @@ class MainWindow(QMainWindow):
         self.discovery_target_preview.setReadOnly(True)
         self.discovery_target_preview.setMinimumHeight(230)
         controls.addWidget(self.discovery_target_preview)
+        change_title = QLabel("PROPOSED PARTITION / EFI / BOOT IMPACT  ·  UNKNOWN ITEMS HELD")
+        change_title.setObjectName("SectionHeading")
+        controls.addWidget(change_title)
+        self.discovery_change_button = QPushButton("Review proposed installation impact — NO WRITES")
+        self.discovery_change_button.clicked.connect(
+            lambda *_args: self.preview_install_changes())
+        controls.addWidget(self.discovery_change_button)
+        self.discovery_change_review = QPlainTextEdit()
+        self.discovery_change_review.setReadOnly(True)
+        self.discovery_change_review.setMinimumHeight(340)
+        controls.addWidget(self.discovery_change_review)
         self.discovery_folder_names = QCheckBox(
             "Also inspect personal directory NAMES (opt-in; local only, no files read)")
         self.discovery_folder_names.setChecked(False)
@@ -1762,7 +1774,22 @@ class MainWindow(QMainWindow):
             backup_warning_acknowledged=self.discovery_backup_acknowledged.isChecked(),
         )
         self.discovery_target_preview.setPlainText(describe_target_preview(preview))
+        self.preview_install_changes(preview)
         return preview
+
+    def preview_install_changes(self, preview=None):
+        """Advisory only: never pass a disk index to a write-capable tool."""
+        if preview is None:
+            target_index = self.discovery_target_combo.currentData()
+            preview = build_target_preview(
+                self.discovery_snapshot,
+                target_index=target_index if type(target_index) is int else None,
+                intent=self.discovery_intent.currentData() or "undecided",
+                backup_warning_acknowledged=self.discovery_backup_acknowledged.isChecked(),
+            )
+        review = build_change_review(preview)
+        self.discovery_change_review.setPlainText(describe_change_review(review))
+        return review
 
     def begin_system_discovery(self):
         if getattr(self, "_discovery_scanning", False):
@@ -1775,6 +1802,8 @@ class MainWindow(QMainWindow):
         self.discovery_backup_acknowledged.setChecked(False)
         self.discovery_target_preview.setPlainText(
             "Previous target selection discarded. A fresh snapshot must be reviewed.")
+        self.discovery_change_review.setPlainText(
+            "Previous installation-impact plan invalidated. No partition/EFI changes authorized.")
         self._discovery_scanning = True
         self.discovery_button.setEnabled(False)
         self.discovery_status.setText("Reading bounded host and storage metadata …")
@@ -1825,6 +1854,7 @@ class MainWindow(QMainWindow):
             self.discovery_output.setPlainText(
                 "Automatic recognition failed safely. Review environment manually. "
                 "No change was performed.")
+            self.preview_target_plan()
         self.work(lambda: collect_system(include_folder_names=names),
                   finished, failed)
 
