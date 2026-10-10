@@ -45,6 +45,7 @@ from .theme import apply_theme, COLORS
 from .resources import collect_resources
 from .host_posture import inspect_host_posture
 from .runtime_labels import RuntimeLabelInspector
+from .system_discovery import collect_system, describe as describe_discovery
 
 class NoWheelComboBox(QComboBox):
     """Prevent incidental wheel scrolling from changing a saved profile."""
@@ -170,6 +171,9 @@ class MainWindow(QMainWindow):
         self._resource_monitor_busy = False
         self._build()
         self.refresh()
+        # Automatically recognize the host on startup; no personal-folder names
+        # or write-capable action is accessed without a separate user opt-in.
+        QTimer.singleShot(400, self.begin_system_discovery)
         self.timer = QTimer(self)
         self.timer.timeout.connect(lambda *_args: self.refresh())
         self.timer.start(30000)
@@ -226,7 +230,7 @@ class MainWindow(QMainWindow):
         side.addWidget(accent_rail)
         side.addSpacing(16)
         self.stack = QStackedWidget()
-        nav = [("▦  Workspaces", 0), ("◇  Security model", 1), ("✦  Diagnostics", 2), ("⚙  Machine settings", 3), ("⬡  Prepare VM", 4), ("↺  Backup & verify", 5)]
+        nav = [("▦  Workspaces", 0), ("◇  Security model", 1), ("✦  Diagnostics", 2), ("⚙  Machine settings", 3), ("⬡  Prepare VM", 4), ("↺  Backup & verify", 5), ("⌕  System discovery", 6)]
         self.nav_buttons = []
         for label, index in nav:
             button = QPushButton(label)
@@ -269,6 +273,7 @@ class MainWindow(QMainWindow):
         self._build_machine()
         self._build_provisioning()
         self._build_recovery()
+        self._build_discovery()
 
     def _build_workspaces(self):
         viewport = QScrollArea()
@@ -1602,10 +1607,139 @@ class MainWindow(QMainWindow):
             lambda msg: self.recovery_log.setPlainText("BACKUP VERIFICATION FAILED: " + msg),
         )
 
+    def _build_discovery(self):
+        """Read-only first-run recognition, with unknowns kept for user review."""
+        page = QScrollArea()
+        page.setWidgetResizable(True)
+        holder = QWidget()
+        layout = QVBoxLayout(holder)
+        layout.setContentsMargins(4, 5, 4, 10)
+        layout.setSpacing(12)
+
+        intro = QLabel(
+            "FIRST-RUN SYSTEM RECOGNITION  ·  READ-ONLY\n"
+            "Nightglass inspects host resources and local disk layout without "
+            "selecting, mounting or modifying a disk. A disk with zero reported "
+            "partitions is NOT automatically trusted as empty."
+        )
+        intro.setWordWrap(True)
+        intro.setObjectName("SubTitle")
+        layout.addWidget(intro)
+
+        panel = QFrame()
+        panel.setObjectName("Panel")
+        controls = QVBoxLayout(panel)
+        title = QLabel("INSTALLATION INTENT  ·  USER DECISION")
+        title.setObjectName("SectionHeading")
+        controls.addWidget(title)
+        self.discovery_intent = NoWheelComboBox()
+        self.discovery_intent.addItem("Not decided — default", "undecided")
+        self.discovery_intent.addItem("Dedicated, independently verified blank drive", "blank")
+        self.discovery_intent.addItem("Alongside an existing OS (higher risk)", "coexist")
+        self.discovery_intent.currentIndexChanged.connect(
+            lambda *_args: self.preview_discovery_intent())
+        controls.addWidget(self.discovery_intent)
+        self.discovery_intent_status = QLabel("")
+        self.discovery_intent_status.setWordWrap(True)
+        self.discovery_intent_status.setObjectName("SubTitle")
+        controls.addWidget(self.discovery_intent_status)
+        self.discovery_folder_names = QCheckBox(
+            "Also inspect personal directory NAMES (opt-in; local only, no files read)")
+        self.discovery_folder_names.setChecked(False)
+        controls.addWidget(self.discovery_folder_names)
+        self.discovery_button = QPushButton("Refresh read-only system discovery")
+        self.discovery_button.setObjectName("Primary")
+        self.discovery_button.clicked.connect(
+            lambda *_args: self.begin_system_discovery())
+        controls.addWidget(self.discovery_button)
+        layout.addWidget(panel)
+
+        self.discovery_status = QLabel(
+            "Automatic resource and disk detection is scheduled; unknown facts require your review.")
+        self.discovery_status.setObjectName("Badge")
+        self.discovery_status.setWordWrap(True)
+        layout.addWidget(self.discovery_status)
+        self.discovery_output = QPlainTextEdit()
+        self.discovery_output.setReadOnly(True)
+        self.discovery_output.setMinimumHeight(290)
+        self.discovery_output.setPlaceholderText(
+            "No storage device is selected or certified. Review recognition results here.")
+        layout.addWidget(self.discovery_output)
+        warning = QLabel(
+            "BLANK DRIVE POLICY: A genuinely unused target disk has no old data to "
+            "back up. But existing Windows, EFI/boot entries, other disks and keys "
+            "still need independent review before ANY installer can modify them. "
+            "This page never authorizes formatting, OS installation or VM startup."
+        )
+        warning.setWordWrap(True)
+        warning.setObjectName("SubTitle")
+        layout.addWidget(warning)
+        layout.addStretch()
+        page.setWidget(holder)
+        self.stack.addWidget(page)
+        self.preview_discovery_intent()
+
+    def preview_discovery_intent(self):
+        intent = self.discovery_intent.currentData()
+        explanations = {
+            "undecided": (
+                "UNDECIDED: target disk identity, current contents, encryption, "
+                "boot path and backup scope remain UNKNOWN. No action is authorized."
+            ),
+            "blank": (
+                "CLAIMED BLANK DRIVE: no backup is needed for data that never existed "
+                "on that disk, but software will NOT believe a disk is empty from its "
+                "label, partition count or your preference alone. Independent "
+                "identification and confirmation are still necessary. Protect all other drives."
+            ),
+            "coexist": (
+                "EXISTING OS: independently verified system/data backups, recovery keys, "
+                "rollback plan and explicit partition approval are required before any install."
+            ),
+        }
+        self.discovery_intent_status.setText(explanations.get(intent, explanations["undecided"]))
+
+    def begin_system_discovery(self):
+        if getattr(self, "_discovery_scanning", False):
+            return
+        self._discovery_scanning = True
+        self.discovery_button.setEnabled(False)
+        self.discovery_status.setText("Reading bounded host and storage metadata …")
+        names = self.discovery_folder_names.isChecked()
+
+        def finished(report):
+            self._discovery_scanning = False
+            self.discovery_button.setEnabled(True)
+            self.discovery_status.setText(
+                "Observation complete; all disk targets UNVERIFIED. No changes made.")
+            self.discovery_output.setPlainText(describe_discovery(report))
+            # Folder names are visible only after explicit opt-in, never exported
+            # to a file or shared automatically.
+            if names:
+                folders = []
+                for entry in report["personal_folders"]:
+                    found = entry.get("directory_names", [])
+                    folders.append(
+                        entry["category"] + " [" + entry["names_scan"] + "]: "
+                        + (", ".join(found) if found else "(none observed)")
+                    )
+                self.discovery_output.appendPlainText(
+                    "\nOpt-in private folder directory names:\n" + "\n".join(folders))
+        def failed(message):
+            self._discovery_scanning = False
+            self.discovery_button.setEnabled(True)
+            self.discovery_status.setText(
+                "Detection unavailable — UNKNOWN, no disk or install approved.")
+            self.discovery_output.setPlainText(
+                "Automatic recognition failed safely. Review environment manually. "
+                "No change was performed.")
+        self.work(lambda: collect_system(include_folder_names=names),
+                  finished, failed)
+
     def goto(self, index: int):
         self.stack.setCurrentIndex(index)
         self.nav_buttons[index].setChecked(True)
-        self.header_title.setText(["Security workspaces", "Trust boundaries", "System diagnostics", "Machine settings", "Offline VM preparation", "VM backups"][index])
+        self.header_title.setText(["Security workspaces", "Trust boundaries", "System diagnostics", "Machine settings", "Offline VM preparation", "VM backups", "System discovery"][index])
         if index == 2:
             self.check_host()
             self.refresh_resources()
