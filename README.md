@@ -52,6 +52,18 @@ python -m nightglass install-preview --intent format_target --disk-index 1
 
 A displayed target or acknowledged warning **never permits erasure**. Rescanning invalidates the selected target. Before future actual OS installation, the system must verify the exact physical disk, show every proposed partition/EFI modification and ask for a separate irreversible-write confirmation. The current project remains an *application installer only*, not an OS formatter. See [Phase 25 guided target preview](docs/PHASE25_TARGET_PREVIEW.md).
 
+### Installation-change impact review — partition and EFI uncertainties
+
+Phase 26 adds a **Proposed partition / EFI / boot impact** panel beneath the Phase 25 target preview. It explicitly separates the intended whole-target format from **unknown exact partition edits, EFI/boot changes, other-drive effects, firmware boot state and authenticated installer media**. The preview never invents a before/after partition table from a partition count.
+
+```powershell
+# Read-only on Windows or Fedora when running this Nightglass Python checkout:
+python -m nightglass install-changes --intent format_target
+python -m nightglass install-changes --intent format_target --disk-index 1 --json
+```
+
+Disk indices are ephemeral observations, **not target permissions**. Installation and disk-writing functions remain absent. Users are responsible for backing up any data they wish to retain; Nightglass does not create or certify those backups. See [Phase 26 impact review](docs/PHASE26_INSTALL_CHANGE_REVIEW.md).
+
 ## Windows 10 first — zero-change prep
 
 Nightglass's controller runs on **Fedora**, not Windows. On the current Windows machine, PowerShell can inspect hardware and storage **without making changes**:
