@@ -47,6 +47,11 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("host-security", help="Review Fedora SELinux/KVM/firewall posture without changes")
     sub.add_parser("list", help="List configured workspaces (read-only)")
     sub.add_parser("gui", help="Launch workspace manager graphical interface")
+    discover = sub.add_parser("discover", help="Read-only host and disk recognition; no target selected")
+    discover.add_argument("--folder-names", action="store_true",
+                          help="Opt in to scanning bounded personal folder names locally")
+    discover.add_argument("--json", action="store_true",
+                          help="Print local JSON (review before sharing, especially folder names)")
     info = sub.add_parser("inspect", help="Read-only policy audit of a configured VM")
     info.add_argument("key", help="Workspace key, e.g. pentest or analysis")
     profile = sub.add_parser("profile", help="Inspect or switch portable hardware profiles")
@@ -431,6 +436,15 @@ def main(argv: list[str] | None = None) -> int:
                 print(SourceUpdater().apply(confirmed=True))
                 return 0
             parser.error("Specify: update check, update apply, or update checks on/off")
+        if cmd == "discover":
+            from .system_discovery import collect_system, describe
+            report = collect_system(include_folder_names=args.folder_names)
+            if args.json:
+                import json
+                print(json.dumps(report, indent=2, sort_keys=True))
+            else:
+                print(describe(report))
+            return 0  # Successful read-only observation is NEVER install permission.
         if cmd == "doctor":
             for chk in collect_checks():
                 print(("PASS" if chk.ok else "WARN") + f"  {chk.name}: {chk.message}")
