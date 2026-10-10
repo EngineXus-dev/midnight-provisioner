@@ -116,6 +116,14 @@ def build_change_review(preview: TargetPreview) -> ChangeReview:
                      "The eventual installer must independently list every physical drive it would modify, including firmware boot entries."),
         ChangeImpact("INSTALLER_MEDIA_AND_BOOT", "UNKNOWN_REQUIRES_INSTALLER",
                      "Official media authenticity, live boot compatibility, UEFI mode and rollback are unverified."),
+        ChangeImpact("LINUX_DISK_ENCRYPTION",
+                     "INTENDED_EFFECT_NOT_VERIFIED" if preview.disk_encryption in ("luks2", "luks2-tpm2-pin")
+                     else "UNKNOWN_REQUIRES_INSTALLER",
+                     {"luks2": "Planned: Fedora installer 'Encrypt my data' (LUKS2), passphrase at startup; /boot and EFI stay unencrypted.",
+                      "luks2-tpm2-pin": "Planned: LUKS2 via 'Encrypt my data', then TPM2 + PIN enrollment after install; passphrase kept as fallback.",
+                      "none": "Planned: NO encryption; Linux files readable by anyone with the disk.",
+                      }.get(preview.disk_encryption, "Not decided; choose before installing.")
+                     + " Verify after install with 'nightglass encryption-check'."),
     ))
     blockers = [
         "No installation or physical disk write capability exists in Nightglass at this stage.",
@@ -166,11 +174,12 @@ def review_from_discovery(
     target_index: int | None = None,
     intent: str = UNDECIDED,
     backup_warning_acknowledged: bool = False,
+    encryption: str = "undecided",
 ) -> ChangeReview:
     """No host actions; delegates input validation to the Phase25 preview."""
     return build_change_review(build_target_preview(
         discovery, target_index=target_index, intent=intent,
-        backup_warning_acknowledged=backup_warning_acknowledged))
+        backup_warning_acknowledged=backup_warning_acknowledged, encryption=encryption))
 
 
 def describe_change_review(review: ChangeReview) -> str:

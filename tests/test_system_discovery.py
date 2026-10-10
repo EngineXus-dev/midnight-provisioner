@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+
+from nightglass.install_target_preview import build_target_preview
 from unittest.mock import patch
 
 from nightglass import system_discovery as discovery
@@ -56,6 +58,21 @@ class FirstRunRecognitionTests(unittest.TestCase):
         self.assertEqual(scan[1]["target_classification"], "UNVERIFIED_NOT_EMPTY_PROVEN")
         self.assertEqual(scan[1]["partition_count_observed"], 0)
         self.assertIsNone(scan[1]["removable"])
+
+    def test_windows_unreadable_boot_status_is_not_selectable(self):
+        for missing in ("IsBoot", "IsSystem"):
+            disk = {"Number": 1, "IsBoot": False, "IsSystem": False, "Size": 1024**4}
+            del disk[missing]
+            with self.subTest(missing=missing):
+                scan = discovery.windows_storage({"disks": [disk], "partitions": []})
+                self.assertEqual(scan[0]["target_classification"], "UNKNOWN")
+                preview = build_target_preview(
+                    {"schema": "nightglass.system-discovery.v1", "read_only": True,
+                     "status": "HOLD_USER_REVIEW_ALL_UNKNOWN_DETAILS",
+                     "installation_authorized": False, "partition_write_authorized": False,
+                     "install_target_confirmed": False, "storage_query": "OBSERVED",
+                     "disks": scan}, target_index=0)
+                self.assertEqual(preview.target_observed_label, "NOT_SELECTED")
 
     def test_missing_partition_query_does_not_forge_zero_partitions(self):
         # One completed Get-Partition query may legitimately return [].

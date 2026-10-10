@@ -49,6 +49,7 @@ from .system_discovery import collect_system, describe as describe_discovery
 from .install_disclosure import disclosure_for, ACKNOWLEDGMENT
 from .install_target_preview import build_target_preview, describe_target_preview
 from .install_change_review import build_change_review, describe_change_review
+from .install_encryption import CHOICES as ENCRYPTION_CHOICES, LABELS as ENCRYPTION_LABELS
 from .install_proposal_review import read_proposal_file, review_proposal, describe_proposal, ProposalError
 
 class NoWheelComboBox(QComboBox):
@@ -1645,6 +1646,13 @@ class MainWindow(QMainWindow):
         self.discovery_intent.currentIndexChanged.connect(
             lambda *_args: self.preview_discovery_intent())
         controls.addWidget(self.discovery_intent)
+        # Recorded in the plan only; Fedora's installer applies the encryption.
+        self.discovery_encryption = NoWheelComboBox()
+        for choice in ENCRYPTION_CHOICES:
+            self.discovery_encryption.addItem("Linux disk encryption: " + ENCRYPTION_LABELS[choice], choice)
+        self.discovery_encryption.setToolTip(
+            "Planned in Fedora's installer ('Encrypt my data'). Verify later with: nightglass encryption-check")
+        controls.addWidget(self.discovery_encryption)
         self.discovery_intent_status = QLabel("")
         self.discovery_intent_status.setWordWrap(True)
         self.discovery_intent_status.setObjectName("SubTitle")
@@ -1758,6 +1766,8 @@ class MainWindow(QMainWindow):
             lambda *_args: self.preview_target_plan())
         self.discovery_backup_acknowledged.stateChanged.connect(
             lambda *_args: self.preview_target_plan())
+        self.discovery_encryption.currentIndexChanged.connect(
+            lambda *_args: self.preview_target_plan())
         self.preview_target_plan()
 
     def preview_discovery_intent(self):
@@ -1794,6 +1804,7 @@ class MainWindow(QMainWindow):
             target_index=target_index if type(target_index) is int else None,
             intent=self.discovery_intent.currentData() or "undecided",
             backup_warning_acknowledged=self.discovery_backup_acknowledged.isChecked(),
+            encryption=self.discovery_encryption.currentData() or "undecided",
         )
         self.discovery_target_preview.setPlainText(describe_target_preview(preview))
         self.preview_install_changes(preview)
@@ -1808,6 +1819,7 @@ class MainWindow(QMainWindow):
                 target_index=target_index if type(target_index) is int else None,
                 intent=self.discovery_intent.currentData() or "undecided",
                 backup_warning_acknowledged=self.discovery_backup_acknowledged.isChecked(),
+                encryption=self.discovery_encryption.currentData() or "undecided",
             )
         review = build_change_review(preview)
         self.discovery_change_review.setPlainText(describe_change_review(review))

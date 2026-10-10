@@ -36,6 +36,7 @@ from .runtime_labels import RuntimeLabelInspector, save_runtime_observation
 from .handoff import RecoveryHandoff, save_handoff
 from .resources import collect_resources
 from .host_posture import inspect_host_posture
+from .install_encryption import CHOICES as ENCRYPTION_CHOICES
 import os
 
 
@@ -70,6 +71,8 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("resources", help="Inspect live host RAM pressure and active system libvirt VMs (read-only)")
     sub.add_parser("host-security", help="Review Fedora SELinux/KVM/firewall posture without changes")
     sub.add_parser("list", help="List configured workspaces (read-only)")
+    sub.add_parser("encryption-check",
+                   help="Read-only: confirm the running Fedora root is on an encrypted LUKS volume")
     sub.add_parser("gui", help="Launch workspace manager graphical interface")
     discover = sub.add_parser("discover", help="Read-only host and disk recognition; no target selected")
     discover.add_argument("--folder-names", action="store_true",
@@ -82,6 +85,8 @@ def main(argv: list[str] | None = None) -> int:
                          default="undecided", help="Explicit intent, not installation approval")
     preview.add_argument("--disk-index", type=int,
                          help="Transient 0-based discovery-array index; never a persistent disk ID")
+    preview.add_argument("--encryption", choices=ENCRYPTION_CHOICES, default="undecided",
+                         help="Fedora disk encryption to plan (luks2 recommended); Fedora's installer applies it")
     preview.add_argument("--ack-warning", action="store_true",
                          help="Notice acknowledged only; not backup evidence or disk-write permission")
     preview.add_argument("--json", action="store_true",
@@ -92,6 +97,8 @@ def main(argv: list[str] | None = None) -> int:
                          default="undecided", help="A user intent, never install authorization")
     changes.add_argument("--disk-index", type=int,
                          help="Volatile 0-based observation index, never a permanent physical disk ID")
+    changes.add_argument("--encryption", choices=ENCRYPTION_CHOICES, default="undecided",
+                         help="Fedora disk encryption to plan (luks2 recommended); Fedora's installer applies it")
     changes.add_argument("--ack-warning", action="store_true",
                          help="User has acknowledged the warning; NOT backup or erasure proof")
     changes.add_argument("--json", action="store_true",
@@ -517,6 +524,7 @@ def main(argv: list[str] | None = None) -> int:
                 target_index=args.disk_index,
                 intent=args.intent,
                 backup_warning_acknowledged=args.ack_warning,
+                encryption=args.encryption,
             )
             if args.json:
                 import json
@@ -533,6 +541,7 @@ def main(argv: list[str] | None = None) -> int:
                 target_index=args.disk_index,
                 intent=args.intent,
                 backup_warning_acknowledged=args.ack_warning,
+                encryption=args.encryption,
             )
             if args.json:
                 import json
@@ -550,6 +559,11 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 print(describe(report))
             return 0  # Successful read-only observation is NEVER install permission.
+        if cmd == "encryption-check":
+            from .install_encryption import collect_encryption, describe_encryption_status
+            report = collect_encryption()
+            print(describe_encryption_status(report))
+            return 0 if report["status"] == "ENCRYPTED" else 2
         if cmd == "doctor":
             for chk in collect_checks():
                 print(("PASS" if chk.ok else "WARN") + f"  {chk.name}: {chk.message}")
