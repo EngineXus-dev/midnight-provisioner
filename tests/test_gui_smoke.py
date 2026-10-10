@@ -242,6 +242,40 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.assertIn("invalidated",
                           self.window.discovery_change_review.toPlainText())
 
+    def test_local_untrusted_proposal_review_never_executes_or_persists(self):
+        import json
+        import nightglass.install_proposal_review as proposal_module
+        path = Path(self.temp.name) / "untrusted-proposal.json"
+        path.write_text(json.dumps({
+            "schema": proposal_module.SCHEMA,
+            "source": "unverified_user_supplied",
+            "intent": "format_target",
+            "target_ref": "target_a",
+            "devices": [
+                {"ref": "target_a", "role": "target", "partition_count": 2},
+                {"ref": "other_b", "role": "other", "partition_count": None},
+            ],
+            "operations": [{
+                "action": "write_bootloader",
+                "device_ref": "other_b",
+                "partition_ref": None,
+            }],
+        }), encoding="utf-8")
+        self.window.goto(6)
+        with patch.object(self.ui.QFileDialog, "getOpenFileName",
+                          return_value=(str(path), "JSON documents (*.json)")):
+            self.window.review_proposal_file()
+        text = self.window.discovery_proposal_report.toPlainText()
+        self.assertIn("UNTRUSTED", text)
+        self.assertIn("OTHER-DRIVE", text)
+        self.assertIn("No disk writes", text)
+        self.assertTrue(self.window.discovery_proposal_report.isReadOnly())
+        # A scan invalidates old plan views, even if the user supplied a file.
+        with patch.object(self.window, "work"):
+            self.window.begin_system_discovery()
+            self.assertIn("discarded",
+                self.window.discovery_proposal_report.toPlainText())
+
     def test_preset_controls_are_safe_and_saved_only_to_temp_home(self):
         import nightglass.portability as portability
 
