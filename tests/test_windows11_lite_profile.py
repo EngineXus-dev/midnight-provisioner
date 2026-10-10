@@ -11,7 +11,7 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "Set-Nightglass-Windows11-Preferences.ps1"
+SCRIPT = ROOT / "scripts" / "windows" / "Set-Nightglass-Windows11-Preferences.ps1"
 PROFILE = ROOT / "docs" / "WINDOWS11_LITE_IMAGE_PROFILE.md"
 
 

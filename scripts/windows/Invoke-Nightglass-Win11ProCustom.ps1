@@ -26,7 +26,7 @@ $ErrorActionPreference = 'Stop'
 
 # All paths are relative to the checked-out Nightglass project. No absolute
 # Windows-specific project or user directory is baked into the repository.
-$root = Split-Path -Parent $PSScriptRoot
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $catalogPath = Join-Path $root 'config\windows11-pro-custom.json'
 if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) {
   throw 'Windows 11 Pro profile catalog is missing; do not proceed.'

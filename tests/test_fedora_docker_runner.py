@@ -10,8 +10,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTAINERFILE = ROOT / "docker" / "Containerfile.fedora-verification"
-RUNNER = ROOT / "scripts" / "Run-Nightglass-Fedora-Checks.ps1"
-BOOTSTRAP = ROOT / "scripts" / "Start-Nightglass-Fedora-Checks.ps1"
+RUNNER = ROOT / "scripts" / "testing" / "Run-Nightglass-Fedora-Checks.ps1"
+BOOTSTRAP = ROOT / "scripts" / "testing" / "Start-Nightglass-Fedora-Checks.ps1"
 
 
 class FedoraDockerRunnerContractTests(unittest.TestCase):
@@ -22,14 +22,14 @@ class FedoraDockerRunnerContractTests(unittest.TestCase):
             self.assertIn(package, text)
         self.assertIn("USER 10001:10001", text)
         self.assertIn("QT_QPA_PLATFORM=offscreen", text)
-        self.assertIn('ENTRYPOINT ["python3", "-B", "scripts/verify_local.py"]', text)
+        self.assertIn('ENTRYPOINT ["python3", "-B", "scripts/testing/verify_local.py"]', text)
         self.assertNotRegex(text, r"(?mi)^\s*(?:COPY|ADD)\s")
         self.assertIn("NIGHTGLASS_GUI_SMOKE=0", text)
 
     def test_bash_sources_keep_lf_line_endings_in_windows_worktrees(self):
         attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")
         self.assertIn("*.sh text eol=lf", attributes)
-        for path in ("setup-nightglass.sh", "fedora-recovery-smoke.sh"):
+        for path in ("install/setup-nightglass.sh", "backup/fedora-recovery-smoke.sh"):
             with self.subTest(script=path):
                 source = (ROOT / "scripts" / path).read_bytes()
                 self.assertNotIn(b"\r\n", source)

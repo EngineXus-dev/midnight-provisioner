@@ -33,7 +33,7 @@ separate Fedora Qt-offscreen and native libvirt/QEMU checks were
 requested by `--all`, but a missing/incorrectly skipped suite might
 have yielded a misleading overall PASS.
 
-New `scripts/run_required_suite.py` implements two narrow,
+New `scripts/testing/run_required_suite.py` implements two narrow,
 allowlisted suites:
 
 - `--check gui` → `test_gui_smoke.py`, **at least 5 collected
@@ -45,7 +45,7 @@ Both require execution from the disposable project checkout;
 missing/symlinked test files, zero/incomplete discovery, failed
 imports, expected failures, partial runs and skipped tests all BLOCK.
 
-`scripts/verify_local.py --all` uses those strict checks in the
+`scripts/testing/verify_local.py --all` uses those strict checks in the
 Fedora 43 container. It also fails if Linux Bash syntax validation
 cannot run, rather than displaying NOT RUN while proceeding to
 a final PASS.
@@ -57,7 +57,7 @@ The previous Python 3.11/3.12/3.13 Docker commands used generic
 missing tests could return successful exit status after discovering
 no cases.
 
-New `scripts/run_headless_matrix.py` requires:
+New `scripts/testing/run_headless_matrix.py` requires:
 
 - At least **60 cases collected** from the full source tree
 - At least **40 cases actually executed**, excluding skipped cases

@@ -116,7 +116,7 @@ Activation > Change product key**. No product key is bundled in the
 ISO, USB, Nightglass scripts or build settings.
 
 An offline, non-mutating ISO-capacity planner is staged at
-`scripts/Plan-Nightglass-InstallMedia.py`; it can estimate whether
+`scripts/windows/Plan-Nightglass-InstallMedia.py`; it can estimate whether
 the real file sizes plus 1 GiB headroom fit a *declared measured
 usable USB byte capacity*. It cannot verify media bootability,
 publisher authenticity or device selection and never formats USB.

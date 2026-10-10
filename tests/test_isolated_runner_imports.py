@@ -29,11 +29,12 @@ class IsolatedRunnerImportTests(unittest.TestCase):
         root = Path(tmp.name)
         for name in ("scripts", "tests", "nightglass"):
             (root / name).mkdir()
+        (root / "scripts" / "testing").mkdir()
         (root / "nightglass" / "__init__.py").write_text(
             "SYNTHETIC_SENTINEL = 31415\n", encoding="utf-8")
         for name in RUNNERS:
-            shutil.copyfile(ROOT / "scripts" / name, root / "scripts" / name)
-        (root / "scripts" / "verify_local.py").write_text(
+            shutil.copyfile(ROOT / "scripts" / "testing" / name, root / "scripts" / "testing" / name)
+        (root / "scripts" / "testing" / "verify_local.py").write_text(
             'WINDOWS_PORTABLE_SUITES = ("test_synthetic_fixture.py",)\n',
             encoding="utf-8")
         for name, n in (
@@ -70,28 +71,28 @@ class IsolatedRunnerImportTests(unittest.TestCase):
     def test_portable_runner_imports_real_project_package(self):
         root = self.fixture()
         result = self.run_cli(
-            root, "scripts/run_portable_suite.py", "--pattern",
+            root, "scripts/testing/run_portable_suite.py", "--pattern",
             "test_synthetic_fixture.py")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("65 executed", result.stdout)
 
     def test_matrix_runner_imports_project_and_executes_enough_tests(self):
         root = self.fixture()
-        result = self.run_cli(root, "scripts/run_headless_matrix.py")
+        result = self.run_cli(root, "scripts/testing/run_headless_matrix.py")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("75 executed", result.stdout)
 
     def test_required_gui_imports_project_in_script_mode(self):
         root = self.fixture()
         result = self.run_cli(
-            root, "scripts/run_required_suite.py", "--check", "gui")
+            root, "scripts/testing/run_required_suite.py", "--check", "gui")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("5 actual tests", result.stdout)
 
     def test_required_native_imports_project_in_script_mode(self):
         root = self.fixture()
         result = self.run_cli(
-            root, "scripts/run_required_suite.py", "--check", "native")
+            root, "scripts/testing/run_required_suite.py", "--check", "native")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("5 actual tests", result.stdout)
 
@@ -99,9 +100,9 @@ class IsolatedRunnerImportTests(unittest.TestCase):
         root = self.fixture()
         (root / "nightglass" / "__init__.py").unlink()
         for command in (
-            ("scripts/run_portable_suite.py", "--pattern", "test_synthetic_fixture.py"),
-            ("scripts/run_headless_matrix.py",),
-            ("scripts/run_required_suite.py", "--check", "gui"),
+            ("scripts/testing/run_portable_suite.py", "--pattern", "test_synthetic_fixture.py"),
+            ("scripts/testing/run_headless_matrix.py",),
+            ("scripts/testing/run_required_suite.py", "--check", "gui"),
         ):
             with self.subTest(command=command):
                 result = self.run_cli(root, *command)
@@ -110,7 +111,7 @@ class IsolatedRunnerImportTests(unittest.TestCase):
     def test_actual_runner_sources_repair_root_import_gap(self):
         for name in RUNNERS:
             with self.subTest(name=name):
-                source = (ROOT / "scripts" / name).read_text(encoding="utf-8")
+                source = (ROOT / "scripts" / "testing" / name).read_text(encoding="utf-8")
                 self.assertIn("sys.path.insert(0, str(", source)
                 self.assertIn("unittest.TestLoader()", source)
 

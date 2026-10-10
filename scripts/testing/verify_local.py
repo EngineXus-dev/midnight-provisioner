@@ -17,7 +17,7 @@ import shutil
 import subprocess
 import sys
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 SKIP_DIRS = {".git", ".venv", "venv", "build", "dist", "__pycache__", ".tox"}
 SUBPROCESS_ENV = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1", "PYTHONFAULTHANDLER": "1"}
 
@@ -190,9 +190,9 @@ def main(argv=None) -> int:
     if linux:
         bash = shutil.which("bash")
         scripts = [
-            str(ROOT / "scripts" / "setup-nightglass.sh"),
-            str(ROOT / "scripts" / "fedora-recovery-smoke.sh"),
-            str(ROOT / "scripts" / "fedora-host-acceptance.sh"),
+            str(ROOT / "scripts" / "install" / "setup-nightglass.sh"),
+            str(ROOT / "scripts" / "backup" / "fedora-recovery-smoke.sh"),
+            str(ROOT / "scripts" / "install" / "fedora-host-acceptance.sh"),
         ]
         if bash and all(Path(script).is_file() for script in scripts):
             failed |= bool(run_command(
@@ -213,12 +213,12 @@ def main(argv=None) -> int:
             for pattern in WINDOWS_PORTABLE_SUITES:
                 failed |= bool(run_command(
                     f"Windows-portable synthetic tests: {pattern}",
-                    [sys.executable, "-B", "scripts/run_portable_suite.py",
+                    [sys.executable, "-B", "scripts/testing/run_portable_suite.py",
                      "--pattern", pattern], dry_run=args.dry_run,
                 ))
         failed |= bool(run_command(
             "Synthetic QEMU /proc cases (Windows-compatible subset)",
-            [sys.executable, "-B", "scripts/run_windows_qemu_subset.py"],
+            [sys.executable, "-B", "scripts/testing/run_windows_qemu_subset.py"],
             dry_run=args.dry_run,
         ))
         print(
@@ -247,7 +247,7 @@ def main(argv=None) -> int:
     if args.gui:
         failed |= bool(run_command(
             "Opt-in PySide6 offscreen GUI smoke",
-            [sys.executable, "-B", "scripts/run_required_suite.py", "--check", "gui"],
+            [sys.executable, "-B", "scripts/testing/run_required_suite.py", "--check", "gui"],
             extra_env={
                 "QT_QPA_PLATFORM": "offscreen",
                 "NIGHTGLASS_GUI_SMOKE": "1",
@@ -274,7 +274,7 @@ def main(argv=None) -> int:
             else:
                 failed |= bool(run_command(
                     "Native libvirt/QEMU fixtures (NO VMs)",
-                    [sys.executable, "-B", "scripts/run_required_suite.py",
+                    [sys.executable, "-B", "scripts/testing/run_required_suite.py",
                      "--check", "native"], dry_run=args.dry_run,
                 ))
     else:

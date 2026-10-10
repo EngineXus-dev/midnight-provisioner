@@ -17,7 +17,7 @@ from nightglass.kali_setup import (
 from nightglass.cli import main as host_cli
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "kali-guest-inventory.py"
+SCRIPT = ROOT / "scripts" / "kali" / "kali-guest-inventory.py"
 
 spec = importlib.util.spec_from_file_location("kali_guest_inventory", SCRIPT)
 guest_helper = importlib.util.module_from_spec(spec)

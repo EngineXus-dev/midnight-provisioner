@@ -10,7 +10,7 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "run_windows_qemu_subset.py"
+SCRIPT = ROOT / "scripts" / "testing" / "run_windows_qemu_subset.py"
 EXPECTED = ("test_one", "test_two", "test_three")
 
 
@@ -21,8 +21,9 @@ class QemuSubsetRunnerCoverageTests(unittest.TestCase):
         root = Path(tmp.name)
         for folder in ("scripts", "tests", "nightglass"):
             (root / folder).mkdir()
-        shutil.copyfile(SCRIPT, root / "scripts" / SCRIPT.name)
-        (root / "scripts" / "verify_local.py").write_text(
+        (root / "scripts" / "testing").mkdir()
+        shutil.copyfile(SCRIPT, root / "scripts" / "testing" / SCRIPT.name)
+        (root / "scripts" / "testing" / "verify_local.py").write_text(
             "WINDOWS_QEMU_CASES = " + repr(EXPECTED) + "\n", encoding="utf-8")
         (root / "nightglass" / "__init__.py").write_text(
             "SYNTHETIC_VALUE = 7\n", encoding="utf-8")
@@ -52,7 +53,7 @@ class QemuSubsetRunnerCoverageTests(unittest.TestCase):
         env["PYTHONDONTWRITEBYTECODE"] = "1"
         env["PYTHONNOUSERSITE"] = "1"
         return subprocess.run(
-            [sys.executable, "-B", "scripts/run_windows_qemu_subset.py"],
+            [sys.executable, "-B", "scripts/testing/run_windows_qemu_subset.py"],
             cwd=root, env=env, text=True, capture_output=True, timeout=20,
             check=False,
         )

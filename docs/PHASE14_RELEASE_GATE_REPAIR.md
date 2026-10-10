@@ -18,10 +18,10 @@ candidate is the same across:
 
 - `config/nightglass-pr-stack-snapshot.json` (47 predecessors:
   PRs #1–29 and #31–48, PR #30 absent)
-- `scripts/Audit-Nightglass-PR-Stack.py`
-- `scripts/Audit-Nightglass-Release-Evidence.py`
-- `scripts/Run-Nightglass-Offline-Release-Gate.py`
-- `scripts/Invoke-Nightglass-OfflineChecks.ps1`
+- `scripts/release/Audit-Nightglass-PR-Stack.py`
+- `scripts/release/Audit-Nightglass-Release-Evidence.py`
+- `scripts/testing/Run-Nightglass-Offline-Release-Gate.py`
+- `scripts/testing/Invoke-Nightglass-OfflineChecks.ps1`
 - `tests/test_pr_stack_audit.py` and
   `tests/test_offline_release_gate.py`
 - The current Windows launch, cumulative gate, and evidence runbooks

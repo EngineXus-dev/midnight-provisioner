@@ -10,7 +10,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNNER = ROOT / "scripts" / "Run-Nightglass-Python-Matrix.ps1"
+RUNNER = ROOT / "scripts" / "testing" / "Run-Nightglass-Python-Matrix.ps1"
 
 
 class PythonMatrixRunnerTests(unittest.TestCase):

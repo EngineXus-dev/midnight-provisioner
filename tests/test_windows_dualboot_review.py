@@ -13,7 +13,7 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-REVIEW = ROOT / "scripts" / "Review-Windows-DualBoot.ps1"
+REVIEW = ROOT / "scripts" / "windows" / "Review-Windows-DualBoot.ps1"
 
 
 class WindowsDualBootReviewSafety(unittest.TestCase):

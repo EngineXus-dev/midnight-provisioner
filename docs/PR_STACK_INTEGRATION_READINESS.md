@@ -46,7 +46,7 @@ Files:
 - `config/nightglass-pr-stack-snapshot.json` — explicit PR #1–29,
   #31–40 base/head chain, PR #30 marked missing, candidate branch,
   and mandatory external review gates
-- `scripts/Audit-Nightglass-PR-Stack.py` — no-write plan-only
+- `scripts/release/Audit-Nightglass-PR-Stack.py` — no-write plan-only
   default, opt-in local Git ancestry/path inspection
 - `tests/test_pr_stack_audit.py` — synthetic offline safety
   tests, including forged/nonlinear graph, missing #30,
@@ -61,12 +61,12 @@ physical Fedora hardware acceptance.
 
 **Default plan** (no Git calls, filesystem changes or network):
 
-    python scripts/Audit-Nightglass-PR-Stack.py
+    python scripts/release/Audit-Nightglass-PR-Stack.py
 
 **Read-only local verification** on an explicitly prepared candidate
 checkout (does not fetch branches or alter worktree files):
 
-    python scripts/Audit-Nightglass-PR-Stack.py --repo "." --verify
+    python scripts/release/Audit-Nightglass-PR-Stack.py --repo "." --verify
 
 The tool requires all 39 **already fetched** origin tracking refs,
 an origin URL exactly matching EngineXus-dev/nightglass-workspaces,
@@ -80,7 +80,7 @@ rebase, checkout, push or GitHub Actions.
 You can optionally supply the full SHA independently copied from
 the draft PR head:
 
-    python scripts/Audit-Nightglass-PR-Stack.py --repo "." --verify --expected-candidate-sha "<40-hex-SHA>"
+    python scripts/release/Audit-Nightglass-PR-Stack.py --repo "." --verify --expected-candidate-sha "<40-hex-SHA>"
 
 The script will BLOCK if that SHA does not match the local remote
 tracking ref. The SHA is not a user password.

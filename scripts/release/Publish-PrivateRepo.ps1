@@ -4,7 +4,7 @@
 param([string]$RepoName = 'nightglass-workspaces')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-$projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Push-Location $projectRoot
 try {
     if (-not (Test-Path 'pyproject.toml') -or -not (Test-Path 'nightglass\ui.py')) {

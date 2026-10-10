@@ -8,10 +8,10 @@ Replace repetitive synthetic readiness checks with useful **private evidence for
 
 ### New offline evidence reviewer
 
-`scripts/Review-Nightglass-Recovery-Backup.py`:
+`scripts/backup/Review-Nightglass-Recovery-Backup.py`:
 
 - **Preview (default)**: does not read *any* files or media.
-- **Assess**: accepts an explicit sanitized `nightglass.winre-triage.v1` JSON report; optionally a separate `nightglass.backup-set.v1` report generated in `--mode Verify` by `scripts/Verify-Nightglass-BackupSet.py`.
+- **Assess**: accepts an explicit sanitized `nightglass.winre-triage.v1` JSON report; optionally a separate `nightglass.backup-set.v1` report generated in `--mode Verify` by `scripts/backup/Verify-Nightglass-BackupSet.py`.
 - Rejects contradictory approval assertions, duplicate-key JSON, malformed report schemas, oversized payloads, symlink/reparse files or ancestor paths, missing or inconsistent selected-backup groups and unsafe raw file paths in standard fields.
 - Produces `nightglass.recovery-backup-acceptance.v1` JSON with selected-folder hash match counts, outstanding requirements and a permanent `HOLD_RECOVERY_BACKUP_AND_PHYSICAL_ACCEPTANCE` status.
 - **Does not** open original backup files, write a report file, copy or restore data, scan Windows storage automatically, download an ISO, enable BitLocker/WinRE, elevate, write an installer/USB, start a guest, modify boot/EFI or change Windows power policy.

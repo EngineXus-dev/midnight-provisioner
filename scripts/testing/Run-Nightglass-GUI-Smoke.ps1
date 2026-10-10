@@ -36,7 +36,7 @@ $actualSha = (& git -C $checkoutRoot rev-parse HEAD).Trim()
 if ($actualSha -ne $sha) { throw 'Worktree SHA mismatch.' }
 $test = 'test_gui_smoke.py'
 if (-not (Test-Path -LiteralPath (Join-Path $checkoutRoot "tests\$test") -PathType Leaf)) { throw 'GUI test missing.' }
-$archiveScript = Join-Path $checkoutRoot 'scripts\Archive-Nightglass-TestResults.ps1'
+$archiveScript = Join-Path $checkoutRoot 'scripts\testing\Archive-Nightglass-TestResults.ps1'
 if (-not (Test-Path -LiteralPath $archiveScript -PathType Leaf)) { throw 'Archive helper missing.' }
 
 # Never assign $HOME: PowerShell has a read-only automatic variable with that name.

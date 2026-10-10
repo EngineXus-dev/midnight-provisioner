@@ -7,8 +7,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SNAP = ROOT / "config/nightglass-integration-snapshot-v2.json"
-AUDIT = ROOT / "scripts/Review-Nightglass-Integration.py"
-PACK = ROOT / "scripts/Package-Nightglass-ReleaseCandidate.ps1"
+AUDIT = ROOT / "scripts/release/Review-Nightglass-Integration.py"
+PACK = ROOT / "scripts/release/Package-Nightglass-ReleaseCandidate.ps1"
 
 
 class IntegrationReleaseCandidateTests(unittest.TestCase):

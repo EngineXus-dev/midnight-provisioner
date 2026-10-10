@@ -7,7 +7,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-$source = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$source = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 if ($RepoUrl -ne 'https://github.com/EngineXus-dev/nightglass-workspaces.git') { throw 'Unexpected remote repository. Refusing.' }
 if ($Branch -ne 'feat/nightglass-phase-01') { throw 'Unexpected branch. Refusing.' }
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw 'Install Git for Windows first.' }

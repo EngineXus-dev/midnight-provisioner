@@ -10,7 +10,7 @@ to preserve local and untracked files.
 
 ## Solution: read one immutable, fetched Git object
 
-`scripts/Audit-Nightglass-PR-Stack.py` now reads the manifest from
+`scripts/release/Audit-Nightglass-PR-Stack.py` now reads the manifest from
 the **full 40-character SHA** of
 `refs/remotes/origin/verification/remote-ref-stack-audit` using:
 
@@ -67,7 +67,7 @@ $folder = Join-Path $env:TEMP ("Nightglass-StackAudit-" + [guid]::NewGuid().ToSt
 New-Item -ItemType Directory -Path $folder | Out-Null
 $audit = Join-Path $folder "Audit-Nightglass-PR-Stack.py"
 
-$source = git show origin/verification/remote-ref-stack-audit:scripts/Audit-Nightglass-PR-Stack.py
+$source = git show origin/verification/remote-ref-stack-audit:scripts/release/Audit-Nightglass-PR-Stack.py
 if ($LASTEXITCODE -ne 0) { throw "Failed to obtain audit script" }
 $source | Set-Content -LiteralPath $audit -Encoding UTF8
 

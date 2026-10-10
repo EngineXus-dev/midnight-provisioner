@@ -1,7 +1,7 @@
 #requires -Version 5.1
 <#
   Small bootstrap for users whose ORIGINAL Nightglass checkout is still on
-  main and does not yet contain scripts/Run-Nightglass-Fedora-Checks.ps1.
+  main and does not yet contain scripts/testing/Run-Nightglass-Fedora-Checks.ps1.
   Downloads that exact script from YOUR verified GitHub remote into a
   NEW temp folder, then executes it. No worktree reset, pull or merge.
 #>
@@ -48,7 +48,7 @@ try {
     [void](New-Item -ItemType Directory -Path $destination -ErrorAction Stop)
     $runner = Join-Path $destination "Run-Nightglass-Fedora-Checks.ps1"
     # Git outputs checked-in text; temp target is NEW and not in the project.
-    & git -C $repo show ("refs/remotes/origin/{0}:scripts/Run-Nightglass-Fedora-Checks.ps1" -f $branch) |
+    & git -C $repo show ("refs/remotes/origin/{0}:scripts/testing/Run-Nightglass-Fedora-Checks.ps1" -f $branch) |
         Set-Content -LiteralPath $runner -Encoding UTF8
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $runner -PathType Leaf)) {
         throw "Unable to retrieve the versioned Nightglass Fedora runner."

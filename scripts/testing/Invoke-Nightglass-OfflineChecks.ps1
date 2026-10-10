@@ -136,7 +136,7 @@ function Copy-GitSourceToNewTemp {
 }
 
 if ($AuditStack) {
-    $audit = Copy-GitSourceToNewTemp -ScriptPath 'scripts/Audit-Nightglass-PR-Stack.py' -FileName 'Audit-Nightglass-PR-Stack.py'
+    $audit = Copy-GitSourceToNewTemp -ScriptPath 'scripts/release/Audit-Nightglass-PR-Stack.py' -FileName 'Audit-Nightglass-PR-Stack.py'
     Write-Host 'Running read-only local Git ancestry and CI policy audit.'
     & $pythonExe -B $audit --repo $root --verify --expected-candidate-sha $sha
     if ($LASTEXITCODE -ne 0) {
@@ -146,7 +146,7 @@ if ($AuditStack) {
 }
 
 if ($RunDockerGate) {
-    $runner = Copy-GitSourceToNewTemp -ScriptPath 'scripts/Run-Nightglass-Offline-Release-Gate.py' -FileName 'Run-Nightglass-Offline-Release-Gate.py'
+    $runner = Copy-GitSourceToNewTemp -ScriptPath 'scripts/testing/Run-Nightglass-Offline-Release-Gate.py' -FileName 'Run-Nightglass-Offline-Release-Gate.py'
     $arguments = @('-B', $runner, '--repo', $root, '--run', '--expected-commit', $sha)
     if ($PullPythonImages) {
         $arguments += '--pull-python-images'

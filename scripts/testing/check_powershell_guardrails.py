@@ -71,7 +71,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("paths", metavar="PATH", nargs="*", type=Path)
     args = parser.parse_args(argv)
-    paths = args.paths or sorted(Path(__file__).resolve().parent.rglob("*.ps1"))
+    paths = args.paths or sorted(Path(__file__).resolve().parents[1].rglob("*.ps1"))  # all of scripts/
     if not paths:
         print("No PowerShell files selected", file=sys.stderr)
         return 2

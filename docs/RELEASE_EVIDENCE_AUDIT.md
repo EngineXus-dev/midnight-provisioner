@@ -23,7 +23,7 @@ against an adversary who can modify the entire report and log together.
 
 ## Cumulative gate
 
-`scripts/Run-Nightglass-Offline-Release-Gate.py` defaults to PLAN
+`scripts/testing/Run-Nightglass-Offline-Release-Gate.py` defaults to PLAN
 ONLY and has no host/system effects. An explicitly authorized
 `--run` creates a new sibling detached Git worktree from the single
 `verification/phase17-qemu-subset-integrity` branch and writes new,
@@ -55,7 +55,7 @@ automatically merge, reset, clean, tag, release or deploy anything.
 
 ## Independent consistency review
 
-`scripts/Audit-Nightglass-Release-Evidence.py` is read-only and
+`scripts/release/Audit-Nightglass-Release-Evidence.py` is read-only and
 requires three inputs from a completed `--run`:
 
 - `--report`: the *new* status-only JSON (not an older v1 report).
@@ -88,11 +88,11 @@ the commands below fetch just this feature branch and create two
     $runner = Join-Path $tmp "Run-Nightglass-Offline-Release-Gate.py"
     $audit = Join-Path $tmp "Audit-Nightglass-Release-Evidence.py"
 
-    git show origin/verification/phase17-qemu-subset-integrity:scripts/Run-Nightglass-Offline-Release-Gate.py |
+    git show origin/verification/phase17-qemu-subset-integrity:scripts/testing/Run-Nightglass-Offline-Release-Gate.py |
         Set-Content -LiteralPath $runner -Encoding UTF8
     if ($LASTEXITCODE -ne 0) { throw "Failed to retrieve runner" }
 
-    git show origin/verification/phase17-qemu-subset-integrity:scripts/Audit-Nightglass-Release-Evidence.py |
+    git show origin/verification/phase17-qemu-subset-integrity:scripts/release/Audit-Nightglass-Release-Evidence.py |
         Set-Content -LiteralPath $audit -Encoding UTF8
     if ($LASTEXITCODE -ne 0) { throw "Failed to retrieve auditor" }
 

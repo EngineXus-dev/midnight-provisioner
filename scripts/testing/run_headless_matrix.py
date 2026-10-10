@@ -11,7 +11,7 @@ from pathlib import Path
 import sys
 import unittest
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 MIN_COLLECTED = 60
 MIN_EXECUTED = 40
 
@@ -22,7 +22,7 @@ def run_matrix() -> int:
             or not source.is_dir()):
         print("[BLOCKED] Must run in isolated Nightglass source tree", file=sys.stderr)
         return 2
-    # Python invoked via 'scripts/run_headless_matrix.py' otherwise
+    # Python invoked via 'scripts/testing/run_headless_matrix.py' otherwise
     # has scripts/ and tests/ but NOT the checkout root on sys.path.
     # The synthetic modules legitimately import nightglass.
     # Place the pinned checkout first, even when an inherited PYTHONPATH

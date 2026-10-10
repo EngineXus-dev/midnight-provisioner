@@ -22,7 +22,7 @@ In PowerShell, from the original Nightglass checkout:
     New-Item -ItemType Directory -Path $dir | Out-Null
     $runner = Join-Path $dir "Run-Nightglass-Python-Matrix.ps1"
 
-    git show origin/verification/fedora-host-acceptance-preflight:scripts/Run-Nightglass-Python-Matrix.ps1 |
+    git show origin/verification/fedora-host-acceptance-preflight:scripts/testing/Run-Nightglass-Python-Matrix.ps1 |
         Set-Content -LiteralPath $runner -Encoding UTF8
     if ($LASTEXITCODE -ne 0) { throw "Runner retrieval failed" }
 

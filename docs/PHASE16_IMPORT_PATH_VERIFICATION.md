@@ -9,9 +9,9 @@
 The three Nightglass test helpers are run as scripts:
 
 ```
-python -B scripts/run_portable_suite.py --pattern test_kali_templates.py
-python -B scripts/run_headless_matrix.py
-python -B scripts/run_required_suite.py --check gui
+python -B scripts/testing/run_portable_suite.py --pattern test_kali_templates.py
+python -B scripts/testing/run_headless_matrix.py
+python -B scripts/testing/run_required_suite.py --check gui
 ```
 
 Under ordinary Python behavior, executing a path inside `scripts/`

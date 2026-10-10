@@ -94,12 +94,14 @@ The GUI has the same manual-review control in **System discovery**. Nothing is r
 Nightglass's controller runs on **Fedora**, not Windows. On the current Windows machine, PowerShell can inspect hardware and storage **without making changes**:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-windows-hardware.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\windows\check-windows-hardware.ps1
 ```
 
 Prior to Linux dual boot: create a verified full-disk Windows backup, recover BitLocker keys if applicable, confirm UEFI/GPT, check free disk capacity and whether a second SSD exists, and test Fedora KDE live USB hardware compatibility (Wi-Fi, audio, AMD GPU). **Do not repartition, disable BitLocker, or change BIOS settings based only on automatic checks.** Windows 10's ordinary support has ended; use a supported/extended-security-patched Windows environment.
 
 ## Fedora installation and run — one application installer
+
+**Start here:** [`scripts/install/README.md`](scripts/install/README.md) lists the installer scripts in order. Other scripts are grouped by purpose; see [`scripts/README.md`](scripts/README.md).
 
 **First install Fedora KDE alongside Windows manually, after making and testing full backups.** Nightglass's installer is an **application installer**, not an OS/partition/EFI installer.
 
@@ -107,10 +109,10 @@ On the manually installed Fedora desktop, as your regular user:
 
 ```bash
 # Optional system dependencies, reviewed and explicitly confirmed separately:
-bash scripts/fedora-dependencies.sh
+bash scripts/install/fedora-dependencies.sh
 
 # One installer on any machine, regardless of RAM size:
-bash scripts/setup-nightglass.sh
+bash scripts/install/setup-nightglass.sh
 
 # Open Nightglass:
 "$HOME/.local/share/nightglass/venv/bin/nightglass" gui
@@ -141,14 +143,14 @@ nightglass update check
 nightglass update apply
 ```
 
-The GUI also offers **Machine settings → Check for updates / Install available update**. Enabling check-at-start only checks for updates and never installs them. Restart the GUI after an update. If Python dependencies change, rerun `bash scripts/setup-nightglass.sh` manually.
+The GUI also offers **Machine settings → Check for updates / Install available update**. Enabling check-at-start only checks for updates and never installs them. Restart the GUI after an update. If Python dependencies change, rerun `bash scripts/install/setup-nightglass.sh` manually.
 
 For libvirt access errors, use Fedora's documented polkit/virtualization configuration. Do **not** run Nightglass as root to bypass access checks.
 
 ### First usable workspace
 
 1. Open `virt-manager` and create a Kali VM with a private virtual disk, ~**3 GiB RAM**, 2 vCPUs (your 8 GB system should run **only one major VM at a time**).
-2. Configure its virtual network **disconnected at first**. For isolated authorized lab traffic, review the security model, then explicitly run `./scripts/create-lab-network.sh` and attach the VM NIC to **nightglass-lab**. This is not suitable for live malware analysis.
+2. Configure its virtual network **disconnected at first**. For isolated authorized lab traffic, review the security model, then explicitly run `./scripts/install/create-lab-network.sh` and attach the VM NIC to **nightglass-lab**. This is not suitable for live malware analysis.
 3. Configure the guest display for **loopback VNC**, not SPICE, and remove host-guest clipboard/agent channels and passthrough devices. The launch audit will report any policy violations.
 4. In Nightglass choose the **Authorized Pentesting** profile → **Bind VM** → specify the libvirt domain name. A failed audit blocks starting that VM **through Nightglass**.
 5. For malware analysis, create a **separate disposable offline VM**: no NIC, no host shares or USB devices, no SPICE channels. Consider a different physical system when handling real malware.
@@ -209,7 +211,7 @@ Check Fedora import readiness**, or:
 
 ```bash
 nightglass recover preflight /path/to/NEW-dir
-bash scripts/fedora-recovery-smoke.sh /path/to/NEW-dir
+bash scripts/backup/fedora-recovery-smoke.sh /path/to/NEW-dir
 ```
 
 **Neither operation imports, boots, converts, deletes, defines or modifies a
@@ -352,7 +354,7 @@ dependencies or a tested baseline restore. See the
 
 ## Kali guest inventory helper (manual, offline)
 
-The standalone **source-checkout** script `scripts/kali-guest-inventory.py`
+The standalone **source-checkout** script `scripts/kali/kali-guest-inventory.py`
 can be run **manually as an ordinary user inside an already-installed benign
 Kali VM** to query locally cached dpkg/apt package versions and produce one
 NEW private guest inventory JSON file. Use
@@ -517,7 +519,7 @@ The connected GitHub integration does not currently expose *repository creation*
 
 ```powershell
 # GitHub CLI and Git must be installed and you must be authenticated (gh auth login)
-.\scripts\Publish-PrivateRepo.ps1
+.\scripts\release\Publish-PrivateRepo.ps1
 ```
 
 The script creates a fresh `nightglass-workspaces` **private** repository through `gh repo create`, initializes only this project directory if needed, refuses existing `origin` remotes and dirty existing Git checkouts, and **never force-pushes or pulls existing work**. You may rename the repo using `-RepoName custom-name`.
@@ -578,10 +580,10 @@ and provides a local Python test runner that does not launch VMs, use
 sudo, download dependencies, or spend GitHub Actions minutes:
 
 ```bash
-python3 -B scripts/verify_local.py
-python3 -B scripts/verify_local.py --focused
-python3 -B scripts/verify_local.py --gui       # only with PySide6 installed
-python3 -B scripts/verify_local.py --native    # only with native tools installed
+python3 -B scripts/testing/verify_local.py
+python3 -B scripts/testing/verify_local.py --focused
+python3 -B scripts/testing/verify_local.py --gui       # only with PySide6 installed
+python3 -B scripts/testing/verify_local.py --native    # only with native tools installed
 ```
 
 **On Windows**, the default verifier now runs a clearly labeled
@@ -605,7 +607,7 @@ PowerShell launcher/runner to fetch this integration branch into another
 GitHub Actions or access to original project secrets:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Run-Nightglass-Fedora-Checks.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\testing\Run-Nightglass-Fedora-Checks.ps1
 ```
 
 This script lives on the integration branch (not the older `main`
@@ -657,7 +659,7 @@ an edition matching an actual Home/Pro licence, and treats a custom
 ISO as optional rather than required to fit the separate 16 GB USB.
 An optional **preview-first, reversible, HKCU-only** post-install
 PowerShell preferences helper is committed to
-`scripts/Set-Nightglass-Windows11-Preferences.ps1`. Its native
+`scripts/windows/Set-Nightglass-Windows11-Preferences.ps1`. Its native
 Windows 11 Apply/Undo functionality has NOT been executed or verified.
 Do not run it against current Windows 10 or before deciding to install.
 No remote debloat script downloads or Windows component removal are
@@ -669,7 +671,7 @@ The [35-item detailed catalog](config/windows11-pro-custom.json) and
 [Windows 11 Pro configuration runbook](docs/WINDOWS11_PRO_32_POINT_PROFILE.md)
 cover the user's 32 numbered requests plus OneDrive, promotion/Widgets
 and AI-app changes. The planner at
-`scripts/Invoke-Nightglass-Win11ProCustom.ps1` is **preview-only by
+`scripts/windows/Invoke-Nightglass-Win11ProCustom.ps1` is **preview-only by
 default**. Do not run ApplyCore until a licensed Windows 11 Pro clean
 install, independent backups, an approved SHA256-pinned local
 Win11Debloat.ps1, real Windows parser/integration tests, and separate
@@ -683,7 +685,7 @@ No product key is requested or embedded. The
 [activation choice and read-only ISO media plan](docs/WINDOWS11_PRO_ACTIVATE_LATER.md)
 explain how to select Pro without accidentally accepting an OEM Home
 edition, then activate later in Windows Settings. The companion
-`scripts/Plan-Nightglass-InstallMedia.py` only estimates ISO capacity
+`scripts/windows/Plan-Nightglass-InstallMedia.py` only estimates ISO capacity
 of a separately measured, disposable 16 GB USB; it **cannot write
 or select a USB target, start installation, change partitions or
 activate Windows**. The portable example backup-drive capacity backup drive remains off limits.
@@ -705,10 +707,10 @@ a Windows 11 Pro clean install, USB formatter or third-party debloater.
 ### Latest-code release evidence and independent audit
 
 Phase 5 introduces a [read-only local evidence auditor](docs/RELEASE_EVIDENCE_AUDIT.md).
-The [offline runner](scripts/Run-Nightglass-Offline-Release-Gate.py)
+The [offline runner](scripts/testing/Run-Nightglass-Offline-Release-Gate.py)
 now records v2 checks, the exact tested Git SHA, before/after original
 `main` refs and a finished local log digest. The
-[auditor](scripts/Audit-Nightglass-Release-Evidence.py) refuses stale,
+[auditor](scripts/release/Audit-Nightglass-Release-Evidence.py) refuses stale,
 tampered or incomplete evidence but cannot authenticate an adversarial
 report/log pair and cannot certify real Fedora KVM/sVirt security.
 This latest branch is a **draft / untested integration candidate**:
@@ -719,7 +721,7 @@ no Windows or Fedora deployment or PR merge is implied.
 [PR stack integration readiness](docs/PR_STACK_INTEGRATION_READINESS.md)
 records 39 current draft/unmerged Nightglass PRs (#1–29, #31–40;
 #30 is absent). A preview-first local source auditor at
-`scripts/Audit-Nightglass-PR-Stack.py` checks local Git
+`scripts/release/Audit-Nightglass-PR-Stack.py` checks local Git
 branch ancestry and path-level sensitive changes without
 checkout, merge, rebase, reset, clean or source writes. It can never
 authorize an actual merge or OS installation. GitHub PR metadata
@@ -744,7 +746,7 @@ authorize integration or Windows/Fedora deployment.
 ### Phase 8: Windows one-command offline checks (opt-in)
 
 See [Windows verification launcher](docs/WINDOWS_ONE_COMMAND_OFFLINE_CHECKS.md)
-for the preview-first script `scripts/Invoke-Nightglass-OfflineChecks.ps1`.
+for the preview-first script `scripts/testing/Invoke-Nightglass-OfflineChecks.ps1`.
 It is safe to retrieve into a new temp folder without switching off
 `main`. It offers explicit `-FetchRefs`, `-AuditStack` and
 `-RunDockerGate` switches, with separate consent for Docker testing
@@ -764,7 +766,7 @@ These are source updates on a draft branch, not verified runtime PASS.
 ### Phase 10: verify a future portable backup without writing to it
 
 [Backup integrity preflight](docs/BACKUP_INTEGRITY_PREFLIGHT.md)
-introduces `scripts/Inspect-Nightglass-Backup.py`: Preview-only
+introduces `scripts/backup/Inspect-Nightglass-Backup.py`: Preview-only
 by default, with user-requested metadata comparison or streaming
 SHA-256 checks of an original directory and an already copied
 portable backup. The inspection includes hidden .git/.env/.venv
@@ -778,7 +780,7 @@ Windows 11 Pro installation and Fedora deployment remain deferred.
 
 The [multi-source backup set](docs/MULTI_SOURCE_BACKUP_READINESS.md)
 supports a private manifest of multiple original/copied directories.
-`scripts/Verify-Nightglass-BackupSet.py` defaults to zero-access
+`scripts/backup/Verify-Nightglass-BackupSet.py` defaults to zero-access
 Preview, and separately offers read-only metadata or SHA-256
 comparison across all selected locations. It includes hidden
 .git/.env/.venv entries and prevents hardlinked pseudo-copies or

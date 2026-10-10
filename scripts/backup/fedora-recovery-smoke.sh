@@ -2,7 +2,7 @@
 # Nightglass Fedora recovery smoke checks: READ-ONLY; no guest defined or booted.
 set -euo pipefail
 if [[ $# -ne 1 ]]; then
-  echo "Usage: bash scripts/fedora-recovery-smoke.sh /path/to/staged-recovery" >&2
+  echo "Usage: bash scripts/backup/fedora-recovery-smoke.sh /path/to/staged-recovery" >&2
   exit 2
 fi
 if [[ "$(uname -s)" != "Linux" ]]; then
@@ -13,7 +13,7 @@ if [[ $EUID -eq 0 ]]; then
   echo "Do not run as root: inspect libvirt permissions instead." >&2
   exit 2
 fi
-HERE="$(cd -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"
+HERE="$(cd -- "$(dirname -- "$BASH_SOURCE")/../.." && pwd -P)"
 export PYTHONPATH="$HERE"
 if ! command -v python3 >/dev/null 2>&1; then
   echo "Missing Python 3 interpreter." >&2

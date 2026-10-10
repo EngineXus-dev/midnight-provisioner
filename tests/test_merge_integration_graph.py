@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 import unittest
 
-FILE = Path(__file__).resolve().parents[1] / "scripts/Review-Nightglass-Integration.py"
+FILE = Path(__file__).resolve().parents[1] / "scripts/release/Review-Nightglass-Integration.py"
 spec = importlib.util.spec_from_file_location("nightglass_integration_graph", FILE)
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)

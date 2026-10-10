@@ -12,7 +12,7 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-REVIEW = ROOT / "scripts" / "Read-Nightglass-Windows-HostGate.ps1"
+REVIEW = ROOT / "scripts" / "windows" / "Read-Nightglass-Windows-HostGate.ps1"
 
 
 class WindowsHostGateTests(unittest.TestCase):

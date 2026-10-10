@@ -14,7 +14,7 @@
 
 The deliverable is a **Fedora KDE Nightglass Python application source tree**, with CLI and PySide6 interface, Qubes-inspired workspace organization, distinct Kali-purpose template profiles, offline-analysis and development contexts, libvirt/QEMU and Distrobox integrations, Windows/Fedora discovery and conservative device recognition, install-impact previews, recovery/backup checks, and tests. Some features are read-only plans/gates rather than deployed enforcement. Read `README.md`, `docs/INTEGRATION_RELEASE_CANDIDATE.md`, `docs/SECURITY_MODEL.md`, `docs/KALI_TEMPLATES.md`, `docs/PHASE23_FIRST_RUN_DISCOVERY.md`, and `docs/PHASE27_UNTRUSTED_PROPOSAL_REVIEW.md` for exact behavior.
 
-**Not delivered:** a bootable Fedora installer or OS image; a customer-ready Windows binary; a proved Windows/Fedora dual-boot; proven physical KVM/SELinux/sVirt isolation or VM containment; a disk formatter; verified external backups or recovery from them; or a deployable appliance. `scripts/setup-nightglass.sh` is application setup on an already-installed Fedora host, not an OS installation. No physical disks, EFI, USB media, firmware, installed OSes, backups, or hardware VMs were modified during this PR integration work.
+**Not delivered:** a bootable Fedora installer or OS image; a customer-ready Windows binary; a proved Windows/Fedora dual-boot; proven physical KVM/SELinux/sVirt isolation or VM containment; a disk formatter; verified external backups or recovery from them; or a deployable appliance. `scripts/install/setup-nightglass.sh` is application setup on an already-installed Fedora host, not an OS installation. No physical disks, EFI, USB media, firmware, installed OSes, backups, or hardware VMs were modified during this PR integration work.
 
 ## Verification ledger — do not overstate
 
@@ -32,7 +32,7 @@ The deliverable is a **Fedora KDE Nightglass Python application source tree**, w
 - [ ] Review the deliberate PR #53 fork disposition; do not silently fold its stale candidate-SHA edits back in.
 - [ ] Run all nine synthetic graph regressions and seven source RC contract tests on the **current** candidate SHA, plus the required Windows Phase23–27 synthetic/CLI tests; do not accept timeout exit 124, missing suite summaries or unexplained skips.
 - [ ] Independently run Fedora 43 full tests in a source-isolated container, real PySide6 offscreen tests and native libvirt/QEMU fixture checks on that same exact candidate SHA. CI is optional if quota-limited; evidence must identify the SHA and any skipped tests.
-- [ ] Check the pinned integration snapshot with `scripts/Review-Nightglass-Integration.py`. Its `merge_authorized=false` value is an intentional non-authorizing safety result, not a CI failure. A script cannot grant owner authorization.
+- [ ] Check the pinned integration snapshot with `scripts/release/Review-Nightglass-Integration.py`. Its `merge_authorized=false` value is an intentional non-authorizing safety result, not a CI failure. A script cannot grant owner authorization.
 - [ ] **Owner personally approves the actual merge**, with no automatic merge of old drafts. Prefer a normal **merge commit** to preserve cumulative history. Do not force push.
 - [ ] Post-merge, verify `main` contains the intended commit, check the merge commit, and keep the PR graph and evidence accessible.
 

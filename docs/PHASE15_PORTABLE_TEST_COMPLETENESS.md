@@ -7,7 +7,7 @@
 ## Actual defect
 
 The Nightglass Windows-only portable verification path in
-`scripts/verify_local.py` previously invoked `unittest discover`
+`scripts/testing/verify_local.py` previously invoked `unittest discover`
 for each allowlisted test module. Python unittest can exit **0**
 when a pattern matches no cases or when every discovered case is
 skipped. This could misrepresent missing or skipped regressions as
@@ -22,7 +22,7 @@ per-file loop had remained unprotected**.
 The portable loop now invokes:
 
 ```
-python -B scripts/run_portable_suite.py --pattern test_candidate_branch_contract.py
+python -B scripts/testing/run_portable_suite.py --pattern test_candidate_branch_contract.py
 ```
 
 The named pattern is only an example; `verify_local.py` supplies

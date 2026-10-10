@@ -7,7 +7,7 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "Read-Nightglass-WinRE-Triage.ps1"
+SCRIPT = ROOT / "scripts" / "windows" / "Read-Nightglass-WinRE-Triage.ps1"
 
 class WinREContract(unittest.TestCase):
     @classmethod

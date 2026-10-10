@@ -40,9 +40,9 @@ foreach ($item in $tree) {
  }
 }
 foreach ($required in @('nightglass/ui.py','nightglass/install_proposal_review.py',
-                          'scripts/setup-nightglass.sh',
+                          'scripts/install/setup-nightglass.sh',
                           'config/nightglass-integration-snapshot-v2.json',
-                          'scripts/Review-Nightglass-Integration.py')) {
+                          'scripts/release/Review-Nightglass-Integration.py')) {
  if ($tree -notcontains $required) { throw ('Required source absent: ' + $required) }
 }
 # PowerShell location, not the .NET process directory (Set-Location does not change it).
@@ -78,7 +78,7 @@ if ($mainAfter -cne $mainBefore) { throw 'Local main changed during package oper
  tracked_source_files=$tree.Count
  source_zip_name='nightglass-source.zip'
  source_zip_sha256=$hash
- fedora_app_installer='scripts/setup-nightglass.sh'
+ fedora_app_installer='scripts/install/setup-nightglass.sh'
  complete_os_installer_included=$false
  installed_fedora_gui_binary_included=$false
  physical_fedora_host_validated=$false
@@ -89,7 +89,7 @@ if ($mainAfter -cne $mainBefore) { throw 'Local main changed during package oper
 @'
 Nightglass cumulative integration SOURCE RC.
 Extract nightglass-source.zip to a NEW empty folder. It contains tracked
-Python/Fedora application source and scripts/setup-nightglass.sh, not a
+Python/Fedora application source and scripts/install/setup-nightglass.sh, not a
 Windows executable, an installed Fedora image or OS installer.
 No physical disk, USB, backup, VM, boot or firmware actions are performed.
 User backups and real Fedora host security acceptance are not certified.

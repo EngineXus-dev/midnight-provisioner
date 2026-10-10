@@ -13,7 +13,7 @@ from pathlib import Path
 import sys
 import unittest
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_SUITES = {
     "gui": ("test_gui_smoke.py", 5),
     "native": ("test_native_tools.py", 5),

@@ -91,7 +91,7 @@ class MachineBudgetTests(unittest.TestCase):
 
     def test_single_setup_script_replaces_ram_specific_installs(self):
         scripts = Path(__file__).resolve().parents[1] / "scripts"
-        self.assertTrue((scripts / "setup-nightglass.sh").exists())
+        self.assertTrue((scripts / "install" / "setup-nightglass.sh").exists())
         self.assertFalse((scripts / "Setup-8GB.sh").exists())
         self.assertFalse((scripts / "Setup-32GB.sh").exists())
 

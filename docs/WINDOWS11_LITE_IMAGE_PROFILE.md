@@ -193,7 +193,7 @@ for unwanted Copilot/Recall options.
 ### Nightglass's own conservative "one shot" alternative
 
 The project provides an **optional**, locally inspectable script:
-`scripts/Set-Nightglass-Windows11-Preferences.ps1`
+`scripts/windows/Set-Nightglass-Windows11-Preferences.ps1`
 
 It defaults to **preview only**, uses HKCU preferences, does not
 download/execute any external tool, never touches core Windows
@@ -211,17 +211,17 @@ a disposable Windows 11 VM Apply/Undo test before being trusted.
 
 Example after those gates pass, in a local checkout:
 
-    powershell.exe -NoProfile -File scripts/Set-Nightglass-Windows11-Preferences.ps1 -Mode Preview
+    powershell.exe -NoProfile -File scripts/windows/Set-Nightglass-Windows11-Preferences.ps1 -Mode Preview
 
 To apply **only** the eight user preference DWORDs, the owner may
 later explicitly approve:
 
-    powershell.exe -NoProfile -File scripts/Set-Nightglass-Windows11-Preferences.ps1 -Mode Apply -Consent "APPLY NIGHTGLASS USER PREFERENCES"
+    powershell.exe -NoProfile -File scripts/windows/Set-Nightglass-Windows11-Preferences.ps1 -Mode Apply -Consent "APPLY NIGHTGLASS USER PREFERENCES"
 
 A new snapshot path is displayed before changes. Keep that private
 file, which is necessary for Undo:
 
-    powershell.exe -NoProfile -File scripts/Set-Nightglass-Windows11-Preferences.ps1 -Mode Undo -SnapshotPath "C:\path\to\prior-snapshot.json" -Consent "UNDO NIGHTGLASS USER PREFERENCES"
+    powershell.exe -NoProfile -File scripts/windows/Set-Nightglass-Windows11-Preferences.ps1 -Mode Undo -SnapshotPath "C:\path\to\prior-snapshot.json" -Consent "UNDO NIGHTGLASS USER PREFERENCES"
 
 Undo checks that the preferences still equal the values the helper
 applied and **skips** any settings subsequently changed by the user.
@@ -268,7 +268,7 @@ A new [35-item execution-plan catalog](../config/windows11-pro-custom.json)
 with reviewed/core versus separate-consent phases is documented in
 [Windows 11 Pro 32-point profile](WINDOWS11_PRO_32_POINT_PROFILE.md).
 
-The script `scripts/Invoke-Nightglass-Win11ProCustom.ps1` defaults to a
+The script `scripts/windows/Invoke-Nightglass-Win11ProCustom.ps1` defaults to a
 read-only preview. Optional future `ApplyCore` is strictly gated on
 an actually installed Windows 11 Pro system, backup confirmation,
 explicit consent, an administrator terminal and an independently

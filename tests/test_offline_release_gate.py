@@ -19,7 +19,7 @@ from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNNER = ROOT / "scripts" / "Run-Nightglass-Offline-Release-Gate.py"
+RUNNER = ROOT / "scripts" / "testing" / "Run-Nightglass-Offline-Release-Gate.py"
 spec = importlib.util.spec_from_file_location("nightglass_offline_gate_for_tests", RUNNER)
 gate = importlib.util.module_from_spec(spec)
 assert spec.loader is not None

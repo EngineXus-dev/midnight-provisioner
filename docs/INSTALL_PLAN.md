@@ -9,7 +9,7 @@
 Nightglass installation is **NOT authorized** by software readiness checks.
 A native Windows, read-only review script and detailed dual-boot/rollback
 decision gates are available in [Deployment safety gates](DEPLOYMENT_SAFETY_GATES.md).
-Run `scripts/Review-Windows-DualBoot.ps1` only from a separately fetched
+Run `scripts/windows/Review-Windows-DualBoot.ps1` only from a separately fetched
 temporary copy while your local checkout remains on `main`; it never
 edits partitions, firmware/boot configuration or BitLocker protection.
 
@@ -50,7 +50,7 @@ partitioning, or attempt dual-boot deployment automatically.
 ### Stage A — on Windows
 
 - Verify laptop manufacturer/model and whether memory/second internal NVMe can be upgraded. With 8 GB RAM, budget ~3 GB for one Kali VM and stop other VMs before launching it.
-- Run `scripts/check-windows-hardware.ps1`. It does not change Windows. Check Win10 support/ESU situation.
+- Run `scripts/windows/check-windows-hardware.ps1`. It does not change Windows. Check Win10 support/ESU situation.
 - Create and test a full-disk backup to disconnected storage; preserve recovery keys and a Windows recovery USB.
 - Identify firmware type (UEFI preferred), actual disk inventory, size of free space, ESP/Recovery/BitLocker layout. Disable Windows Fast Startup before later mounting Windows NTFS read-write from Linux. Do not use Linux to modify Windows files while Windows is hibernated.
 - Test Fedora KDE live USB for Wi-Fi, sleep/resume, display scaling, AMD integrated graphics and peripherals.
@@ -65,7 +65,7 @@ partitioning, or attempt dual-boot deployment automatically.
 
 ### Stage C — optional virtualization and Nightglass
 
-- Run `./scripts/fedora-dependencies.sh` to opt in to packages; it does NOT partition disks or create VMs.
+- Run `./scripts/install/fedora-dependencies.sh` to opt in to packages; it does NOT partition disks or create VMs.
 - Create a normal-user Python virtual environment and install Nightglass as detailed in README.
 - Run `nightglass doctor` and confirm `qemu:///system` libvirt authorization. Do not run Nightglass as root.
 - Provision a separate Kali VM in virt-manager; initially no virtual NIC. Then review and optionally create `nightglass-lab` after deciding host firewall rules. Bind the VM in Nightglass.
