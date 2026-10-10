@@ -97,7 +97,9 @@ def parse_manifest_bytes(contents: bytes) -> list[dict]:
                           object_pairs_hook=reject_duplicate_keys,
                           parse_constant=lambda _x: (_ for _ in ()).throw(
                               StackError("Non-finite JSON value rejected")))
-    except (UnicodeError, json.JSONDecodeError) as exc:
+    except StackError:
+        raise  # keep the specific message (e.g. duplicate key)
+    except (ValueError, RecursionError) as exc:  # incl. JSON, Unicode and int-digit-limit errors
         raise StackError("Cannot read valid stack JSON") from exc
     return validate_manifest(data)
 

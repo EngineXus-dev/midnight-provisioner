@@ -104,7 +104,7 @@ class ProcessLabelTests(unittest.TestCase):
         (parent / "stat").write_text(
             str(pid) + " (qemu-system-x86_64) S " + " ".join(["0"] * 18 + [start])
         )
-        (parent / "attr/current").write_text(context + "\n")
+        (parent / "attr/current").write_bytes(context.encode() + b"\0")  # real kernel format
         return parent
 
     def inspect(self):

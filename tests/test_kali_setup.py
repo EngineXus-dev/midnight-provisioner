@@ -254,7 +254,8 @@ class KaliSetupTests(unittest.TestCase):
         target = self.folder / "cli-plan.json"
         out = StringIO()
         with patch("nightglass.cli.OfflineProvisioner") as install, \
-             patch("nightglass.cli.Hypervisor") as hypervisor, redirect_stdout(out):
+             patch("nightglass.cli.Hypervisor") as hypervisor, \
+             patch("nightglass.cli.os.geteuid", return_value=1000), redirect_stdout(out):
             self.assertEqual(main([
                 "templates", "export", "recon", str(target),
             ]), 0)

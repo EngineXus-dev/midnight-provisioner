@@ -51,7 +51,9 @@ def read_snapshot(path):
         raise GateError("Missing or oversized snapshot")
     try:
         data = json.loads(path.read_text(encoding="utf-8-sig"), object_pairs_hook=no_duplicates)
-    except (OSError, UnicodeError, json.JSONDecodeError, RecursionError) as e:
+    except GateError:
+        raise  # keep the specific message (e.g. duplicate key)
+    except (OSError, ValueError, RecursionError) as e:
         raise GateError("Cannot parse snapshot safely") from e
     return validate_snapshot(data)
 

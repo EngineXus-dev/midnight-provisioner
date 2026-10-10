@@ -99,7 +99,9 @@ def parse_proposal(content: str) -> dict[str, Any]:
         raise ProposalError("Proposal exceeds maximum size")
     try:
         result = json.loads(content, object_pairs_hook=_pairs, parse_constant=_reject_constant)
-    except (json.JSONDecodeError, UnicodeError, RecursionError) as exc:
+    except ProposalError:
+        raise  # keep the specific message (e.g. duplicate key)
+    except (ValueError, RecursionError) as exc:  # incl. JSON, Unicode and int-digit-limit errors
         raise ProposalError("Malformed or excessively nested JSON") from exc
     if not _keys(result, EXPECTED_KEYS):
         raise ProposalError("Unexpected or missing proposal fields")

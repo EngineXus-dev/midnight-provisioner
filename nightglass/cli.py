@@ -39,6 +39,30 @@ from .host_posture import inspect_host_posture
 import os
 
 
+def _read_only(cmd: str, args: argparse.Namespace) -> bool:
+    """True for invocations that cannot write files, settings, Git or VMs."""
+    if getattr(args, "report", None) or getattr(args, "destination", None):
+        return False
+    if cmd == "profile":
+        return args.profile_action in (None, "show")
+    if cmd == "backup":
+        return args.backup_action != "create"
+    if cmd == "recover":
+        return args.recover_action != "stage"
+    return cmd not in {"update", "gui"}
+
+
+def _confirmed(prompt: str, word: str) -> bool:
+    """Typed confirmation; no terminal, Ctrl-D or Ctrl-C all mean "cancel"."""
+    if not sys.stdin.isatty():
+        return False
+    try:
+        return input(prompt).strip() == word
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return False
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="nightglass", description="Nightglass secure-workspace controller")
     sub = parser.add_subparsers(dest="command")
@@ -236,6 +260,11 @@ def main(argv: list[str] | None = None) -> int:
     accept.add_argument("--report", type=Path, help="Save private evidence to a NEW local JSON file")
     args = parser.parse_args(argv)
     cmd = args.command or "gui"
+    if hasattr(os, "geteuid") and os.geteuid() == 0 and not _read_only(cmd, args):
+        # Matches the GUI: as root, writes leave root-owned files in the user's
+        # config, reports and Git checkout, and bypass libvirt's polkit prompts.
+        print("Nightglass must run as an unprivileged desktop user, never as root (no sudo).", file=sys.stderr)
+        return 2
     try:
         if cmd == "templates":
             if args.template_action == "process-label":
@@ -372,7 +401,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.recover_action == "plan":
                 return 0
             if not args.yes:
-                if not sys.stdin.isatty() or input("Type STAGE to create a new recovery copy: ").strip() != "STAGE":
+                if not _confirmed("Type STAGE to create a new recovery copy: ", "STAGE"):
                     print("Cancelled; no files created.")
                     return 1
             dest = worker.stage(
@@ -398,7 +427,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.backup_action == "plan":
                 return 0
             if not args.yes:
-                if not sys.stdin.isatty() or input("Type BACKUP to copy the powered-off VM: ").strip() != "BACKUP":
+                if not _confirmed("Type BACKUP to copy the powered-off VM: ", "BACKUP"):
                     print("Cancelled. No backup created.")
                     return 1
             directory = service.create(
@@ -431,15 +460,16 @@ def main(argv: list[str] | None = None) -> int:
             ram = total_ram_gib()
             # The selected mode is only a *preference*: the effective limits
             # are always clamped to actual host capacity on every VM launch.
-            preset = MachinePreferences(
-                preset=args.target,
-                automatic_update_checks=current.automatic_update_checks,
-            )
+            # Keep the user's own tighter RAM/VM/vCPU caps: switching preset
+            # must never silently loosen limits they chose.
+            preset = replace(current, preset=args.target)
+            if any(v is not None for v in (current.guest_ram_cap_gib, current.active_vm_cap, current.vcpu_cap)):
+                print("Your custom RAM/VM/vCPU caps are kept; clear them in Machine settings to remove them.")
             preview = budget_for(ram, os.cpu_count(), preset)
             print(preview.explain())
             print("Only Nightglass machine.json will change; no VM disk, network, bootloader, or workspace definition changes.")
             if not args.yes:
-                if not sys.stdin.isatty() or input("Type APPLY to save these settings: ").strip() != "APPLY":
+                if not _confirmed("Type APPLY to save these settings: ", "APPLY"):
                     print("Cancelled; settings unchanged.")
                     return 1
             save_machine_preferences(preset)
@@ -457,7 +487,7 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             if args.update_action == "apply":
                 if not args.yes:
-                    if not sys.stdin.isatty() or input("Type UPDATE to fast-forward clean main: ").strip() != "UPDATE":
+                    if not _confirmed("Type UPDATE to fast-forward clean main: ", "UPDATE"):
                         print("Cancelled; source unchanged.")
                         return 1
                 print(SourceUpdater().apply(confirmed=True))
@@ -543,6 +573,9 @@ def main(argv: list[str] | None = None) -> int:
             return run_gui()
     except (WorkspaceError, ToolError) as exc:
         print(f"Nightglass: {exc}", file=sys.stderr)
+        return 2
+    except OSError as exc:
+        print(f"Nightglass: file or system error: {exc}", file=sys.stderr)
         return 2
     return 2
 

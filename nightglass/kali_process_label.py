@@ -43,6 +43,11 @@ def _read_proc(path: Path) -> bytes:
     return data
 
 
+def _process_label(pid_dir: Path) -> str:
+    """SELinux ends attr/current with a NUL byte, which str.strip() keeps."""
+    return _read_proc(pid_dir / "attr" / "current").decode("utf-8").rstrip("\0\n").strip()
+
+
 def _start_time(pid_dir: Path) -> str:
     """Linux /proc/PID/stat field 22, accounting for parentheses in comm."""
     data = _read_proc(pid_dir / "stat").decode("utf-8", errors="replace").strip()
@@ -230,7 +235,7 @@ class KaliProcessLabelInspector:
                 continue
             try:
                 started = _start_time(entry)
-                observed_label = _read_proc(entry / "attr" / "current").decode("utf-8").strip()
+                observed_label = _process_label(entry)
                 if not observed_label or not PROCESS_LABEL.fullmatch(observed_label):
                     errors.append("Matched QEMU has missing or unexpected effective SELinux process context")
                 elif observed_label != expected_label:
@@ -247,7 +252,7 @@ class KaliProcessLabelInspector:
             try:
                 if (_start_time(pid_dir) != started or
                         not _matches_qemu(_arguments(pid_dir), guest, domain_uuid) or
-                        _read_proc(pid_dir / "attr" / "current").decode("utf-8").strip() != label):
+                        _process_label(pid_dir) != label):
                     errors.append("QEMU process identity or effective SELinux label changed during inspection")
                 else:
                     checks.append("QEMU /proc attr/current equals libvirt dynamic sVirt process context")

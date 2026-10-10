@@ -155,7 +155,7 @@ def _read_bounded_json(path: Path) -> dict:
         if len(raw) > MAX_JSON_BYTES:
             raise ToolError("Oversized JSON document")
         document = json.loads(raw.decode("utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+    except (OSError, ValueError, RecursionError) as exc:  # RecursionError: hostile nesting
         raise ToolError(f"Unreadable JSON input: {exc}") from exc
     if not isinstance(document, dict):
         raise ToolError("JSON record must be an object")

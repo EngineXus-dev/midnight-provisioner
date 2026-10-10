@@ -102,7 +102,9 @@ def read_json(path: Path) -> dict:
             parse_constant=lambda _: (_ for _ in ()).throw(
                 EvidenceError("Nonfinite numbers are forbidden")),
         )
-    except (UnicodeError, json.JSONDecodeError) as exc:
+    except EvidenceError:
+        raise  # keep the specific message (e.g. duplicate key)
+    except (ValueError, RecursionError) as exc:  # incl. JSON, Unicode and int-digit-limit errors
         raise EvidenceError("Evidence must be UTF-8 JSON") from exc
     if not isinstance(obj, dict):
         raise EvidenceError("JSON root must be an object")

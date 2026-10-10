@@ -82,7 +82,9 @@ def read_report(path: Path) -> dict:
             parse_constant=lambda _value: (_ for _ in ()).throw(
                 EvidenceError("Non-finite JSON numeric value is forbidden")),
         )
-    except (UnicodeError, json.JSONDecodeError) as exc:
+    except EvidenceError:
+        raise  # keep the specific message (e.g. duplicate key)
+    except (ValueError, RecursionError) as exc:  # incl. JSON, Unicode and int-digit-limit errors
         raise EvidenceError("Report is not a valid UTF-8 JSON object") from exc
     if not isinstance(document, dict):
         raise EvidenceError("Report must be a JSON object")
