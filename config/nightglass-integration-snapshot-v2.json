@@ -1,0 +1,541 @@
+{
+  "schema": "nightglass.merge-integration-snapshot.v2",
+  "repository": "EngineXus-dev/nightglass-workspaces",
+  "default_branch": "main",
+  "main_sha": "7ed599e9724551fffc203203a1ab4173bb7510c9",
+  "candidate_branch": "safety/phase27-untrusted-install-plan-review",
+  "candidate_sha": "2902acbeb1402cf1fc18d0374aad4951bd8d60a2",
+  "snapshot_utc": "2026-10-10T03:47:26Z",
+  "snapshot_kind": "Observed GitHub PR metadata; offline Git commit ancestry must be checked separately",
+  "integration_strategy": "Only one of sequential ordered PR merges OR a separately approved cumulative fast-forward merge; never both",
+  "merge_authorized": false,
+  "deploy_authorized": false,
+  "open_pr_count": 64,
+  "linear_pr_count": 63,
+  "linear_prs": [
+    {
+      "number": 1,
+      "branch": "feat/nightglass-phase-01",
+      "sha": "b6ded3bd72d291fd4abdd287fdfdacc256f8d8aa",
+      "base": "main",
+      "base_sha": "7ed599e9724551fffc203203a1ab4173bb7510c9",
+      "draft": true
+    },
+    {
+      "number": 2,
+      "branch": "fix/restricted-vm-audit-hardening",
+      "sha": "ddb75b5da0c3ba06b2d7ac501143858dca4ddcff",
+      "base": "feat/nightglass-phase-01",
+      "base_sha": "b6ded3bd72d291fd4abdd287fdfdacc256f8d8aa",
+      "draft": true
+    },
+    {
+      "number": 3,
+      "branch": "feat/guarded-managed-session-resume",
+      "sha": "cfe6cede20f1651c811d69c75afbf7d675ee60cd",
+      "base": "fix/restricted-vm-audit-hardening",
+      "base_sha": "ddb75b5da0c3ba06b2d7ac501143858dca4ddcff",
+      "draft": true
+    },
+    {
+      "number": 4,
+      "branch": "feat/portable-hardware-and-safe-updates",
+      "sha": "eb395634e9f882c8f3bb974cebf8e055f967e62e",
+      "base": "feat/guarded-managed-session-resume",
+      "base_sha": "cfe6cede20f1651c811d69c75afbf7d675ee60cd",
+      "draft": true
+    },
+    {
+      "number": 5,
+      "branch": "feat/offline-vm-provisioning-preflight",
+      "sha": "88a1ef13b3e137baf133bf9dfec165c36af16f4d",
+      "base": "feat/portable-hardware-and-safe-updates",
+      "base_sha": "eb395634e9f882c8f3bb974cebf8e055f967e62e",
+      "draft": true
+    },
+    {
+      "number": 6,
+      "branch": "feat/cold-vm-backup-and-verification",
+      "sha": "ec5ba8943a8d162dd3cf8fd706faf1ed664d37fa",
+      "base": "feat/offline-vm-provisioning-preflight",
+      "base_sha": "88a1ef13b3e137baf133bf9dfec165c36af16f4d",
+      "draft": true
+    },
+    {
+      "number": 7,
+      "branch": "feat/verified-recovery-staging",
+      "sha": "92fa6ff6bb5b3964038fa0610f2a997ab756d74c",
+      "base": "feat/cold-vm-backup-and-verification",
+      "base_sha": "ec5ba8943a8d162dd3cf8fd706faf1ed664d37fa",
+      "draft": true
+    },
+    {
+      "number": 8,
+      "branch": "feat/recovery-import-readiness",
+      "sha": "b42835076d76981278ac84d447285bd22b8c1fbf",
+      "base": "feat/verified-recovery-staging",
+      "base_sha": "92fa6ff6bb5b3964038fa0610f2a997ab756d74c",
+      "draft": true
+    },
+    {
+      "number": 9,
+      "branch": "feat/registered-guest-acceptance-audit",
+      "sha": "107c359850fd863268c21bf8703d157caae7314f",
+      "base": "feat/recovery-import-readiness",
+      "base_sha": "b42835076d76981278ac84d447285bd22b8c1fbf",
+      "draft": true
+    },
+    {
+      "number": 10,
+      "branch": "test/native-libvirt-qemu-smoke",
+      "sha": "e708006c9aafff425f2141c842d7cbf0b2c9b03f",
+      "base": "feat/registered-guest-acceptance-audit",
+      "base_sha": "107c359850fd863268c21bf8703d157caae7314f",
+      "draft": true
+    },
+    {
+      "number": 11,
+      "branch": "test/headless-kde-gui-smoke",
+      "sha": "37cfba02faeeaf70e6e91ecf71132a9e97e10641",
+      "base": "test/native-libvirt-qemu-smoke",
+      "base_sha": "e708006c9aafff425f2141c842d7cbf0b2c9b03f",
+      "draft": true
+    },
+    {
+      "number": 12,
+      "branch": "ui/casual-cyberhacker-dark",
+      "sha": "6b21334c1fc1bdccae5d9289765d565b9e6ee8d4",
+      "base": "test/headless-kde-gui-smoke",
+      "base_sha": "37cfba02faeeaf70e6e91ecf71132a9e97e10641",
+      "draft": true
+    },
+    {
+      "number": 13,
+      "branch": "feat/live-resource-readiness-monitor",
+      "sha": "0c77050d5a11f9589c433669ff4f7966ebb9b266",
+      "base": "ui/casual-cyberhacker-dark",
+      "base_sha": "6b21334c1fc1bdccae5d9289765d565b9e6ee8d4",
+      "draft": true
+    },
+    {
+      "number": 14,
+      "branch": "feat/fedora-security-posture-review",
+      "sha": "3292bc2e0025f5f9e4b8ca95650565c1a9032969",
+      "base": "feat/live-resource-readiness-monitor",
+      "base_sha": "0c77050d5a11f9589c433669ff4f7966ebb9b266",
+      "draft": true
+    },
+    {
+      "number": 15,
+      "branch": "security/live-inactive-start-parity",
+      "sha": "18d40aeef28532108f931ee1c6add829ae0db6ed",
+      "base": "feat/fedora-security-posture-review",
+      "base_sha": "3292bc2e0025f5f9e4b8ca95650565c1a9032969",
+      "draft": true
+    },
+    {
+      "number": 16,
+      "branch": "security/verified-recovery-handoff",
+      "sha": "9254458fec01316435bc0d9ff9935759e611e78c",
+      "base": "security/live-inactive-start-parity",
+      "base_sha": "18d40aeef28532108f931ee1c6add829ae0db6ed",
+      "draft": true
+    },
+    {
+      "number": 17,
+      "branch": "security/runtime-svirt-observation",
+      "sha": "2002bb58d017b5db5014a6a6b5201c131ce18dd1",
+      "base": "security/verified-recovery-handoff",
+      "base_sha": "9254458fec01316435bc0d9ff9935759e611e78c",
+      "draft": true
+    },
+    {
+      "number": 18,
+      "branch": "feat/curated-kali-vm-template-catalog",
+      "sha": "1390b67a074fbd31bf76d0ec3da069e74785264d",
+      "base": "security/runtime-svirt-observation",
+      "base_sha": "2002bb58d017b5db5014a6a6b5201c131ce18dd1",
+      "draft": true
+    },
+    {
+      "number": 19,
+      "branch": "feat/verified-kali-template-manifests",
+      "sha": "1fba54248b0f3d3e1d56c254247bd139d7d6ec7f",
+      "base": "feat/curated-kali-vm-template-catalog",
+      "base_sha": "1390b67a074fbd31bf76d0ec3da069e74785264d",
+      "draft": true
+    },
+    {
+      "number": 20,
+      "branch": "feat/kali-offline-guest-inventory-helper",
+      "sha": "9f66457945a7dc89f164fab3b13c57d4cf0c4c79",
+      "base": "feat/verified-kali-template-manifests",
+      "base_sha": "1fba54248b0f3d3e1d56c254247bd139d7d6ec7f",
+      "draft": true
+    },
+    {
+      "number": 21,
+      "branch": "feat/kali-lock-drift-review",
+      "sha": "be5edf7d6bbff795f1e4bbc398091913f8c79513",
+      "base": "feat/kali-offline-guest-inventory-helper",
+      "base_sha": "9f66457945a7dc89f164fab3b13c57d4cf0c4c79",
+      "draft": true
+    },
+    {
+      "number": 22,
+      "branch": "feat/kali-template-readiness-preflight",
+      "sha": "0f01e54916a68d4bef4b646a279a1e39b2ffaf90",
+      "base": "feat/kali-lock-drift-review",
+      "base_sha": "be5edf7d6bbff795f1e4bbc398091913f8c79513",
+      "draft": true
+    },
+    {
+      "number": 23,
+      "branch": "feat/kali-registered-template-audit",
+      "sha": "d6205b18db1c57a486e8d771405295fc5d069262",
+      "base": "feat/kali-template-readiness-preflight",
+      "base_sha": "0f01e54916a68d4bef4b646a279a1e39b2ffaf90",
+      "draft": true
+    },
+    {
+      "number": 24,
+      "branch": "security/kali-disk-alias-hardlink-guard",
+      "sha": "5c6335dbb45effbb9c920b30d79b4c86be01d28b",
+      "base": "feat/kali-registered-template-audit",
+      "base_sha": "d6205b18db1c57a486e8d771405295fc5d069262",
+      "draft": true
+    },
+    {
+      "number": 25,
+      "branch": "feat/kali-cold-baseline-audit",
+      "sha": "4d8d210dfe1fe46978e19688ecf98b2472243ad2",
+      "base": "security/kali-disk-alias-hardlink-guard",
+      "base_sha": "5c6335dbb45effbb9c920b30d79b4c86be01d28b",
+      "draft": true
+    },
+    {
+      "number": 26,
+      "branch": "feat/kali-recovery-stage-linkage",
+      "sha": "b30e9a7e2cd006540a657a6139012ae428287f13",
+      "base": "feat/kali-cold-baseline-audit",
+      "base_sha": "4d8d210dfe1fe46978e19688ecf98b2472243ad2",
+      "draft": true
+    },
+    {
+      "number": 27,
+      "branch": "security/kali-registered-recovery-handoff",
+      "sha": "06dfb534ae6ed04cddcc3a9e9ddbf9543240fb67",
+      "base": "feat/kali-recovery-stage-linkage",
+      "base_sha": "b30e9a7e2cd006540a657a6139012ae428287f13",
+      "draft": true
+    },
+    {
+      "number": 28,
+      "branch": "security/kali-running-guest-observation",
+      "sha": "a46a37aa836a88e211a7dd437a7f01ac98db55cd",
+      "base": "security/kali-registered-recovery-handoff",
+      "base_sha": "06dfb534ae6ed04cddcc3a9e9ddbf9543240fb67",
+      "draft": true
+    },
+    {
+      "number": 29,
+      "branch": "security/kali-effective-qemu-process-label",
+      "sha": "349bf741f3bddd12d321156cfeedd78d719148bc",
+      "base": "security/kali-running-guest-observation",
+      "base_sha": "a46a37aa836a88e211a7dd437a7f01ac98db55cd",
+      "draft": true
+    },
+    {
+      "number": 31,
+      "branch": "chore/offline-integration-verification",
+      "sha": "04710ebaa05efa2450978630d89be1fdcd095b22",
+      "base": "security/kali-effective-qemu-process-label",
+      "base_sha": "349bf741f3bddd12d321156cfeedd78d719148bc",
+      "draft": true
+    },
+    {
+      "number": 32,
+      "branch": "verification/fedora-host-acceptance-preflight",
+      "sha": "30a4e7a69a4c0e56922d4bfa13a139284b42f62a",
+      "base": "chore/offline-integration-verification",
+      "base_sha": "04710ebaa05efa2450978630d89be1fdcd095b22",
+      "draft": true
+    },
+    {
+      "number": 33,
+      "branch": "deployment/windows-dualboot-readiness-gates",
+      "sha": "dfef64999230333efb6e5f43904bec88d111c51f",
+      "base": "verification/fedora-host-acceptance-preflight",
+      "base_sha": "30a4e7a69a4c0e56922d4bfa13a139284b42f62a",
+      "draft": true
+    },
+    {
+      "number": 34,
+      "branch": "deployment/windows11-upgrade-first-planning",
+      "sha": "25b9bff667bac8c63f672476488e9b6bb1560cd5",
+      "base": "deployment/windows-dualboot-readiness-gates",
+      "base_sha": "dfef64999230333efb6e5f43904bec88d111c51f",
+      "draft": true
+    },
+    {
+      "number": 35,
+      "branch": "deployment/one-usb-multiboot-media-plan",
+      "sha": "e06e0155bcc02365e993a53920662114c65be327",
+      "base": "deployment/windows11-upgrade-first-planning",
+      "base_sha": "25b9bff667bac8c63f672476488e9b6bb1560cd5",
+      "draft": true
+    },
+    {
+      "number": 36,
+      "branch": "deployment/windows11-lite-safe-profile",
+      "sha": "5f3bafd4cab17f639e2e9c066c43cbf64be3793e",
+      "base": "deployment/one-usb-multiboot-media-plan",
+      "base_sha": "e06e0155bcc02365e993a53920662114c65be327",
+      "draft": true
+    },
+    {
+      "number": 37,
+      "branch": "deployment/windows11-pro-custom-profile",
+      "sha": "48bee86c96e95055c2bda05aaa988d836d454852",
+      "base": "deployment/windows11-lite-safe-profile",
+      "base_sha": "5f3bafd4cab17f639e2e9c066c43cbf64be3793e",
+      "draft": true
+    },
+    {
+      "number": 38,
+      "branch": "verification/offline-release-candidate-gate",
+      "sha": "e9e12ca97e305155ae532eba7ee97f8a0c447b23",
+      "base": "deployment/windows11-pro-custom-profile",
+      "base_sha": "48bee86c96e95055c2bda05aaa988d836d454852",
+      "draft": true
+    },
+    {
+      "number": 39,
+      "branch": "deployment/windows11-pro-activation-media-preflight",
+      "sha": "e2b8c3bf945fb9c2d18f1858ad268919536dea05",
+      "base": "verification/offline-release-candidate-gate",
+      "base_sha": "e9e12ca97e305155ae532eba7ee97f8a0c447b23",
+      "draft": true
+    },
+    {
+      "number": 40,
+      "branch": "verification/rc-evidence-and-stack-audit",
+      "sha": "ec020aa1e1a87e0e3bce1519364ff03afd380a63",
+      "base": "deployment/windows11-pro-activation-media-preflight",
+      "base_sha": "e2b8c3bf945fb9c2d18f1858ad268919536dea05",
+      "draft": true
+    },
+    {
+      "number": 41,
+      "branch": "verification/stack-integration-readiness",
+      "sha": "c8956e70aca42e4f5d40724e09a8776a2537dcd4",
+      "base": "verification/rc-evidence-and-stack-audit",
+      "base_sha": "ec020aa1e1a87e0e3bce1519364ff03afd380a63",
+      "draft": true
+    },
+    {
+      "number": 42,
+      "branch": "verification/remote-ref-stack-audit",
+      "sha": "474354b11b30971cd159651e973c9caa2f6e7862",
+      "base": "verification/stack-integration-readiness",
+      "base_sha": "c8956e70aca42e4f5d40724e09a8776a2537dcd4",
+      "draft": true
+    },
+    {
+      "number": 43,
+      "branch": "verification/windows-one-command-offline-gates",
+      "sha": "0ac27789168725161d2d0c5702294b9a224b03da",
+      "base": "verification/remote-ref-stack-audit",
+      "base_sha": "474354b11b30971cd159651e973c9caa2f6e7862",
+      "draft": true
+    },
+    {
+      "number": 44,
+      "branch": "verification/test-gate-reliability-hardening",
+      "sha": "05d4ad3efdfdb5e050ff94cd487c8c0bf11ae4c4",
+      "base": "verification/windows-one-command-offline-gates",
+      "base_sha": "0ac27789168725161d2d0c5702294b9a224b03da",
+      "draft": true
+    },
+    {
+      "number": 45,
+      "branch": "deployment/readonly-backup-integrity",
+      "sha": "c4b8ed4c498b1babc2b0430a80c0961ef1f88e92",
+      "base": "verification/test-gate-reliability-hardening",
+      "base_sha": "05d4ad3efdfdb5e050ff94cd487c8c0bf11ae4c4",
+      "draft": true
+    },
+    {
+      "number": 46,
+      "branch": "deployment/multi-source-backup-readiness",
+      "sha": "e1a5ec2a82da82348166785b630910e53fd732fa",
+      "base": "deployment/readonly-backup-integrity",
+      "base_sha": "c4b8ed4c498b1babc2b0430a80c0961ef1f88e92",
+      "draft": true
+    },
+    {
+      "number": 47,
+      "branch": "security/backup-boundary-fix",
+      "sha": "a0891fefc8e8c1e0abed97d22298d06b8a372b71",
+      "base": "deployment/multi-source-backup-readiness",
+      "base_sha": "e1a5ec2a82da82348166785b630910e53fd732fa",
+      "draft": true
+    },
+    {
+      "number": 48,
+      "branch": "security/backup-cross-root-alias-guard",
+      "sha": "fa6a1bde41aa7396b7b4aeda0433560bdf05b947",
+      "base": "security/backup-boundary-fix",
+      "base_sha": "a0891fefc8e8c1e0abed97d22298d06b8a372b71",
+      "draft": true
+    },
+    {
+      "number": 49,
+      "branch": "verification/phase14-release-gate-repair",
+      "sha": "60542b14dea5d06a7589142ab834883e4be9e89e",
+      "base": "security/backup-cross-root-alias-guard",
+      "base_sha": "fa6a1bde41aa7396b7b4aeda0433560bdf05b947",
+      "draft": true
+    },
+    {
+      "number": 50,
+      "branch": "verification/phase15-portable-suite-coverage",
+      "sha": "834c340d81cc705aeccb403ef8b86a987893189d",
+      "base": "verification/phase14-release-gate-repair",
+      "base_sha": "60542b14dea5d06a7589142ab834883e4be9e89e",
+      "draft": true
+    },
+    {
+      "number": 51,
+      "branch": "verification/phase16-isolated-import-paths",
+      "sha": "0c5a38c4c350de016dd3bd9e9ccf0e0d2daff11d",
+      "base": "verification/phase15-portable-suite-coverage",
+      "base_sha": "834c340d81cc705aeccb403ef8b86a987893189d",
+      "draft": true
+    },
+    {
+      "number": 52,
+      "branch": "verification/phase17-qemu-subset-integrity",
+      "sha": "dc1e173b9f9dd577d2ccc416072510f538c89c2e",
+      "base": "verification/phase16-isolated-import-paths",
+      "base_sha": "0c5a38c4c350de016dd3bd9e9ccf0e0d2daff11d",
+      "draft": true
+    },
+    {
+      "number": 54,
+      "branch": "fix/pr52-windows-synthetic-fixtures",
+      "sha": "0181801f575cc506718a3ae35a246c824379556d",
+      "base": "verification/phase17-qemu-subset-integrity",
+      "base_sha": "dc1e173b9f9dd577d2ccc416072510f538c89c2e",
+      "draft": true
+    },
+    {
+      "number": 55,
+      "branch": "hardening/powershell-portability-evidence",
+      "sha": "af220ecd382ad59ce4f18694bbc2ae349be14589",
+      "base": "fix/pr52-windows-synthetic-fixtures",
+      "base_sha": "0181801f575cc506718a3ae35a246c824379556d",
+      "draft": true
+    },
+    {
+      "number": 56,
+      "branch": "safety/phase18-windows-host-readiness",
+      "sha": "cdbfa223842c6016075c78377134ce5e543ac8e4",
+      "base": "hardening/powershell-portability-evidence",
+      "base_sha": "af220ecd382ad59ce4f18694bbc2ae349be14589",
+      "draft": true
+    },
+    {
+      "number": 57,
+      "branch": "safety/phase19-offline-deployment-blockers",
+      "sha": "81aa392df0b388c3f19bc55de803343c56d7c98e",
+      "base": "safety/phase18-windows-host-readiness",
+      "base_sha": "cdbfa223842c6016075c78377134ce5e543ac8e4",
+      "draft": true
+    },
+    {
+      "number": 58,
+      "branch": "safety/phase20-windows-recovery-posture",
+      "sha": "ac650554f7e8dbcfbdb630157e4ea2827b8e1ea0",
+      "base": "safety/phase19-offline-deployment-blockers",
+      "base_sha": "81aa392df0b388c3f19bc55de803343c56d7c98e",
+      "draft": true
+    },
+    {
+      "number": 59,
+      "branch": "safety/phase21-winre-triage",
+      "sha": "5e40ae0428684e29c6d492f4dfd8ab11369c9ec4",
+      "base": "safety/phase20-windows-recovery-posture",
+      "base_sha": "ac650554f7e8dbcfbdb630157e4ea2827b8e1ea0",
+      "draft": true
+    },
+    {
+      "number": 60,
+      "branch": "safety/phase22-recovery-backup-acceptance",
+      "sha": "04c306988c62faf919ae3cec2b9c11f003677bf5",
+      "base": "safety/phase21-winre-triage",
+      "base_sha": "5e40ae0428684e29c6d492f4dfd8ab11369c9ec4",
+      "draft": true
+    },
+    {
+      "number": 61,
+      "branch": "feature/phase23-first-run-discovery",
+      "sha": "755cae15699ccee2189a9c983a474564c9542dd2",
+      "base": "safety/phase22-recovery-backup-acceptance",
+      "base_sha": "04c306988c62faf919ae3cec2b9c11f003677bf5",
+      "draft": true
+    },
+    {
+      "number": 62,
+      "branch": "safety/phase24-format-warning-user-backups",
+      "sha": "5dc47afdb0b0bc1427078e17d6184d79e84f9b7b",
+      "base": "feature/phase23-first-run-discovery",
+      "base_sha": "755cae15699ccee2189a9c983a474564c9542dd2",
+      "draft": true
+    },
+    {
+      "number": 63,
+      "branch": "safety/phase25-guided-target-preview",
+      "sha": "8470ad99a9d26e53c2e2f54deb42035f583decd1",
+      "base": "safety/phase24-format-warning-user-backups",
+      "base_sha": "5dc47afdb0b0bc1427078e17d6184d79e84f9b7b",
+      "draft": true
+    },
+    {
+      "number": 64,
+      "branch": "safety/phase26-install-change-review",
+      "sha": "f41b1a4c736af59c376afaa4bf85a22de6c03709",
+      "base": "safety/phase25-guided-target-preview",
+      "base_sha": "8470ad99a9d26e53c2e2f54deb42035f583decd1",
+      "draft": true
+    },
+    {
+      "number": 65,
+      "branch": "safety/phase27-untrusted-install-plan-review",
+      "sha": "2902acbeb1402cf1fc18d0374aad4951bd8d60a2",
+      "base": "safety/phase26-install-change-review",
+      "base_sha": "f41b1a4c736af59c376afaa4bf85a22de6c03709",
+      "draft": true
+    }
+  ],
+  "divergent_prs": [
+    {
+      "number": 53,
+      "branch": "verification/phase18-windows-failures",
+      "sha": "817480ce110bc4d9390defdc0c492b89f711dcfe",
+      "base": "verification/phase17-qemu-subset-integrity",
+      "base_sha": "dc1e173b9f9dd577d2ccc416072510f538c89c2e",
+      "disposition": "PENDING_INDEPENDENT_CONTENT_RECONCILIATION",
+      "auto_merge": false
+    }
+  ],
+  "required_checks": [
+    "exact_open_PR_status",
+    "Git_commit_graph_ancestry",
+    "no_unreviewed_PR53_change_loss",
+    "full_cumulative_diffs_and_secrets_review",
+    "Windows_and_Fedora_evidence_match_exact_SHA",
+    "branch_protection_and_approval",
+    "user_explicit_merge_approval"
+  ]
+}
