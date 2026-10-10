@@ -1,4 +1,4 @@
-# Nightglass installer kickstart (partial) - rendered by scripts/iso/render_kickstart.py
+# Nightglass installer kickstart (partial) - rendered by scripts/iso/Fedora/render_kickstart.py
 # Source commit: @COMMIT@
 #
 # Storage is deliberately NOT configured here. In the installer you choose the

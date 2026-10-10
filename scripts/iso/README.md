@@ -2,8 +2,8 @@
 
 You end up with Windows 11 and Fedora KDE side by side, Fedora's Linux side encrypted, and Nightglass plus its virtualization tools preinstalled. The boot menu at startup lets you pick either system.
 
-**What's on the USB:**
-- **Windows 11:** Microsoft's official ISO, unchanged.
+**What's on the USB** (one folder each here):
+- **[`Windows11/`](Windows11/README.md):** Microsoft's official Windows 11 ISO, used as-is or with AtlasOS injected.
 - **Fedora + Nightglass:** the **Nightglass installer ISO** built here. It is Fedora's official Everything netinstall ISO with a Nightglass kickstart added by Fedora's own `mkksiso` tool. Fedora's signed boot files are untouched, so Secure Boot keeps working.
 
 **What the Nightglass ISO presets:**
@@ -18,22 +18,27 @@ You end up with Windows 11 and Fedora KDE side by side, Fedora's Linux side encr
 
 The Fedora install downloads packages, so the PC or VM needs internet.
 
-## 1. Build the Nightglass installer ISO
+## 1. Prepare both ISOs
 
-1. Download the official **Fedora Everything netinstall** ISO (x86_64) from https://fedoraproject.org/misc/#everything, plus its `CHECKSUM` file. Copy the ISO's SHA-256 out of `CHECKSUM`.
+**Windows 11:** follow [`Windows11/README.md`](Windows11/README.md). It covers getting and checking the official ISO and, optionally, injecting AtlasOS with the security options to keep on.
+
+**Fedora + Nightglass**, built in `Fedora/`:
+
+1. Download the official **Fedora Everything netinstall** ISO (x86_64) and its `CHECKSUM` file from https://fedoraproject.org/misc/#everything into `scripts\iso\Fedora\`.
 2. Build:
-   - **Windows** (Docker Desktop with Linux containers):
+   - **Windows** (Docker Desktop with Linux containers). It finds both files in that folder by itself:
      ```powershell
-     powershell -NoProfile -File scripts\iso\Build-Nightglass-Iso.ps1 -IsoPath $HOME\Downloads\Fedora-Everything-netinst-x86_64-44-1.7.iso -Sha256 <hash>
+     powershell -NoProfile -File scripts\iso\Fedora\Build-Nightglass-Iso.ps1
      ```
-     The new ISO lands in `Documents\Nightglass-ISO`. The build runs in a privileged Fedora container, because `mkksiso` needs loop devices.
+     The new `Nightglass-Installer-....iso` lands in the same folder. The build runs in a privileged Fedora container, because `mkksiso` needs loop devices.
    - **Fedora**:
      ```bash
-     sudo dnf install lorax xorriso isomd5sum python3-kickstart git
-     bash scripts/iso/build-nightglass-iso.sh --iso ~/Downloads/Fedora-Everything-netinst-x86_64-44-1.7.iso --sha256 <hash>
+     sudo dnf install lorax xorriso isomd5sum python3-kickstart git gnupg2
+     bash scripts/iso/Fedora/build-nightglass-iso.sh --iso scripts/iso/Fedora/Fedora-Everything-netinst-x86_64-44-1.7.iso \
+          --checksum scripts/iso/Fedora/Fedora-Everything-44-1.7-x86_64-CHECKSUM --output scripts/iso/Fedora
      ```
 
-The build refuses an ISO whose checksum doesn't match. It packages only **committed** Nightglass code and writes a `.sha256` file next to the new ISO. The kickstart re-checks the embedded Nightglass archive during installation and stops if it was altered.
+The build first checks **Fedora's GPG signature** on `CHECKSUM` using Fedora's signing key, and reads the ISO hash only from the signed part. It refuses an ISO whose checksum doesn't match. It packages only **committed** Nightglass code and writes a `.sha256` file next to the new ISO. The kickstart re-checks the embedded Nightglass archive during installation and stops if it was altered.
 
 ## 2. Test in a virtual machine first
 
@@ -53,7 +58,7 @@ Hyper-V's Secure Boot templates are set per VM ("Microsoft Windows" vs "Microsof
 
 **Steps:**
 
-1. **Windows first.** Attach the Windows 11 ISO and boot it.
+1. **Windows first.** Attach the Windows 11 ISO from `Windows11/` and boot it. For an AtlasOS ISO, also follow `Windows11/README.md` step 3.
    - At *Where do you want to install Windows?*, select the empty disk, click **New**, enter about `65536` MB, then **Apply** and **Next**.
    - The remaining space stays *Unallocated*, ready for Fedora.
 2. **In Windows, before Fedora:**

@@ -15,7 +15,7 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-ISO = ROOT / "scripts" / "iso"
+ISO = ROOT / "scripts" / "iso" / "Fedora"
 spec = importlib.util.spec_from_file_location("nightglass_render_kickstart", ISO / "render_kickstart.py")
 rk = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
@@ -119,6 +119,8 @@ class BuildScriptContractTests(unittest.TestCase):
     def test_build_script_verifies_and_never_writes_devices(self):
         text = (ISO / "build-nightglass-iso.sh").read_text(encoding="utf-8")
         self.assertLess(text.index("SHA-256 MISMATCH"), text.index("mkksiso --ks"))
+        self.assertLess(text.index("gpgv --keyring"), text.index("mkksiso --ks"))
+        self.assertIn('--output "$work/CHECKSUM.verified"', text)  # hash read from signed text only
         for token in ("Refusing to overwrite", "Live ISOs cannot", "render_kickstart.py", "ksvalidator"):
             self.assertIn(token, text)
         for forbidden in (" dd ", "wipefs", "mkfs", "parted", "sgdisk", "fdisk", "/dev/sd", "/dev/nvme"):
@@ -126,10 +128,22 @@ class BuildScriptContractTests(unittest.TestCase):
 
     def test_windows_wrapper_passes_values_as_arguments(self):
         text = (ISO / "Build-Nightglass-Iso.ps1").read_text(encoding="utf-8")
-        self.assertIn('--iso "/in/$1" --sha256 "$2"', text)
-        self.assertIn("bash -c $inner nightglass $isoName $Sha256", text)
+        self.assertIn('--iso "/in/$1" "${verify[@]}"', text)
+        self.assertIn("bash -c $inner nightglass $isoName $checksumName", text)
+        self.assertIn("'-'", text)  # placeholder: Windows PowerShell 5.1 drops empty native arguments
         self.assertIn("':/src:ro'", text)
         for forbidden in ("Invoke-Expression", "Format-Volume", "Clear-Disk", "diskpart"):
+            self.assertNotIn(forbidden, text)
+
+    def test_windows_iso_trim_only_exports_one_edition(self):
+        text = (ROOT / "scripts" / "iso" / "Windows11" / "Optimize-Windows11Iso.ps1").read_text(encoding="utf-8")
+        for token in ("#requires -RunAsAdministrator", "-Access ReadOnly", "/Export-Image", "/CheckIntegrity",
+                      "Refusing to overwrite", "Dismount-DiskImage", "etfsboot.com", "efisys.bin",
+                      "exactly the chosen edition"):
+            self.assertIn(token, text)
+        # A trim, not a debloat: no component, package, feature or app removal; no disk writes.
+        for forbidden in ("/Remove-", "/Disable-Feature", "Remove-AppxProvisionedPackage", "Remove-WindowsPackage",
+                          "Disable-WindowsOptionalFeature", "Format-Volume", "Clear-Disk", "diskpart", "Invoke-Expression"):
             self.assertNotIn(forbidden, text)
 
     def test_line_endings_are_pinned_for_windows_checkouts(self):

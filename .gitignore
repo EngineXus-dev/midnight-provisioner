@@ -35,3 +35,11 @@ build/
 # Keep personal source/backup locations and inspection summaries local
 *.nightglass-backup-set.local.json
 *.nightglass-backup-report.local.json
+
+# Installer inputs/outputs kept next to scripts/iso (never committed)
+*.apbx
+*.wim
+*.esd
+*.exe
+*-CHECKSUM
+*.iso.sha256

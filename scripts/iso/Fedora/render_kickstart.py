@@ -16,7 +16,7 @@ import subprocess
 import sys
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]
+ROOT = HERE.parents[2]
 TEMPLATE = HERE / "nightglass.ks.in"
 MAX_PAYLOAD_BYTES = 16 * 1024 * 1024
 # Kickstart commands that would select, wipe or lay out disks. The template must
