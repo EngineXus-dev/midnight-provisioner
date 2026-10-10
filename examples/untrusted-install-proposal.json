@@ -1,0 +1,35 @@
+{
+  "schema": "nightglass.untrusted-install-proposal.v1",
+  "source": "unverified_user_supplied",
+  "intent": "format_target",
+  "target_ref": "target_a",
+  "devices": [
+    {
+      "ref": "target_a",
+      "role": "target",
+      "partition_count": 2
+    },
+    {
+      "ref": "other_b",
+      "role": "other",
+      "partition_count": null
+    }
+  ],
+  "operations": [
+    {
+      "action": "delete_partition",
+      "device_ref": "target_a",
+      "partition_ref": "old_part"
+    },
+    {
+      "action": "create_partition",
+      "device_ref": "target_a",
+      "partition_ref": null
+    },
+    {
+      "action": "write_bootloader",
+      "device_ref": "other_b",
+      "partition_ref": null
+    }
+  ]
+}
