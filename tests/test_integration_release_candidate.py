@@ -35,7 +35,7 @@ class IntegrationReleaseCandidateTests(unittest.TestCase):
     def test_snapshot_never_authorizes_merge_or_hardware(self):
         self.assertIs(self.data["merge_authorized"], False)
         self.assertIs(self.data["deploy_authorized"], False)
-        self.assertIn("explicit_user_merge_approval",
+        self.assertIn("user_explicit_merge_approval",
                       " ".join(self.data["required_checks"]))
 
     def test_main_pinned_and_pr30_is_not_fabricated(self):
