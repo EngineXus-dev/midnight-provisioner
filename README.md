@@ -2,6 +2,9 @@
 
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
+**Integration/owner handoff:** The cumulative Nightglass development stack is staged for the repository owner's manual review and merge through [PR #66](https://github.com/EngineXus-dev/nightglass-workspaces/pull/66). See [Owner Merge & Next-AI Handoff](docs/OWNER_MERGE_HANDOFF.md) for the latest verification limitations, PR #53 fork handling, safe local update guidance, and the successor engineer's starting point. This is Fedora application source, not a completed bootable OS image.
+
+
 **Local-first, Qubes-inspired workspace controller for Fedora KDE.**
 
 > Status: **v0.1 foundation / preview**. Real libvirt inspection, guarded VM start/shutdown/managed-save, trusted Distrobox creation and entry, host diagnostics, and editable VM binding. **NOT a Qubes OS equivalent, installer, penetration-testing tool, malware containment certification, backup system, or disk partitioner.**
