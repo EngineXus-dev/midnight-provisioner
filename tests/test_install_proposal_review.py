@@ -81,6 +81,13 @@ class ProposalReviewTests(unittest.TestCase):
                 d["operations"] = [operation]
                 review_proposal(d)
 
+    def test_unhashable_operation_input_is_cleanly_rejected(self):
+        for bad in ([], {}, ["delete_partition"], {"op": "delete_partition"}):
+            with self.subTest(bad=repr(bad)), self.assertRaises(ProposalError):
+                d = proposal()
+                d["operations"][0]["action"] = bad
+                review_proposal(d)
+
     def test_duplicate_operations_and_duplicate_device_names_rejected(self):
         d = proposal()
         d["operations"].append(d["operations"][0].copy())
