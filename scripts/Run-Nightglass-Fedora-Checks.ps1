@@ -37,6 +37,10 @@ function Assert-ExitCode {
 
 function Resolve-NightglassRepo {
     param([string]$ExplicitPath)
+    # Windows PowerShell 5.1 turns redirected native stderr (e.g. git's "not a git
+    # repository") into a terminating error under 'Stop'; probes must continue instead.
+    # Function-local: the caller keeps 'Stop'.
+    $ErrorActionPreference = 'Continue'
     $candidates = @()
     if ($ExplicitPath.Trim()) {
         $candidates += $ExplicitPath
@@ -85,7 +89,11 @@ try {
 
     Write-Host ""
     Write-Host "[1/6] Checking Docker Desktop Linux engine" -ForegroundColor Yellow
-    $engine = (& docker info --format '{{.OSType}}' 2>&1 | Out-String).Trim()
+    # 'Continue' so a stopped Docker Desktop reaches Assert-ExitCode's clear message
+    # instead of a raw PowerShell 5.1 NativeCommandError.
+    $ErrorActionPreference = 'Continue'
+    try { $engine = (& docker info --format '{{.OSType}}' 2>&1 | Out-String).Trim() }
+    finally { $ErrorActionPreference = 'Stop' }
     Assert-ExitCode -Operation "Docker daemon connectivity check"
     if ($engine -ne "linux") {
         throw "Docker Desktop is using $engine containers. Switch Docker Desktop to Linux containers."

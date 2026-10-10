@@ -21,6 +21,9 @@ try {
         $candidates += (Join-Path ([Environment]::GetFolderPath("MyDocuments")) "nightglass-workspaces")
     }
     $repo = $null
+    # Windows PowerShell 5.1 turns redirected native stderr (e.g. git's "not a git
+    # repository") into a terminating error under 'Stop'; probes must continue instead.
+    $ErrorActionPreference = 'Continue'
     foreach ($candidate in $candidates) {
         if (-not (Test-Path -LiteralPath $candidate -PathType Container)) { continue }
         $candidateRoot = (& git -C $candidate rev-parse --show-toplevel 2>$null | Out-String).Trim()
@@ -32,6 +35,7 @@ try {
             break
         }
     }
+    $ErrorActionPreference = 'Stop'
     if (-not $repo) {
         throw "Expected Nightglass Git checkout not found; run from its original directory or pass -RepoPath."
     }

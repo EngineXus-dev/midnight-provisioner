@@ -140,7 +140,9 @@ if ($Mode -eq 'Preview' -or $Mode -eq 'ExportPlan') {
   if ($Mode -eq 'Preview') { exit 0 }
 
   if (-not $PlanPath) { throw 'ExportPlan requires -PlanPath to a NEW local JSON file.' }
-  $destination = [System.IO.Path]::GetFullPath($PlanPath)
+  # Resolve against PowerShell's current location; .NET GetFullPath would use the
+  # process directory, which Set-Location does not change.
+  $destination = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($PlanPath)
   if (-not (Test-Path -LiteralPath (Split-Path -Parent $destination) -PathType Container)) {
     throw 'Report parent folder does not exist.'
   }
@@ -197,6 +199,38 @@ if ([System.IO.Path]::GetFileName($Win11DebloatPath) -cne 'Win11Debloat.ps1') {
 if ($ExpectedSha256 -notmatch '^[A-Fa-f0-9]{64}$') {
   throw 'Provide the SHA256 of the exact previously inspected local Win11Debloat.ps1.'
 }
+# This runs ELEVATED. The supplied folder is writable by the normal user, so a
+# process running as that user could swap files between our checks and the run.
+# Copy the extracted release folder (Win11Debloat loads Regfiles\ etc. from its
+# own folder) into a NEW folder only Administrators and SYSTEM can write, then
+# hash, parse and run only that copy.
+$sourceDir = Split-Path -Parent (Resolve-Path -LiteralPath $Win11DebloatPath).ProviderPath
+if (-not (Test-Path -LiteralPath (Join-Path $sourceDir 'Regfiles') -PathType Container)) {
+  throw 'Keep Win11Debloat.ps1 inside its own extracted release folder (with Regfiles\); nothing executed.'
+}
+$sourceFiles = @(Get-ChildItem -LiteralPath $sourceDir -Recurse -Force -File)
+$sourceBytes = ($sourceFiles | Measure-Object -Property Length -Sum).Sum
+if ($sourceFiles.Count -gt 2000 -or $sourceBytes -gt 100MB) {
+  throw 'Win11Debloat folder is unexpectedly large; use a clean extracted release folder. Nothing executed.'
+}
+$security = New-Object System.Security.AccessControl.DirectorySecurity
+$security.SetAccessRuleProtection($true, $false)
+foreach ($sid in @('S-1-5-32-544', 'S-1-5-18')) {  # Administrators, SYSTEM
+  $account = New-Object System.Security.Principal.SecurityIdentifier($sid)
+  $security.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule(
+    $account, 'FullControl', 'ContainerInherit, ObjectInherit', 'None', 'Allow')))
+}
+# Directly under ProgramData (no intermediate folder a normal user could own),
+# created atomically with the restricted ACL.
+$privateDir = Join-Path $env:ProgramData ('Nightglass-Win11Debloat-' + [guid]::NewGuid().ToString('N'))
+if ($PSVersionTable.PSVersion.Major -ge 6) {
+  [void][System.IO.FileSystemAclExtensions]::Create([System.IO.DirectoryInfo]::new($privateDir), $security)
+} else {
+  [void][System.IO.Directory]::CreateDirectory($privateDir, $security)
+}
+Get-ChildItem -LiteralPath $sourceDir -Force | Copy-Item -Destination $privateDir -Recurse -Force -ErrorAction Stop
+$Win11DebloatPath = Join-Path $privateDir 'Win11Debloat.ps1'
+Write-Host ('Private admin-only copy: ' + $privateDir)
 $actual = (Get-FileHash -LiteralPath $Win11DebloatPath -Algorithm SHA256).Hash
 if ($actual -cne $ExpectedSha256.ToUpperInvariant()) {
   throw 'Third-party script SHA256 mismatch. Nothing executed.'
