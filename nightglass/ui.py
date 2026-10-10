@@ -173,7 +173,8 @@ class MainWindow(QMainWindow):
         self.refresh()
         # Automatically recognize the host on startup; no personal-folder names
         # or write-capable action is accessed without a separate user opt-in.
-        QTimer.singleShot(400, self.begin_system_discovery)
+        if os.environ.get("NIGHTGLASS_GUI_SMOKE") != "1":
+            QTimer.singleShot(400, self.begin_system_discovery)
         self.timer = QTimer(self)
         self.timer.timeout.connect(lambda *_args: self.refresh())
         self.timer.start(30000)
