@@ -8,6 +8,7 @@ inspected only with an explicit opt-in, and never automatically exported.
 from __future__ import annotations
 
 import json
+from itertools import islice
 import os
 from pathlib import Path
 import platform
@@ -183,8 +184,14 @@ def folder_summary(*, include_names: bool = False, home: Path | None = None) -> 
                 location, prefix, depth = pending.pop()
                 try:
                     with os.scandir(location) as it:
+                        # Limit enumeration itself, not only accepted folders.
+                        # Very large directories must not create unbounded lists.
+                        candidates = list(islice(it, min(budget, 150) + 1))
+                        if len(candidates) > min(budget, 150):
+                            row["names_scan"] = "TRUNCATED"
                         children = sorted(
-                            (entry for entry in it if entry.is_dir(follow_symlinks=False)),
+                            (entry for entry in candidates[:min(budget, 150)]
+                             if entry.is_dir(follow_symlinks=False)),
                             key=lambda d: d.name.casefold(),
                         )
                 except OSError:
@@ -210,7 +217,7 @@ def folder_summary(*, include_names: bool = False, home: Path | None = None) -> 
                 row["names_scan"] = "TRUNCATED"
                 break
             else:
-                if row["names_scan"] != "INCOMPLETE":
+                if row["names_scan"] not in ("INCOMPLETE", "TRUNCATED"):
                     row["names_scan"] = "COMPLETE"
             if budget <= 0:
                 row["names_scan"] = "TRUNCATED"
