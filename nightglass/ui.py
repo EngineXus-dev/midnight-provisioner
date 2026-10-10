@@ -1718,6 +1718,13 @@ class MainWindow(QMainWindow):
         page.setWidget(holder)
         self.stack.addWidget(page)
         self.preview_discovery_intent()
+        self.discovery_intent.currentIndexChanged.connect(
+            lambda *_args: self.preview_target_plan())
+        self.discovery_target_combo.currentIndexChanged.connect(
+            lambda *_args: self.preview_target_plan())
+        self.discovery_backup_acknowledged.stateChanged.connect(
+            lambda *_args: self.preview_target_plan())
+        self.preview_target_plan()
 
     def preview_discovery_intent(self):
         intent = self.discovery_intent.currentData() or "undecided"
