@@ -131,11 +131,16 @@ class RecoveryBackupAcceptanceTests(unittest.TestCase):
             ("mode", "Inspect"),
             ("all_selected_content_matched", False),
             ("additional_backup_files_to_review", -1),
+            ("entry_count", 2),
         ):
             doc = backup()
             doc[field] = value
             with self.subTest(field=field), self.assertRaises(tool.EvidenceError):
                 tool.validate_backup(doc)
+        doc = backup()
+        doc["entries"][0]["verification_succeeded"] = 1
+        with self.assertRaises(tool.EvidenceError):
+            tool.validate_backup(doc)
         doc = backup()
         doc["entries"][0]["source"] = "C:\\private\\source"
         with self.assertRaises(tool.EvidenceError):
