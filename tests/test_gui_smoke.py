@@ -112,9 +112,23 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.assertFalse(self.window.discovery_folder_names.isChecked())
         self.assertIn("UNKNOWN", self.window.discovery_intent_status.text())
         self.window.discovery_intent.setCurrentIndex(
-            self.window.discovery_intent.findData("blank")
+            self.window.discovery_intent.findData("format_target")
         )
-        self.assertIn("independent", self.window.discovery_intent_status.text().lower())
+        self.assertIn("deleting existing data", self.window.discovery_intent_status.text().lower())
+        self.assertIn("data loss warning", self.window.discovery_format_warning.text().lower())
+        self.assertIn("responsible", self.window.discovery_format_warning.text().lower())
+        self.assertFalse(self.window.discovery_backup_acknowledged.isChecked())
+        self.assertTrue(self.window.discovery_backup_acknowledged.isEnabled())
+        self.window.discovery_backup_acknowledged.setChecked(True)
+        self.window.discovery_intent.setCurrentIndex(
+            self.window.discovery_intent.findData("coexist")
+        )
+        self.assertFalse(self.window.discovery_backup_acknowledged.isChecked())
+        self.assertIn("partition change warning", self.window.discovery_format_warning.text().lower())
+        self.window.discovery_intent.setCurrentIndex(
+            self.window.discovery_intent.findData("undecided")
+        )
+        self.assertFalse(self.window.discovery_backup_acknowledged.isEnabled())
         self.assertTrue(self.window.discovery_output.isReadOnly())
         sample = collect_system(
             system="Linux", storage_data={"blockdevices": []},
