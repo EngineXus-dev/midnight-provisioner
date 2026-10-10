@@ -39,6 +39,19 @@ nightglass gui                          # Fedora desktop, seventh tab
 
 On Windows with Python and the source checkout, use `python -m nightglass discover`. The desktop GUI remains Fedora-only. This is not an OS installer or backup tool.
 
+### Preview the proposed installation target — no writes
+
+The **System discovery** GUI now lets you select an observed drive for a **read-only consequence preview**, without preselecting any disk. Fresh-format intent means the user has asked to *replace an entire selected drive* in a future OS installer, **not** that the drive is already empty. Formatting destroys existing contents; users must independently back up everything they wish to retain. Nightglass does **not** create or verify those backups.
+
+```powershell
+# Windows or Fedora, from this Nightglass Python checkout:
+python -m nightglass install-preview
+# --disk-index is an ephemeral zero-based array index, NEVER a write-capable device ID:
+python -m nightglass install-preview --intent format_target --disk-index 1
+```
+
+A displayed target or acknowledged warning **never permits erasure**. Rescanning invalidates the selected target. Before future actual OS installation, the system must verify the exact physical disk, show every proposed partition/EFI modification and ask for a separate irreversible-write confirmation. The current project remains an *application installer only*, not an OS formatter. See [Phase 25 guided target preview](docs/PHASE25_TARGET_PREVIEW.md).
+
 ## Windows 10 first — zero-change prep
 
 Nightglass's controller runs on **Fedora**, not Windows. On the current Windows machine, PowerShell can inspect hardware and storage **without making changes**:
