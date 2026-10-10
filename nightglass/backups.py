@@ -19,6 +19,7 @@ import shutil
 from .hypervisor import Hypervisor
 from .models import safe_name
 from .runner import Runner, ToolError
+from .privatefiles import make_private
 
 BACKUP_VERSION = 1
 MAX_DISKS = 8
@@ -210,7 +211,7 @@ class ColdBackup:
                 # O_NOFOLLOW: the checked disk path must not be swapped for a symlink before opening.
                 fd = os.open(asset.source, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
                 with os.fdopen(fd, "rb") as origin, target.open("xb") as output:
-                    os.fchmod(output.fileno(), 0o600)
+                    make_private(output.fileno())
                     opened = os.fstat(origin.fileno())
                     if not stat.S_ISREG(opened.st_mode) or opened.st_size != asset.size:
                         raise ToolError("Guest disk changed since preflight: export is INCOMPLETE")

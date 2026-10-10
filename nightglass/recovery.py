@@ -19,6 +19,7 @@ from .backups import CHUNK_BYTES, MAX_DISKS, REL_PATH_RE, verify_backup
 from .hypervisor import Hypervisor, assess_domain
 from .models import safe_name
 from .runner import ToolError
+from .privatefiles import make_private
 
 STAGING_FORMAT = "nightglass-recovery-staging"
 STAGING_VERSION = 1
@@ -227,7 +228,7 @@ class RecoveryStager:
                 with os.fdopen(fd, "rb") as origin, dst.open("xb") as output:
                     if not stat.S_ISREG(os.fstat(origin.fileno()).st_mode):
                         raise ToolError("Backup source is no longer a regular file")
-                    os.fchmod(output.fileno(), 0o600)
+                    make_private(output.fileno())
                     for chunk in iter(lambda: origin.read(CHUNK_BYTES), b""):
                         output.write(chunk)
                         digest.update(chunk)
@@ -242,7 +243,7 @@ class RecoveryStager:
                 })
             xml_path = plan.destination / "domain.xml"
             with xml_path.open("x", encoding="utf-8") as output:
-                os.fchmod(output.fileno(), 0o600)
+                make_private(output.fileno())
                 output.write(plan.xml)
                 output.flush()
                 os.fsync(output.fileno())
@@ -262,7 +263,7 @@ class RecoveryStager:
             }
             output_file = plan.destination / "recovery-manifest.json"
             with output_file.open("x", encoding="utf-8") as output:
-                os.fchmod(output.fileno(), 0o600)
+                make_private(output.fileno())
                 json.dump(manifest, output, indent=2, sort_keys=True)
                 output.write("\n")
                 output.flush()

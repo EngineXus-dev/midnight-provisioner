@@ -13,11 +13,11 @@ import json
 import os
 from pathlib import Path
 import re
-import stat
 
 from .kali_templates import get_template, PACKAGE_NAME
 from .models import safe_name
 from .runner import ToolError
+from .privatefiles import make_private
 
 PLAN_FORMAT = "nightglass-kali-setup-plan"
 INVENTORY_FORMAT = "nightglass-kali-guest-inventory"
@@ -40,7 +40,7 @@ def guest_inventory_instructions(identifier: str) -> str:
         "   nightglass templates verify /path/to/new-plan.json",
         "2. Only for a manually installed BENIGN Kali VM: arrange an independently",
         "   reviewed one-way transfer of the plan and the standalone source script",
-        "   scripts/kali-guest-inventory.py into that VM.",
+        "   scripts/kali/kali-guest-inventory.py into that VM.",
         "   Nightglass does NOT provide host/guest file sharing or transfer.",
         "3. As a normal user INSIDE Kali, with no network needed, run:",
         "   python3 kali-guest-inventory.py --plan new-plan.json --output NEW-inventory.json",
@@ -129,7 +129,7 @@ def _new_private_json(destination: Path, document: dict) -> Path:
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
         fd = os.open(path, flags, 0o600)
         with os.fdopen(fd, "w", encoding="utf-8") as output:
-            os.fchmod(output.fileno(), stat.S_IRUSR | stat.S_IWUSR)
+            make_private(output.fileno())
             output.write(encoded)
             output.flush()
             os.fsync(output.fileno())

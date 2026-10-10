@@ -15,7 +15,7 @@ from nightglass.portability import MachinePreferences, load_machine_preferences,
 class CliSafetyTests(unittest.TestCase):
     def run_cli(self, argv, euid=1000):
         out, err = StringIO(), StringIO()
-        with patch("nightglass.cli.os.geteuid", return_value=euid), redirect_stdout(out), redirect_stderr(err):
+        with patch("nightglass.cli.os.geteuid", return_value=euid, create=True), redirect_stdout(out), redirect_stderr(err):
             code = main(argv)
         return code, out.getvalue(), err.getvalue()
 

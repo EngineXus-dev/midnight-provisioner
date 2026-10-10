@@ -11,7 +11,6 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
-import stat
 from xml.etree import ElementTree as ET
 
 from .hypervisor import (
@@ -20,6 +19,7 @@ from .hypervisor import (
 from .models import safe_name
 from .portability import current_budget
 from .runner import ToolError
+from .privatefiles import make_private
 
 ACCEPTANCE_VERSION = 1
 STATES = {"shut off", "running", "paused", "idle", "pmsuspended"}
@@ -182,7 +182,7 @@ def save_acceptance(report: GuestAcceptance, destination: Path) -> Path:
         raise ToolError("Report destination is already in use")
     try:
         with target.open("x", encoding="utf-8") as stream:
-            os.fchmod(stream.fileno(), stat.S_IRUSR | stat.S_IWUSR)
+            make_private(stream.fileno())
             json.dump(report.evidence(), stream, indent=2, sort_keys=True)
             stream.write("\n")
             stream.flush()
