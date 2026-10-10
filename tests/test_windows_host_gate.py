@@ -65,7 +65,7 @@ class WindowsHostGateTests(unittest.TestCase):
             with self.subTest(pattern=pattern):
                 self.assertNotRegex(self.code, pattern)
         for name in ("KeyProtector", "RecoveryPassword", "Get-BitLockerKeyProtector"):
-            self.assertNotIn(f".{name}", self.script)
+            self.assertNotRegex(self.code, rf"(?i)\\.{re.escape(name)}\\b")
         self.assertIn("contains_serials_secrets_or_raw_disk_paths = $false", self.script)
 
     def test_installation_and_backup_cannot_be_certified(self):
