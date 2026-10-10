@@ -73,7 +73,8 @@ class FormatWarningTests(unittest.TestCase):
         self.assertFalse(s["partition_write_authorized"])
         self.assertEqual(s["disks"][0]["target_classification"],
                          "UNVERIFIED_NOT_EMPTY_PROVEN")
-        self.assertIn("responsible", describe(s).lower() if "responsible" in describe(s).lower() else s["format_warning"].lower())
+        self.assertIn("back up anything", describe(s).lower())
+        self.assertIn("responsible", s["format_warning"].lower())
 
     def test_warning_does_not_perform_device_mutations_or_backup_operations(self):
         import nightglass.install_disclosure as m
