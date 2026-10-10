@@ -139,7 +139,7 @@ def parse_proposal(content: str) -> dict[str, Any]:
             raise ProposalError("Invalid operation fields; no command strings accepted")
         a, d, partition = (operation["action"], operation["device_ref"],
                            operation["partition_ref"])
-        if a not in ACTIONS or d not in ids:
+        if not _name(a) or a not in ACTIONS or not _name(d) or d not in ids:
             raise ProposalError("Unsupported operation or undeclared destination")
         if partition is not None and not _name(partition):
             raise ProposalError("Partition reference must be a bounded opaque token")
