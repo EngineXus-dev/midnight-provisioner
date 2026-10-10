@@ -52,6 +52,16 @@ def main(argv: list[str] | None = None) -> int:
                           help="Opt in to scanning bounded personal folder names locally")
     discover.add_argument("--json", action="store_true",
                           help="Print local JSON (review before sharing, especially folder names)")
+    preview = sub.add_parser(
+        "install-preview", help="Non-destructive format/EFI risk preview; never install")
+    preview.add_argument("--intent", choices=("undecided", "format_target", "coexist"),
+                         default="undecided", help="Explicit intent, not installation approval")
+    preview.add_argument("--disk-index", type=int,
+                         help="Transient 0-based discovery-array index; never a persistent disk ID")
+    preview.add_argument("--ack-warning", action="store_true",
+                         help="Notice acknowledged only; not backup evidence or disk-write permission")
+    preview.add_argument("--json", action="store_true",
+                         help="Print the advisory plan locally; no private file names scanned")
     info = sub.add_parser("inspect", help="Read-only policy audit of a configured VM")
     info.add_argument("key", help="Workspace key, e.g. pentest or analysis")
     profile = sub.add_parser("profile", help="Inspect or switch portable hardware profiles")
@@ -436,6 +446,22 @@ def main(argv: list[str] | None = None) -> int:
                 print(SourceUpdater().apply(confirmed=True))
                 return 0
             parser.error("Specify: update check, update apply, or update checks on/off")
+        if cmd == "install-preview":
+            from .system_discovery import collect_system
+            from .install_target_preview import build_target_preview, describe_target_preview
+            result = build_target_preview(
+                collect_system(include_folder_names=False),
+                target_index=args.disk_index,
+                intent=args.intent,
+                backup_warning_acknowledged=args.ack_warning,
+            )
+            if args.json:
+                import json
+                from dataclasses import asdict
+                print(json.dumps(asdict(result), indent=2, sort_keys=True))
+            else:
+                print(describe_target_preview(result))
+            return 0  # Preview is never an install readiness or write gate.
         if cmd == "discover":
             from .system_discovery import collect_system, describe
             report = collect_system(include_folder_names=args.folder_names)
