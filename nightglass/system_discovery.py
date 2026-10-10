@@ -16,6 +16,7 @@ import re
 import stat
 import subprocess
 from typing import Any
+from .install_disclosure import disclosure_for, UNDECIDED
 
 SCHEMA = "nightglass.system-discovery.v1"
 MAX_COMMAND_BYTES = 65536
@@ -277,9 +278,14 @@ def collect_system(*, include_folder_names: bool = False,
         "personal_folders": folder_summary(include_names=include_folder_names, home=home),
         "folder_names_opted_in": bool(include_folder_names),
         "setup_intent": "UNDECIDED",
+        "backup_responsibility": "USER_MUST_BACK_UP_DATA_BEFORE_FORMAT",
+        "installer_creates_or_verifies_backups": False,
+        "format_warning_required": True,
+        "format_warning_accepted": False,
+        "format_warning": disclosure_for(UNDECIDED).warning,
         "install_target_confirmed": False,
         "blank_drive_independently_verified": False,
-        "backup_of_empty_target_required": "NOT_APPLICABLE_ONLY_AFTER_INDEPENDENT_EMPTY_DRIVE_PROOF",
+        "backup_of_empty_target_required": "NOT_EVALUATED_TARGET_MAY_CONTAIN_DATA",
         "other_drive_backup_scope_assessed": False,
         "installation_authorized": False,
         "partition_write_authorized": False,
@@ -288,11 +294,11 @@ def collect_system(*, include_folder_names: bool = False,
         "vm_start_authorized": False,
         "status": "HOLD_USER_REVIEW_ALL_UNKNOWN_DETAILS",
         "next_steps": [
-            "Choose dedicated blank drive, coexist with existing OS, or undecided.",
+            "Choose format/replace target contents, coexist with existing OS, or undecided.",
             "Review physical target identification separately; no automatic disk selection.",
             "Uncertain partition, firmware, encryption and ownership checks require operator review.",
-            "Only an independently confirmed truly blank dedicated target has no existing data to back up.",
-            "Protect any OTHER drive or existing OS before changing EFI/boot or shared hardware.",
+            "Formatting can permanently delete existing target data; user handles backups beforehand.",
+            "Review affected partitions, Windows EFI/boot and other drives; user must back up data they want to keep.",
             "Installation and VM actions remain blocked until separate acceptance and consent.",
         ],
     }
@@ -316,5 +322,8 @@ def describe(report: dict) -> str:
         row["category"] + (" present" if row["exists"] else " not observed")
         for row in report["personal_folders"]
     ))
+    lines.append("INSTALL WARNING: Formatting a chosen drive destroys its existing data; " +
+                 "back up anything you want to keep yourself before proceeding. " +
+                 "Nightglass does not create or verify these backups.")
     lines.append("INTENT UNDECIDED; NO disk/OS/VM action authorized. Review uncertain facts manually.")
     return "\n".join(lines)
