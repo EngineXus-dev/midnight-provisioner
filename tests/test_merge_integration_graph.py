@@ -65,11 +65,34 @@ def synthetic_repo(root):
 
 
 class StackIntegrationGraphTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # One complete, disposable 63-commit Git graph per unittest module,
+        # not one graph per test. Windows Git process startup otherwise
+        # multiplies this fixture cost and can exceed operator time budgets.
+        cls.temp = tempfile.TemporaryDirectory()
+        cls.root = Path(cls.temp.name)
+        try:
+            cls.data = synthetic_repo(cls.root)
+        except BaseException:
+            cls.temp.cleanup()
+            raise
+        cls._refs_to_restore = {
+            "refs/heads/main": cls.data["main_sha"],
+            "refs/remotes/origin/draft/test-25": next(
+                x["sha"] for x in cls.data["linear_prs"] if x["number"] == 25),
+        }
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.temp.cleanup()
+
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
-        self.data = synthetic_repo(self.root)
+        # Some tests deliberately mutate disposable refs to prove that the
+        # reviewer detects drift. Restore ONLY those synthetic fixture refs
+        # before each test; never touch the user's repository or real refs.
+        for ref_name, original_sha in self._refs_to_restore.items():
+            git(self.root, "update-ref", ref_name, original_sha)
 
     def test_linear_chain_and_fork_reported_without_authorizing_merge(self):
         r = mod.verify(mod.validate_snapshot(self.data), self.root)
