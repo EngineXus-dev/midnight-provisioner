@@ -96,7 +96,7 @@ class FakeHV:
             if len(argv) == 2:
                 return self.docs[argv[1]]["current"]
         if argv[:2] == ("net-dumpxml", "nightglass-lab"):
-            return '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/></network>'
+            return '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
         raise AssertionError(f"Unexpected libvirt action: {argv}")
 
 

@@ -12,8 +12,8 @@ def domain(*devices):
 
 VNC = '<graphics type="vnc" listen="127.0.0.1"/>'
 LAB_NIC = '<interface type="network"><source network="nightglass-lab"/></interface>'
-LAB = '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/></network>'
-FORWARDED = '<network><name>nightglass-lab</name><forward mode="nat"/><bridge name="virbr-nglab"/></network>'
+LAB = '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
+FORWARDED = '<network><name>nightglass-lab</name><forward mode="nat"/><bridge name="virbr-nglab"/><dns enable="no"/></network>'
 
 
 def virsh(*args):

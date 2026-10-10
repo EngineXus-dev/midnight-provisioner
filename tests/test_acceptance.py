@@ -34,8 +34,8 @@ def tearDownModule():
 VNC = '<graphics type="vnc" listen="127.0.0.1"/>'
 LAB_NIC = '<interface type="network"><source network="nightglass-lab"/></interface>'
 OTHER_NIC = '<interface type="network"><source network="default"/></interface>'
-LAB_NET = '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/></network>'
-FORWARD_NET = '<network><name>nightglass-lab</name><forward mode="nat"/><bridge name="virbr-nglab"/></network>'
+LAB_NET = '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
+FORWARD_NET = '<network><name>nightglass-lab</name><forward mode="nat"/><bridge name="virbr-nglab"/><dns enable="no"/></network>'
 
 
 def vm_xml(name="restored-safe", devices="", ram=2048):

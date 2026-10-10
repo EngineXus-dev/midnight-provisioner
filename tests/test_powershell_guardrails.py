@@ -26,12 +26,14 @@ class PowerShellGuardrailTests(unittest.TestCase):
     def test_automatic_variables_cannot_be_accidentally_assigned(self):
         for case in ("$home = 'temp'", "$HOME = 'temp'",
                      "$Host += 'x'", "$PID++", "foreach ($Pwd in 1..3) {}",
-                     "Set-Variable -Name HOME -Value x", "[string]$HOME = 'x'"):
+                     "Set-Variable -Name HOME -Value x", "[string]$HOME = 'x'",
+                     "$null += 1", "foreach ($null in 1..3) {}"):
             with self.subTest(case=case):
                 self.assertTrue(scanner.candidates(case), case)
         for good in ("$testHome = 'temp'", "$env:HOME = 'temp'",
                      "$HomeDirectory = 'temp'", "# $HOME = 'comment'",
-                     "Write-Output $HOME", 'Write-Host "$HOME"'):
+                     "Write-Output $HOME", 'Write-Host "$HOME"',
+                     "$null = & git status", "$NULL = New-Item x"):
             with self.subTest(good=good):
                 self.assertEqual(scanner.candidates(good), [], good)
 

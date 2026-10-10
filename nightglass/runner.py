@@ -21,8 +21,10 @@ class Runner:
         if not argv or any(not isinstance(arg, str) or "\x00" in arg for arg in argv):
             raise ToolError("Invalid command argument")
         try:
-            result = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, check=False, shell=False)
-        except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired) as exc:
+            # Undecodable tool output (e.g. a non-UTF-8 VM name) must not escape as UnicodeDecodeError.
+            result = subprocess.run(argv, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                                    stdin=subprocess.DEVNULL, timeout=timeout, check=False, shell=False)
+        except (OSError, subprocess.TimeoutExpired) as exc:
             raise ToolError(f"Command unavailable or timed out: {argv[0]} ({exc})") from exc
         if result.returncode != 0:
             raise ToolError(f"{argv[0]} exited {result.returncode}: {(result.stderr or result.stdout).strip()[:500]}")

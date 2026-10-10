@@ -16,6 +16,8 @@ from .portability import budget_for, load_machine_preferences
 
 LIBVIRT_URI = "qemu:///system"
 ISOLATED_NETWORK = "nightglass-lab"
+APPROVED_EMULATOR_DIRS = ("/usr/bin/", "/usr/libexec/")
+LOOPBACK_ADDRESSES = frozenset({"127.0.0.1", "::1"})
 
 
 @dataclass(frozen=True)
@@ -60,6 +62,14 @@ def assess_domain(xml_text: str, policy: str, lab_net_xml: str | None = None) ->
     # channels or inject extra command arguments. Reject all such extensions.
     if any(node.tag.startswith("{http://libvirt.org/schemas/domain/qemu/1.0}") for node in root.iter()):
         issues.append("QEMU extension bypasses the restricted device policy")
+    # A non-standard emulator binary runs outside every device check below.
+    emulator = (devices.findtext("emulator") or "").strip()
+    if emulator and (not emulator.startswith(APPROVED_EMULATOR_DIRS) or ".." in emulator.split("/")):
+        issues.append("Custom QEMU emulator path is not an approved system binary")
+    # Direct kernel boot reads arbitrary host files into the guest.
+    for tag in ("kernel", "initrd", "dtb"):
+        if root.find(f"./os/{tag}") is not None:
+            issues.append("Direct host kernel/initrd/dtb boot is configured")
     for tag, explanation in (
         ("filesystem", "Host filesystem passthrough is configured"),
         ("hostdev", "Physical host device passthrough is configured"),
@@ -77,6 +87,14 @@ def assess_domain(xml_text: str, policy: str, lab_net_xml: str | None = None) ->
     ):
         if devices.find(tag) is not None:
             issues.append(explanation)
+    for item in devices.findall("input"):
+        # evdev/passthrough grab a physical host keyboard, mouse or other input device.
+        if item.get("type") in {"passthrough", "evdev"} or item.find("source") is not None:
+            issues.append("Host input device passthrough is configured")
+    for item in devices.findall("memory"):
+        # nvdimm/virtio-pmem/virtio-mem with a source map host files or memory into the guest.
+        if item.get("model") in {"nvdimm", "virtio-pmem"} or item.find("source") is not None:
+            issues.append("Host-backed persistent memory device is configured")
     for disk in devices.findall("disk"):
         # A block/network-backed CD-ROM or floppy is still a host-device escape
         # from the declared policy. Libvirt volume pools may also be block-backed.
@@ -97,16 +115,19 @@ def assess_domain(xml_text: str, policy: str, lab_net_xml: str | None = None) ->
     for graphics in devices.findall("graphics"):
         if graphics.get("type") == "spice":
             issues.append("SPICE display can expose host integration/clipboard")
-        listen = graphics.get("listen", "")
         listens = graphics.findall("listen")
+        # Every address the display may bind, not only the last one, must be loopback.
+        addresses = [graphics.get("listen")] if graphics.get("listen") is not None else []
         for item in listens:
             if item.get("type") == "address":
-                listen = item.get("address", listen)
+                addresses.append(item.get("address", ""))
             elif item.get("type") not in {"none", "socket"}:
                 issues.append("Unapproved graphics listen mode")
         if graphics.get("type") not in {"vnc", "none"}:
             issues.append("Isolated VMs require VNC or no graphical device")
-        if listen not in {"127.0.0.1", "::1"} and not any(it.get("type") in {"none", "socket"} for it in listens):
+        if any(address not in LOOPBACK_ADDRESSES for address in addresses):
+            issues.append("Graphics must explicitly bind to loopback or a UNIX socket")
+        elif not addresses and not any(it.get("type") in {"none", "socket"} for it in listens):
             issues.append("Graphics must explicitly bind to loopback or a UNIX socket")
     interfaces = devices.findall("interface")
     if policy == "isolated" and interfaces:
@@ -126,6 +147,14 @@ def assess_domain(xml_text: str, policy: str, lab_net_xml: str | None = None) ->
                     issues.append("Lab network forwards traffic: not isolated")
                 if network_root.find("bridge") is None:
                     issues.append("Lab network bridge configuration is missing")
+                # Without <dns enable="no"/>, the host's dnsmasq resolves names for
+                # guests through the host's upstream resolvers: a DNS tunnel out.
+                dns = network_root.find("dns")
+                if dns is None or dns.get("enable") != "no":
+                    issues.append(
+                        "Lab network DNS is enabled: host dnsmasq can relay guest DNS queries "
+                        "to the Internet. Add <dns enable='no'/> (virsh net-edit nightglass-lab)"
+                    )
             except ET.ParseError:
                 issues.append("Could not validate the lab network definition")
     return Audit(not issues, tuple(dict.fromkeys(issues)), policy)
