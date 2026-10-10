@@ -57,6 +57,22 @@ class FirstRunRecognitionTests(unittest.TestCase):
         self.assertEqual(scan[1]["partition_count_observed"], 0)
         self.assertIsNone(scan[1]["removable"])
 
+    def test_missing_partition_query_does_not_forge_zero_partitions(self):
+        # One completed Get-Partition query may legitimately return [].
+        # If its JSON property is missing, that is a failed/incomplete
+        # inspection: do not manufacture an empty disk inventory.
+        without_partitions = {"disks": [
+            {"Number": 2, "Size": 512 * 1024**3, "IsBoot": False,
+             "IsSystem": False, "BusType": "SATA"}
+        ]}
+        self.assertEqual(discovery.windows_storage(without_partitions), [])
+        self.assertEqual(discovery.windows_storage({
+            **without_partitions, "partitions": []
+        })[0]["partition_count_observed"], 0)
+        self.assertEqual(discovery.windows_storage({
+            **without_partitions, "partitions": []
+        })[0]["target_classification"], "UNVERIFIED_NOT_EMPTY_PROVEN")
+
     def test_storage_query_rejects_invalid_types_and_oversized_array(self):
         self.assertEqual(discovery.linux_storage(None), [])
         self.assertEqual(discovery.windows_storage({"disks": "not-array", "partitions": []}), [])
