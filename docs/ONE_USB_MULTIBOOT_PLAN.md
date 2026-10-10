@@ -4,6 +4,8 @@
 
 **STATUS: DRAFT PLAN ONLY. NOTHING HAS BEEN WRITTEN TO ANY USB OR OS DISK.**
 
+**Update:** the Fedora entry on this stick can now be the Nightglass installer ISO (official Fedora netinstall plus a Nightglass kickstart; disk and encryption still chosen by you). See [`scripts/iso/README.md`](../scripts/iso/README.md) for building it, testing in a VM, and the install order. Unplug Disk 1 before running either installer.
+
 Example physical drive roles; discover actual devices independently:
 - **Disk 0:** measured system-disk capacity internal Windows GPT disk (Windows 10 Home currently).
   The Windows System/EFI, Reserved, C: and Recovery partitions are protected.

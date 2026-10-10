@@ -3,6 +3,7 @@
 | Folder | Use it for |
 |---|---|
 | [`install/`](install/README.md) | **Start here.** Installing and setting up Nightglass on Fedora |
+| [`iso/`](iso/README.md) | Building the Windows 11 + Fedora dual-boot installer ISO, VM testing, USB |
 | `windows/` | Read-only Windows checks before a dual boot, install-media planning, optional Windows 11 preference tweaks |
 | `backup/` | Inspecting and verifying backups, recovery smoke checks |
 | `kali/` | Helper run *inside* a Kali guest to export its tool inventory |
