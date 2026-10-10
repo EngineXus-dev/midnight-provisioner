@@ -1,5 +1,8 @@
 # Nightglass Phase 23 — first-run system recognition
 
+> **Phase 24 correction:** The planned installer will **format the user-selected target**, which can already contain data. Users are responsible for their own backups before consenting. Nightglass will prominently warn them but does not create or verify those backups. Descriptions in this historical Phase 23 document about requiring an already-blank drive or exempting an empty disk have been superseded by [Phase 24 — format-during-install warning](PHASE24_FORMAT_WARNING.md). Phase 23 recognition still does not select or modify any drive.
+
+
 **Status: DRAFT; no OS installation, partition writing, USB formatting, VM startup or firmware changes.**
 
 ## Why this exists
