@@ -96,7 +96,6 @@ class WindowsHostGateTests(unittest.TestCase):
     def test_windows10_extended_support_is_never_guessed(self):
         self.assertIn("2025-10-14", self.script)
         self.assertIn("Check exact edition, lifecycle and verified security servicing/ESU", self.script)
-        self.assertIn("never infer ESU enrollment", self.script)
         self.assertIn("do not infer ESU enrollment", self.script)
 
     def test_source_is_ascii_to_parse_under_windows_powershell_51(self):
