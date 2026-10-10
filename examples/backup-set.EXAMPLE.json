@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "nightglass",
+      "source": "C:\\REPLACE_WITH_YOUR_ACCOUNT\\Documents\\nightglass-workspaces",
+      "backup": "E:\\REPLACE_WITH_REAL_PORTABLE_DRIVE\\nightglass-workspaces"
+    },
+    {
+      "id": "documents",
+      "source": "C:\\REPLACE_WITH_YOUR_ACCOUNT\\Documents\\Important-Files",
+      "backup": "E:\\REPLACE_WITH_REAL_PORTABLE_DRIVE\\Important-Files"
+    },
+    {
+      "id": "desktop",
+      "source": "C:\\REPLACE_WITH_YOUR_ACCOUNT\\Desktop\\Important-Projects",
+      "backup": "E:\\REPLACE_WITH_REAL_PORTABLE_DRIVE\\Important-Projects"
+    }
+  ]
+}

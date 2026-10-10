@@ -1,0 +1,380 @@
+{
+  "schema": "nightglass.windows11.pro.custom.v1",
+  "target": {
+    "edition": "Windows 11 Pro",
+    "release": "26H2",
+    "license": "User reports owning a Pro key; activation must be verified after clean install",
+    "execution": "deferred until explicit future approval",
+    "hardware": "target CPU (verify compatibility); detected RAM capacity usable RAM",
+    "storage": "internal measured system-disk capacity is future Windows/Fedora target only after review; portable measured backup-disk capacity never installer target; separate 16GB USB only after confirmation",
+    "activation": {
+      "default": "activate_later",
+      "options": [
+        "activate_during_setup",
+        "activate_later"
+      ],
+      "license_note": "The user reports owning a valid Windows Pro key; confirm Pro entitlement independently. The setup workflow must not require entering it immediately if official Setup offers the skip-key choice.",
+      "during_setup": "Enter the existing Pro key only through Microsoft's genuine Windows Setup when ready; never embed it in NTLite presets, image or USB.",
+      "activate_later": "Use Microsoft's 'I don't have a product key' choice if displayed; ensure Windows 11 Pro (not OEM Home) is selected; after installation activate through Settings > System > Activation > Change product key.",
+      "security": "No key field, no automatic slmgr/activation commands, no unsupported activation workarounds; keep the 25-character key private and offline.",
+      "status": "PLAN_ONLY_NOT_INSTALLED"
+    }
+  },
+  "modeMeanings": {
+    "debloat_reviewed": "Win11Debloat reviewed candidate switches, still require dry run and user authorization",
+    "privacy_reviewed": "Changes have functional/privacy consequences; explicit review",
+    "high_risk_review": "Do not auto-enable; review security and recovery",
+    "feature_separate_opt_in": "Run alone on installed Pro, admin and reboot expected",
+    "app_removal_separate": "Not part of reversible core; app-by-app selection and backup",
+    "custom_review": "Some goals cannot be fully guaranteed; manual OS/privacy check",
+    "mixed_manual": "Some Windows settings scriptable, browser settings separate",
+    "extra_review": "Potentially destructive to current user layout",
+    "browser_review": "Browser-specific/version-specific"
+  },
+  "items": [
+    {
+      "id": 1,
+      "title": "Reduce optional telemetry, history, app launch tracking, ad targeting",
+      "mode": "privacy_reviewed",
+      "switches": [
+        "DisableTelemetry",
+        "DisableSearchHistory"
+      ],
+      "note": "Reviewed DisableTelemetry switch can reduce optional data/ads; required Windows Pro diagnostics cannot be eliminated. DisableSearchHistory was removed from recent upstream releases and is manual-only. Verify activity history and app launch settings individually."
+    },
+    {
+      "id": 2,
+      "title": "Disable lock-screen and Edge suggestions, tips and advertising",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableSuggestions",
+        "DisableLockscreenTips",
+        "DisableEdgeAds"
+      ],
+      "note": "Edge browser version/policy support varies."
+    },
+    {
+      "id": 3,
+      "title": "Disable location services, app access and Find My Device tracking",
+      "mode": "privacy_reviewed",
+      "switches": [
+        "DisableLocationServices",
+        "DisableFindMyDevice"
+      ],
+      "note": "Disables location-dependent features and device-finding."
+    },
+    {
+      "id": 4,
+      "title": "Hide Microsoft 365 ads in Settings Home (do not remove entire Home default)",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableSettings365Ads"
+      ],
+      "note": "Hide the entire Home page only as a separately selected preference."
+    },
+    {
+      "id": 5,
+      "title": "Prevent WSAIFabricSvc automatic start",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableAISvcAutoStart"
+      ],
+      "note": "Service may be absent; no service deletion."
+    },
+    {
+      "id": 6,
+      "title": "Disable Edge, Paint, Notepad AI; Chrome AI requires separately verified Chrome policy",
+      "mode": "mixed_manual",
+      "switches": [
+        "DisableEdgeAI",
+        "DisablePaintAI",
+        "DisableNotepadAI"
+      ],
+      "note": "Chrome browser version-managed settings/manual review; do not write unsupported policies."
+    },
+    {
+      "id": 7,
+      "title": "Disable Windows Drag Tray file sharing",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableDragTray"
+      ],
+      "note": ""
+    },
+    {
+      "id": 8,
+      "title": "Use classic Windows 10 context menu",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "RevertContextMenu"
+      ],
+      "note": "Shell update can revert this; avoid patching Explorer binaries."
+    },
+    {
+      "id": 9,
+      "title": "Disable Sticky Keys activation shortcut",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableStickyKeys"
+      ],
+      "note": "Accessibility shortcut changes; Sticky Keys feature remains available manually."
+    },
+    {
+      "id": 10,
+      "title": "Disable Storage Sense automatic cleanup",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableStorageSense"
+      ],
+      "note": "Keep manual cleanup; verify disk headroom."
+    },
+    {
+      "id": 11,
+      "title": "Disable Windows Fast Startup",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableFastStartup"
+      ],
+      "note": "Needed to avoid hibernated Windows NTFS when dual booting; separate from turning off full hibernation."
+    },
+    {
+      "id": 12,
+      "title": "Disable automatic device encryption of new installation, keep manual BitLocker possible",
+      "mode": "high_risk_review",
+      "switches": [
+        "DisableBitlockerAutoEncryption"
+      ],
+      "note": "Security tradeoff. Does NOT decrypt existing volumes; verify actual encryption and recovery keys before any change."
+    },
+    {
+      "id": 13,
+      "title": "Disable Modern Standby network connectivity",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableModernStandbyNetworking"
+      ],
+      "note": "Only on supported S0 Modern Standby hardware, may affect background connectivity."
+    },
+    {
+      "id": 14,
+      "title": "Do not receive preview/nonsecurity updates as soon as available",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableUpdateASAP"
+      ],
+      "note": "Keep monthly security patches, Defender updates and servicing enabled."
+    },
+    {
+      "id": 15,
+      "title": "Prevent update-triggered restart while a user is signed in",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "PreventUpdateAutoReboot"
+      ],
+      "note": "Not a total restart prevention; still schedule reboots for security patches."
+    },
+    {
+      "id": 16,
+      "title": "Disable Delivery Optimization peer-to-peer update distribution",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableDeliveryOptimization"
+      ],
+      "note": "Keep direct Windows Update downloads working."
+    },
+    {
+      "id": 17,
+      "title": "Prevent automatic device companion app download",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableDeviceAutoAppDownload"
+      ],
+      "note": "Must preserve normal driver installation."
+    },
+    {
+      "id": 18,
+      "title": "Enable dark mode for apps and system",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "EnableDarkMode"
+      ],
+      "note": ""
+    },
+    {
+      "id": 19,
+      "title": "Disable transparency, animations and unnecessary effects",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableTransparency",
+        "DisableAnimations"
+      ],
+      "note": "Some visual effects and accessibility/animation controls require manual verification."
+    },
+    {
+      "id": 20,
+      "title": "Disable desktop/lock screen Spotlight background",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableDesktopSpotlight",
+        "DisableLockscreenTips"
+      ],
+      "note": "Desktop and lock screen settings can be independent."
+    },
+    {
+      "id": 21,
+      "title": "Clear pinned Start apps, hide recommendations, review All Apps layout",
+      "mode": "extra_review",
+      "switches": [
+        "ClearStart",
+        "DisableStartRecommended",
+        "StartAllAppsList"
+      ],
+      "note": "DisableStartRecommended is reviewed core; ClearStart and All Apps presentation can change existing pins/layout, so they require separate explicit review."
+    },
+    {
+      "id": 22,
+      "title": "Disable Start menu Phone Link integration",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableStartPhoneLink"
+      ],
+      "note": "Separate uninstall of Phone Link app optional."
+    },
+    {
+      "id": 23,
+      "title": "Disable Bing web/Copilot search and Store recommendations",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableBing",
+        "DisableStoreSearchSuggestions"
+      ],
+      "note": "DisableBing is reviewed core; current upstream Store search suppression can manipulate file permissions/ACLs, so Store recommendations are deferred pending specific safety review."
+    },
+    {
+      "id": 24,
+      "title": "Enable End Task on taskbar right-click",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "EnableEndTask"
+      ],
+      "note": "Can force-close unsaved apps."
+    },
+    {
+      "id": 25,
+      "title": "Show extensions for known file types",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "ShowKnownFileExt"
+      ],
+      "note": "Security-positive."
+    },
+    {
+      "id": 26,
+      "title": "Show hidden files/folders/drives",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "ShowHiddenFolders"
+      ],
+      "note": "Do not disable hiding protected OS files by default."
+    },
+    {
+      "id": 27,
+      "title": "Hide Home, Gallery and OneDrive in Explorer pane",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "HideHome",
+        "HideGallery",
+        "HideOnedrive"
+      ],
+      "note": "Does not remove personal files."
+    },
+    {
+      "id": 28,
+      "title": "Disable window snapping",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableWindowSnapping"
+      ],
+      "note": "May reduce workflow convenience; leave as requested."
+    },
+    {
+      "id": 29,
+      "title": "Enable Windows Sandbox",
+      "mode": "feature_separate_opt_in",
+      "switches": [
+        "EnableWindowsSandbox"
+      ],
+      "note": "Windows 11 Pro and AMD virtualization; 8GB class host: avoid concurrent VM use; admin and restart required."
+    },
+    {
+      "id": 30,
+      "title": "Enable WSL and Virtual Machine Platform",
+      "mode": "feature_separate_opt_in",
+      "switches": [
+        "EnableWindowsSubsystemForLinux"
+      ],
+      "note": "Admin, optional reboot, WSL distro installation separate; preserve Docker Desktop."
+    },
+    {
+      "id": 31,
+      "title": "Disable Xbox Game Bar recording/integration and uninstall app optionally",
+      "mode": "app_removal_separate",
+      "switches": [
+        "DisableDVR",
+        "DisableGameBarIntegration",
+        "RemoveGamingApps"
+      ],
+      "note": "Game DVR and Game Bar disabled by default profile; app removal separate review."
+    },
+    {
+      "id": 32,
+      "title": "Disable Brave browser AI/crypto/news bloat",
+      "mode": "browser_review",
+      "switches": [
+        "DisableBraveBloat"
+      ],
+      "note": "Apply only if Brave installed; verify Chrome/Brave policies against browser release."
+    },
+    {
+      "id": 33,
+      "title": "Remove OneDrive app and hide Explorer integration",
+      "mode": "app_removal_separate",
+      "switches": [
+        "HideOnedrive"
+      ],
+      "note": "Unlink and verify cloud files are locally backed up before removal; do not delete files; no automatic app uninstall in core."
+    },
+    {
+      "id": 34,
+      "title": "Remove optional promotional apps and Widgets",
+      "mode": "app_removal_separate",
+      "switches": [
+        "DisableWidgets"
+      ],
+      "note": "Core disables Widgets surface; optional Appx removals require explicit per-app selection and separate restore validation."
+    },
+    {
+      "id": 35,
+      "title": "Disable Copilot, Recall and Click to Do",
+      "mode": "debloat_reviewed",
+      "switches": [
+        "DisableCopilot",
+        "DisableRecall",
+        "DisableClickToDo"
+      ],
+      "note": "Recall/Click-to-Do disabling is proposed as reviewed core; upstream -DisableCopilot also UNINSTALLS the Copilot app, so Copilot removal is a separate explicit app gate. Hardware may lack Recall/Click-to-Do."
+    }
+  ],
+  "prohibited": [
+    "run Get.ps1 downloader automatically",
+    "execute scripts from winutil ZIP automatically",
+    "disable Windows Update security patches",
+    "disable Defender, SmartScreen or firewall",
+    "weaken TPM or Secure Boot",
+    "remove WinRE/component store",
+    "format any drive or create USB",
+    "change current Windows 10",
+    "apply uninstall and encryption edits without separate consent",
+    "claim zero telemetry or fully reversible app removal"
+  ]
+}

@@ -1,0 +1,76 @@
+name: Verify source
+# CI is deliberately manual while GitHub Actions minutes are exhausted.
+# No push or pull_request runs. Re-enable only after explicit approval.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile
+        run: python -m compileall -q nightglass tests scripts/kali-guest-inventory.py
+      - name: Check installer shell syntax
+        run: bash -n scripts/setup-nightglass.sh && bash -n scripts/fedora-recovery-smoke.sh
+      - name: Smoke-test headless machine tuning
+        run: python -m nightglass profile show
+      - name: Unit tests (no VMs or root)
+        run: python -m unittest discover -s tests -v
+
+  native-tools:
+    name: Native libvirt and QEMU fixtures (no VMs)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install real libvirt schema tools and QEMU disk utilities
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libvirt-clients libxml2-utils qemu-utils
+      - name: Confirm tools are installed
+        run: |
+          command -v virt-xml-validate
+          command -v qemu-img
+          virt-xml-validate tests/fixtures/native-offline-domain.xml domain
+          qemu-img --version
+      - name: Run native host-tool integration tests on harmless fixtures
+        run: python -m unittest discover -s tests -p 'test_native_tools.py' -v
+
+  gui-offscreen:
+    name: PySide6 GUI smoke (offscreen, no VMs)
+    runs-on: ubuntu-24.04
+    env:
+      QT_QPA_PLATFORM: offscreen
+      NIGHTGLASS_GUI_SMOKE: '1'
+      NIGHTGLASS_GUI_PREVIEW: /tmp/nightglass-gui-smoke.png
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install runtime libraries for real Qt widgets
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libegl1 libgl1 libopengl0 libxkbcommon0 libxcb-cursor0
+      - name: Install Nightglass and Qt into isolated runner
+        run: python -m pip install --disable-pip-version-check -e .
+      - name: Verify real PySide6 widgets and save mock UI screenshot
+        run: python -m unittest discover -s tests -p 'test_gui_smoke.py' -v
+      - name: Save UI screenshot artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightglass-offscreen-preview
+          path: /tmp/nightglass-gui-smoke*.png
+          if-no-files-found: error
+          retention-days: 7

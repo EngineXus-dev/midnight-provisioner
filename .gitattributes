@@ -1,0 +1,3 @@
+# Bash scripts must remain LF on Windows worktrees for native Fedora parsing.
+# No global core.autocrlf setting or unrelated user file is changed.
+*.sh text eol=lf
