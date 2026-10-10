@@ -202,6 +202,46 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.assertFalse(self.window.discovery_backup_acknowledged.isChecked())
             self.assertIn("discarded", self.window.discovery_target_preview.toPlainText())
 
+    def test_change_review_qt_displays_unknown_partitions_and_no_writes(self):
+        from nightglass.system_discovery import collect_system
+        sample = collect_system(
+            system="Windows", run_live=False, home=Path(self.temp.name),
+            storage_data={
+                "disks": [
+                    {"Number": 0, "Size": 466 * 1024**3, "BusType": "NVMe",
+                     "IsBoot": True, "IsSystem": True},
+                    {"Number": 1, "Size": 1863 * 1024**3, "BusType": "USB",
+                     "IsBoot": False, "IsSystem": False}],
+                "partitions": [{"DiskNumber": 0}, {"DiskNumber": 1},
+                               {"DiskNumber": 1}],
+            },
+        )
+        self.window.goto(6)
+        self.window.discovery_intent.setCurrentIndex(
+            self.window.discovery_intent.findData("format_target"))
+        with patch.object(self.ui, "collect_system", return_value=sample), \
+             patch.object(self.window, "work") as background:
+            self.window.begin_system_discovery()
+            job, completed, _failed = background.call_args.args
+            completed(job())
+        self.assertTrue(self.window.discovery_change_review.isReadOnly())
+        self.assertIn("NO TARGET SELECTED",
+                      self.window.discovery_change_review.toPlainText())
+        self.window.discovery_target_combo.setCurrentIndex(2)
+        review = self.window.preview_install_changes()
+        self.assertEqual(review.observed_target, "Disk 1")
+        self.assertFalse(review.exact_new_partition_layout_known)
+        self.assertFalse(review.disk_write_authorized)
+        self.assertIn("EFI_SYSTEM_PARTITION",
+                      self.window.discovery_change_review.toPlainText())
+        self.window.discovery_backup_acknowledged.setChecked(True)
+        self.assertFalse(self.window.preview_install_changes().os_install_authorized)
+        with patch.object(self.window, "work"):
+            self.window.begin_system_discovery()
+            self.assertIsNone(self.window.discovery_snapshot)
+            self.assertIn("invalidated",
+                          self.window.discovery_change_review.toPlainText())
+
     def test_preset_controls_are_safe_and_saved_only_to_temp_home(self):
         import nightglass.portability as portability
 
