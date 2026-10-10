@@ -19,7 +19,7 @@ RESERVED = frozenset({
 })
 _ASSIGNMENT = re.compile(
     r"^\s*\$(?:\{(?P<braced>[A-Za-z][A-Za-z0-9_]*)\}|"
-    r"(?P<plain>[A-Za-z][A-Za-z0-9_]*))\s*(?:=|\+=|-=|\*=|/=|%=|\+\+|--)(?!=)",
+    r"(?P<plain>[A-Za-z][A-Za-z0-9_]*))\s*(?P<op>=|\+=|-=|\*=|/=|%=|\+\+|--)(?!=)",
     re.IGNORECASE,
 )
 _ASSIGNMENT_CMD = re.compile(
@@ -45,8 +45,15 @@ def candidates(source: str) -> list[tuple[int, str, str]]:
         names: list[str] = []
         for regex in (_ASSIGNMENT, _ASSIGNMENT_CMD, _FOREACH, _PARAM_DECL):
             match = regex.search(raw)
-            if match:
-                names.extend(v.lower() for v in match.groupdict().values() if v)
+            if not match:
+                continue
+            groups = match.groupdict()
+            op = groups.pop("op", None)
+            found = [v.lower() for v in groups.values() if v]
+            # "$null = <expr>" is PowerShell's standard way to discard output.
+            if regex is _ASSIGNMENT and op == "=" and found == ["null"]:
+                continue
+            names.extend(found)
         for name in set(names) & RESERVED:
             findings.append((lineno, name, raw.strip()))
     return findings

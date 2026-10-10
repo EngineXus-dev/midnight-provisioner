@@ -16,8 +16,8 @@ def domain(*inside: str) -> str:
 
 
 LOOPBACK_VNC = '<graphics type="vnc" listen="127.0.0.1"/>'
-NO_FORWARD_LAB = "<network><name>nightglass-lab</name><bridge name='virbr-nglab'/></network>"
-FORWARDED_LAB = "<network><name>nightglass-lab</name><forward mode='nat'/><bridge name='virbr-nglab'/></network>"
+NO_FORWARD_LAB = "<network><name>nightglass-lab</name><bridge name='virbr-nglab'/><dns enable='no'/></network>"
+FORWARDED_LAB = "<network><name>nightglass-lab</name><forward mode='nat'/><bridge name='virbr-nglab'/><dns enable='no'/></network>"
 
 
 class FakeRunner:
@@ -109,6 +109,44 @@ class DomainAuditTest(unittest.TestCase):
         self.assertFalse(assess_domain(domain(nic, LOOPBACK_VNC), 'lab', None).ok)
         self.assertFalse(assess_domain(domain('<interface type="bridge"><source bridge="br0"/></interface>', LOOPBACK_VNC), 'lab', NO_FORWARD_LAB).ok)
 
+    def test_lab_network_with_dns_relay_denied(self):
+        nic = '<interface type="network"><source network="nightglass-lab"/></interface>'
+        for net in ("<network><name>nightglass-lab</name><bridge name='virbr-nglab'/></network>",
+                    "<network><name>nightglass-lab</name><bridge name='virbr-nglab'/><dns><forwarder addr='8.8.8.8'/></dns></network>"):
+            with self.subTest(net=net):
+                check = assess_domain(domain(nic, LOOPBACK_VNC), 'lab', net)
+                self.assertFalse(check.ok)
+                self.assertIn('DNS', ' '.join(check.warnings))
+
+    def test_host_input_and_memory_backends_denied(self):
+        for device in ['<input type="passthrough" bus="virtio"><source evdev="/dev/input/event1"/></input>',
+                       '<input type="evdev"><source dev="/dev/input/by-id/kbd"/></input>',
+                       '<memory model="nvdimm"><source><path>/tmp/nvdimm</path></source></memory>',
+                       '<memory model="virtio-pmem" access="shared"><source><path>/tmp/pmem</path></source></memory>']:
+            with self.subTest(device=device):
+                self.assertFalse(assess_domain(domain(LOOPBACK_VNC, device), 'isolated').ok)
+        self.assertTrue(assess_domain(domain(LOOPBACK_VNC, '<input type="tablet" bus="usb"/>'), 'isolated').ok)
+
+    def test_custom_emulator_and_direct_kernel_boot_denied(self):
+        for emulator in ('/home/user/qemu', 'qemu-system-x86_64', '/usr/bin/../../tmp/qemu'):
+            with self.subTest(emulator=emulator):
+                self.assertFalse(assess_domain(domain(LOOPBACK_VNC, f'<emulator>{emulator}</emulator>'), 'isolated').ok)
+        for emulator in ('/usr/bin/qemu-system-x86_64', '/usr/libexec/qemu-kvm'):
+            with self.subTest(emulator=emulator):
+                self.assertTrue(assess_domain(domain(LOOPBACK_VNC, f'<emulator>{emulator}</emulator>'), 'isolated').ok)
+        kernel = domain(LOOPBACK_VNC).replace('<devices>', '<os><kernel>/etc/shadow</kernel></os><devices>')
+        self.assertFalse(assess_domain(kernel, 'isolated').ok)
+
+    def test_every_graphics_listen_address_must_be_loopback(self):
+        for graphic in ['<graphics type="vnc"><listen type="address" address="0.0.0.0"/><listen type="address" address="127.0.0.1"/></graphics>',
+                        '<graphics type="vnc" listen="0.0.0.0"><listen type="socket"/></graphics>']:
+            with self.subTest(graphic=graphic):
+                self.assertFalse(assess_domain(domain(graphic), 'isolated').ok)
+        for graphic in ['<graphics type="vnc"><listen type="address" address="::1"/></graphics>',
+                        '<graphics type="vnc"><listen type="socket"/></graphics>']:
+            with self.subTest(graphic=graphic):
+                self.assertTrue(assess_domain(domain(graphic), 'isolated').ok)
+
     def test_malformed_xml_fails_closed(self):
         self.assertFalse(assess_domain('<invalid', 'isolated').ok)
         self.assertFalse(assess_domain(domain(), 'evil-policy').ok)
@@ -192,6 +230,25 @@ class ContainerTest(unittest.TestCase):
     def test_arbitrary_image_not_accepted(self):
         with self.assertRaises(ToolError):
             Containers(FakeRunner({})).create('dev', 'malicious/image:latest')
+
+
+
+class RunnerTest(unittest.TestCase):
+    def test_invalid_utf8_output_is_replaced_not_raised(self):
+        out = Runner().run(['python3', '-c', 'import sys; sys.stdout.buffer.write(b"vm-\\xff\\n")'])
+        self.assertEqual(out.stdout, 'vm-�\n')
+
+    def test_os_errors_become_tool_errors(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(ToolError):
+                Runner().run([tmp])  # a directory: PermissionError/IsADirectoryError
+            with self.assertRaises(ToolError):
+                Runner().run([os.path.join(tmp, 'missing-tool')])
+
+    def test_rejects_non_string_or_nul_arguments(self):
+        for argv in ([], ['virsh', 3], ['virsh', 'a\x00b']):
+            with self.subTest(argv=argv), self.assertRaises(ToolError):
+                Runner().run(argv)
 
 
 if __name__ == '__main__':

@@ -29,7 +29,7 @@ def xml(*, name="safevm", devices="", ram=2048, uuid=None, maxram=None):
 
 NIC = '<interface type="network"><source network="default"/></interface>'
 LAB_NIC = '<interface type="network"><source network="nightglass-lab"/></interface>'
-LAB_NET = '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/></network>'
+LAB_NET = '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
 
 
 class FakeRunner:

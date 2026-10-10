@@ -54,7 +54,8 @@ if (-not ($FetchRefs -or $AuditStack -or $RunDockerGate)) {
 }
 
 if ($RepoPath -eq '') { $RepoPath = (Get-Location).Path }
-$repoPathValue = [System.IO.Path]::GetFullPath($RepoPath)
+# PowerShell location, not the .NET process directory (Set-Location does not change it).
+$repoPathValue = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($RepoPath)
 
 $git = Get-Command 'git.exe' -CommandType Application -ErrorAction SilentlyContinue
 if ($null -eq $git) {

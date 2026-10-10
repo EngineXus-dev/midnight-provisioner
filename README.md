@@ -67,6 +67,17 @@ python -m nightglass install-changes --intent format_target --disk-index 1 --jso
 
 Disk indices are ephemeral observations, **not target permissions**. Installation and disk-writing functions remain absent. Users are responsible for backing up any data they wish to retain; Nightglass does not create or certify those backups. See [Phase 26 impact review](docs/PHASE26_INSTALL_CHANGE_REVIEW.md).
 
+### Linux disk encryption at startup
+
+Choose Fedora disk encryption in the install preview (GUI dropdown, or `--encryption` on `install-preview` / `install-changes`): `luks2` (recommended, passphrase at every startup) or `luks2-tpm2-pin` (TPM2 + PIN, passphrase kept as fallback). Fedora's installer applies it via **Encrypt my data**; Nightglass only plans it. After installing, confirm it read-only:
+
+```bash
+nightglass install-preview --intent coexist --encryption luks2
+nightglass encryption-check   # exit 0 only when / (and /home) are on LUKS
+```
+
+`/boot` and the EFI partition stay unencrypted by design (firmware must read them to show the passphrase prompt); keep Secure Boot enabled. See [Disk encryption](docs/DISK_ENCRYPTION.md).
+
 ### Reviewing an optional installer operation proposal (Phase 27)
 
 Nightglass can inspect a user-selected **untrusted** operation-list JSON file and flag proposed changes to the target, other drives, and boot/EFI components. It does **not** prove the list is complete or from a real installer, and it never executes those operations.

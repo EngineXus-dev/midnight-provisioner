@@ -18,7 +18,12 @@ This step installs RPM packages only. It will NOT repartition a disk,
 change the EFI bootloader, install a Linux ISO, create VMs or change firewall/network rules.
 Afterward create your Python venv and run the read-only 'nightglass doctor'.
 NOTICE
-read -r -p 'Type INSTALL to run sudo dnf install: ' response
+if [[ ! -t 0 ]]; then
+  echo 'Confirmation needed: run this script interactively. Nothing changed.' >&2
+  exit 2
+fi
+response=''
+read -r -p 'Type INSTALL to run sudo dnf install: ' response || true
 [[ $response == INSTALL ]] || { echo 'Cancelled; nothing changed.'; exit 0; }
 sudo dnf install qemu-kvm libvirt virt-manager virt-viewer virt-install python3 python3-pip podman distrobox virtiofsd
 cat <<'NEXT'

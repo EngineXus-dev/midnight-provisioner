@@ -36,7 +36,32 @@ from .runtime_labels import RuntimeLabelInspector, save_runtime_observation
 from .handoff import RecoveryHandoff, save_handoff
 from .resources import collect_resources
 from .host_posture import inspect_host_posture
+from .install_encryption import CHOICES as ENCRYPTION_CHOICES
 import os
+
+
+def _read_only(cmd: str, args: argparse.Namespace) -> bool:
+    """True for invocations that cannot write files, settings, Git or VMs."""
+    if getattr(args, "report", None) or getattr(args, "destination", None):
+        return False
+    if cmd == "profile":
+        return args.profile_action in (None, "show")
+    if cmd == "backup":
+        return args.backup_action != "create"
+    if cmd == "recover":
+        return args.recover_action != "stage"
+    return cmd not in {"update", "gui"}
+
+
+def _confirmed(prompt: str, word: str) -> bool:
+    """Typed confirmation; no terminal, Ctrl-D or Ctrl-C all mean "cancel"."""
+    if not sys.stdin.isatty():
+        return False
+    try:
+        return input(prompt).strip() == word
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return False
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -46,6 +71,8 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("resources", help="Inspect live host RAM pressure and active system libvirt VMs (read-only)")
     sub.add_parser("host-security", help="Review Fedora SELinux/KVM/firewall posture without changes")
     sub.add_parser("list", help="List configured workspaces (read-only)")
+    sub.add_parser("encryption-check",
+                   help="Read-only: confirm the running Fedora root is on an encrypted LUKS volume")
     sub.add_parser("gui", help="Launch workspace manager graphical interface")
     discover = sub.add_parser("discover", help="Read-only host and disk recognition; no target selected")
     discover.add_argument("--folder-names", action="store_true",
@@ -58,6 +85,8 @@ def main(argv: list[str] | None = None) -> int:
                          default="undecided", help="Explicit intent, not installation approval")
     preview.add_argument("--disk-index", type=int,
                          help="Transient 0-based discovery-array index; never a persistent disk ID")
+    preview.add_argument("--encryption", choices=ENCRYPTION_CHOICES, default="undecided",
+                         help="Fedora disk encryption to plan (luks2 recommended); Fedora's installer applies it")
     preview.add_argument("--ack-warning", action="store_true",
                          help="Notice acknowledged only; not backup evidence or disk-write permission")
     preview.add_argument("--json", action="store_true",
@@ -68,6 +97,8 @@ def main(argv: list[str] | None = None) -> int:
                          default="undecided", help="A user intent, never install authorization")
     changes.add_argument("--disk-index", type=int,
                          help="Volatile 0-based observation index, never a permanent physical disk ID")
+    changes.add_argument("--encryption", choices=ENCRYPTION_CHOICES, default="undecided",
+                         help="Fedora disk encryption to plan (luks2 recommended); Fedora's installer applies it")
     changes.add_argument("--ack-warning", action="store_true",
                          help="User has acknowledged the warning; NOT backup or erasure proof")
     changes.add_argument("--json", action="store_true",
@@ -236,6 +267,11 @@ def main(argv: list[str] | None = None) -> int:
     accept.add_argument("--report", type=Path, help="Save private evidence to a NEW local JSON file")
     args = parser.parse_args(argv)
     cmd = args.command or "gui"
+    if hasattr(os, "geteuid") and os.geteuid() == 0 and not _read_only(cmd, args):
+        # Matches the GUI: as root, writes leave root-owned files in the user's
+        # config, reports and Git checkout, and bypass libvirt's polkit prompts.
+        print("Nightglass must run as an unprivileged desktop user, never as root (no sudo).", file=sys.stderr)
+        return 2
     try:
         if cmd == "templates":
             if args.template_action == "process-label":
@@ -372,7 +408,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.recover_action == "plan":
                 return 0
             if not args.yes:
-                if not sys.stdin.isatty() or input("Type STAGE to create a new recovery copy: ").strip() != "STAGE":
+                if not _confirmed("Type STAGE to create a new recovery copy: ", "STAGE"):
                     print("Cancelled; no files created.")
                     return 1
             dest = worker.stage(
@@ -398,7 +434,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.backup_action == "plan":
                 return 0
             if not args.yes:
-                if not sys.stdin.isatty() or input("Type BACKUP to copy the powered-off VM: ").strip() != "BACKUP":
+                if not _confirmed("Type BACKUP to copy the powered-off VM: ", "BACKUP"):
                     print("Cancelled. No backup created.")
                     return 1
             directory = service.create(
@@ -431,15 +467,16 @@ def main(argv: list[str] | None = None) -> int:
             ram = total_ram_gib()
             # The selected mode is only a *preference*: the effective limits
             # are always clamped to actual host capacity on every VM launch.
-            preset = MachinePreferences(
-                preset=args.target,
-                automatic_update_checks=current.automatic_update_checks,
-            )
+            # Keep the user's own tighter RAM/VM/vCPU caps: switching preset
+            # must never silently loosen limits they chose.
+            preset = replace(current, preset=args.target)
+            if any(v is not None for v in (current.guest_ram_cap_gib, current.active_vm_cap, current.vcpu_cap)):
+                print("Your custom RAM/VM/vCPU caps are kept; clear them in Machine settings to remove them.")
             preview = budget_for(ram, os.cpu_count(), preset)
             print(preview.explain())
             print("Only Nightglass machine.json will change; no VM disk, network, bootloader, or workspace definition changes.")
             if not args.yes:
-                if not sys.stdin.isatty() or input("Type APPLY to save these settings: ").strip() != "APPLY":
+                if not _confirmed("Type APPLY to save these settings: ", "APPLY"):
                     print("Cancelled; settings unchanged.")
                     return 1
             save_machine_preferences(preset)
@@ -457,7 +494,7 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             if args.update_action == "apply":
                 if not args.yes:
-                    if not sys.stdin.isatty() or input("Type UPDATE to fast-forward clean main: ").strip() != "UPDATE":
+                    if not _confirmed("Type UPDATE to fast-forward clean main: ", "UPDATE"):
                         print("Cancelled; source unchanged.")
                         return 1
                 print(SourceUpdater().apply(confirmed=True))
@@ -487,6 +524,7 @@ def main(argv: list[str] | None = None) -> int:
                 target_index=args.disk_index,
                 intent=args.intent,
                 backup_warning_acknowledged=args.ack_warning,
+                encryption=args.encryption,
             )
             if args.json:
                 import json
@@ -503,6 +541,7 @@ def main(argv: list[str] | None = None) -> int:
                 target_index=args.disk_index,
                 intent=args.intent,
                 backup_warning_acknowledged=args.ack_warning,
+                encryption=args.encryption,
             )
             if args.json:
                 import json
@@ -520,6 +559,11 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 print(describe(report))
             return 0  # Successful read-only observation is NEVER install permission.
+        if cmd == "encryption-check":
+            from .install_encryption import collect_encryption, describe_encryption_status
+            report = collect_encryption()
+            print(describe_encryption_status(report))
+            return 0 if report["status"] == "ENCRYPTED" else 2
         if cmd == "doctor":
             for chk in collect_checks():
                 print(("PASS" if chk.ok else "WARN") + f"  {chk.name}: {chk.message}")
@@ -543,6 +587,9 @@ def main(argv: list[str] | None = None) -> int:
             return run_gui()
     except (WorkspaceError, ToolError) as exc:
         print(f"Nightglass: {exc}", file=sys.stderr)
+        return 2
+    except OSError as exc:
+        print(f"Nightglass: file or system error: {exc}", file=sys.stderr)
         return 2
     return 2
 

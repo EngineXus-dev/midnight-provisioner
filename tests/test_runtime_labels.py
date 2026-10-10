@@ -35,7 +35,7 @@ UUID = "01234567-89ab-cdef-0123-456789abcdef"
 MCS = "c101,c209"
 VNC = '<graphics type="vnc" listen="127.0.0.1"/>'
 LAB_NIC = '<interface type="network"><source network="nightglass-lab"/></interface>'
-LAB_NET = '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/></network>'
+LAB_NET = '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
 
 LABEL = (
     '<seclabel type="dynamic" model="selinux" relabel="yes">'

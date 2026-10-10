@@ -96,7 +96,7 @@ class FakeHV:
             if len(argv) == 2:
                 return self.docs[argv[1]]["current"]
         if argv[:2] == ("net-dumpxml", "nightglass-lab"):
-            return '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/></network>'
+            return '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
         raise AssertionError(f"Unexpected libvirt action: {argv}")
 
 
@@ -202,16 +202,18 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
         # XML references can differ textually while resolving to the same path.
         # The intermediate folder doesn't even have to exist for normpath to
         # expose a lexical alias; no other disk is opened.
-        alias = str(self.disk.parent / "unused" / ".." / self.disk.name)
-        self.hv.docs["someone-else"] = {
-            "current": domain("someone-else", alias),
-            "inactive": domain("someone-else", str(self.other_disk)),
-            "saved": None,
-        }
-        result = self.check()
-        self.assertFalse(result.ok)
-        self.assertIn("lexical path alias", result.describe())
-        self.assertEqual(self.runner.calls, [])
+        # Linux also treats a leading "//" as "/", which normpath preserves.
+        for alias in (str(self.disk.parent / "unused" / ".." / self.disk.name), "/" + str(self.disk)):
+            with self.subTest(alias=alias):
+                self.hv.docs["someone-else"] = {
+                    "current": domain("someone-else", alias),
+                    "inactive": domain("someone-else", str(self.other_disk)),
+                    "saved": None,
+                }
+                result = self.check()
+                self.assertFalse(result.ok)
+                self.assertIn("lexical path alias", result.describe())
+                self.assertEqual(self.runner.calls, [])
 
     def test_same_folder_other_guest_symlink_is_blocked_without_following_it(self):
         link = self.root / "different-registered-guest.qcow2"

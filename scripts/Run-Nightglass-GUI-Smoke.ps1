@@ -12,7 +12,9 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $sha = $ExpectedSha.ToLowerInvariant()
-$repoRoot = (& git rev-parse --show-toplevel 2>$null)
+# 'Continue' so "not a git repository" reaches the clear message below (PowerShell 5.1).
+$ErrorActionPreference = 'Continue'
+try { $repoRoot = (& git rev-parse --show-toplevel 2>$null) } finally { $ErrorActionPreference = 'Stop' }
 if ($LASTEXITCODE -ne 0 -or -not $repoRoot) { throw 'Run from the Nightglass repository.' }
 $repoRoot = ($repoRoot -join '').Trim()
 $origin = (& git -C $repoRoot remote get-url origin)

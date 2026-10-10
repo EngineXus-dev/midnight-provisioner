@@ -13,6 +13,9 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 function GitText([string[]]$GitArgs) {
+ # Function-local 'Continue': PowerShell 5.1 would otherwise throw a raw
+ # NativeCommandError on git stderr before the check below can explain it.
+ $ErrorActionPreference = 'Continue'
  $lines = @(& git -C $RepoPath @GitArgs 2>&1)
  if ($LASTEXITCODE -ne 0) { throw ('Nightglass Git metadata check failed: ' + $GitArgs[0]) }
  return ($lines -join [Environment]::NewLine).Trim()
@@ -42,7 +45,8 @@ foreach ($required in @('nightglass/ui.py','nightglass/install_proposal_review.p
                           'scripts/Review-Nightglass-Integration.py')) {
  if ($tree -notcontains $required) { throw ('Required source absent: ' + $required) }
 }
-$root = [IO.Path]::GetFullPath($OutputRoot).TrimEnd('\')
+# PowerShell location, not the .NET process directory (Set-Location does not change it).
+$root = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputRoot).TrimEnd('\')
 if ($root -ieq $RepoPath -or
     $root.StartsWith($RepoPath + '\', [StringComparison]::OrdinalIgnoreCase)) {
  throw 'Release output must be OUTSIDE the checkout.'

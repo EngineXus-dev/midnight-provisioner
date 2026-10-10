@@ -14,6 +14,7 @@ from typing import Any
 from .install_disclosure import (
     UNDECIDED, FORMAT_TARGET, COEXIST, disclosure_for,
 )
+from . import install_encryption
 
 SCHEMA = "nightglass.install-target-preview.v1"
 SCOPES = {
@@ -52,6 +53,7 @@ class TargetPreview:
     os_install_authorized: bool
     warning: str
     unresolved: tuple[str, ...]
+    disk_encryption: str = install_encryption.UNDECIDED
 
 
 def build_target_preview(
@@ -59,6 +61,7 @@ def build_target_preview(
     target_index: int | None = None,
     intent: str = UNDECIDED,
     backup_warning_acknowledged: bool = False,
+    encryption: str = install_encryption.UNDECIDED,
 ) -> TargetPreview:
     """Produce a frozen, fail-closed advisory record: ALWAYS HOLD.
 
@@ -66,6 +69,7 @@ def build_target_preview(
     never be turned into a Linux device path, Windows disk number or write command.
     """
     disclosure = disclosure_for(intent)
+    encryption_plan = install_encryption.encryption_plan(encryption, coexist=intent == COEXIST)
     if type(backup_warning_acknowledged) is not bool:
         raise ValueError("Acknowledgment must be a boolean")
 
@@ -132,6 +136,8 @@ def build_target_preview(
         unresolved.append("ENTIRE DISK REPLACEMENT is proposed; existing partitions and their contents would be erased.")
     if not backup_warning_acknowledged:
         unresolved.append("Review and acknowledge the personal-backup and irreversible data-loss warning.")
+    if encryption == install_encryption.UNDECIDED:
+        unresolved.append("Choose whether Fedora's Linux partitions are encrypted (recommended).")
     unresolved.extend((
         "Independently confirm the permanent physical target identity immediately before installation.",
         "Review the full write/format/EFI/boot plan and all OTHER drives that could be changed.",
@@ -160,6 +166,7 @@ def build_target_preview(
         os_install_authorized=False,
         warning=disclosure.warning + "\n\n" + WARNING,
         unresolved=tuple(unresolved),
+        disk_encryption=encryption_plan.choice,
     )
 
 
@@ -180,6 +187,9 @@ def describe_target_preview(preview: TargetPreview) -> str:
             else "NOT ACKNOWLEDGED"),
         "",
         preview.warning,
+        "",
+        install_encryption.describe_encryption_plan(install_encryption.encryption_plan(
+            preview.disk_encryption, coexist=preview.intent == COEXIST)),
         "",
         "REMAINING CHECKS:",
     ]

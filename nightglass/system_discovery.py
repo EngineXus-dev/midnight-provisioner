@@ -141,6 +141,8 @@ def windows_storage(raw: dict | None) -> list[dict]:
         is_boot = _bool(disk.get("IsBoot"))
         is_system = _bool(disk.get("IsSystem"))
         protected = is_boot is True or is_system is True
+        # Unreadable boot/system status is not "not boot": never offer it as a target.
+        unknown = not protected and (is_boot is None or is_system is None)
         out.append({
             "local_id": "Disk " + str(n) if 0 <= n < 1024 else "UNKNOWN",
             "size_gib_approx": _gib(_safe_size(disk.get("Size"))),
@@ -148,8 +150,10 @@ def windows_storage(raw: dict | None) -> list[dict]:
             "partition_count_observed": counts.get(n, 0),  # not proof of emptiness
             "removable": None,  # BusType never proves this reliably.
             "read_only": _bool(disk.get("IsReadOnly")),
-            "system_use_evidence": "WINDOWS_BOOT_OR_SYSTEM" if protected else "NOT_ESTABLISHED",
-            "target_classification": "PROTECTED_IN_USE" if protected else "UNVERIFIED_NOT_EMPTY_PROVEN",
+            "system_use_evidence": ("WINDOWS_BOOT_OR_SYSTEM" if protected
+                                    else "BOOT_STATUS_UNREADABLE" if unknown else "NOT_ESTABLISHED"),
+            "target_classification": ("PROTECTED_IN_USE" if protected else "UNKNOWN" if unknown
+                                      else "UNVERIFIED_NOT_EMPTY_PROVEN"),
         })
     return out
 

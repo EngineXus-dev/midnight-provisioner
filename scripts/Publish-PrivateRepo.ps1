@@ -28,9 +28,26 @@ try {
     } else {
         $changes = & git status --porcelain
         if ($changes) { throw 'Existing git checkout has local changes. Commit or stash them manually first.' }
-        $origin = & git remote get-url origin 2>$null
+        # 'git config --get' is silent when origin is absent; 'git remote get-url
+        # origin 2>$null' would throw under 'Stop' in Windows PowerShell 5.1.
+        $origin = & git config --get remote.origin.url
         if ($LASTEXITCODE -eq 0 -and $origin) { throw 'Existing origin remote detected. Refusing to alter it.' }
     }
+    # Publishing is outward-facing: show exactly what will be uploaded first.
+    $files = @(& git ls-files)
+    if ($LASTEXITCODE -ne 0 -or $files.Count -eq 0) { throw 'Cannot list committed files; nothing published.' }
+    $suspicious = @($files | Where-Object {
+        $_ -match '(?i)(^|/)(\.env(\..*)?|id_(rsa|dsa|ecdsa|ed25519)|.*\.(pem|key|pfx|p12|kdbx))$' -or
+        $_ -match '(?i)(secret|credential|password|token)'
+    })
+    Write-Host ('Files that will be uploaded: ' + $files.Count)
+    $files | ForEach-Object { Write-Host ('  ' + $_) }
+    if ($suspicious.Count) {
+        Write-Host 'WARNING: these names look like secrets. Remove them from Git before publishing:' -ForegroundColor Red
+        $suspicious | ForEach-Object { Write-Host ('  ' + $_) -ForegroundColor Red }
+    }
+    $reply = Read-Host ('Type PUBLISH to create PRIVATE GitHub repository ' + $RepoName + ' and push these files')
+    if ($reply -cne 'PUBLISH') { Write-Host 'Cancelled; nothing published.'; return }
     Write-Host 'Creating a NEW PRIVATE repository. Existing GitHub repositories are untouched.'
     & gh repo create $RepoName --private --source . --remote origin --push
     if ($LASTEXITCODE -ne 0) { throw 'Private repository creation/push failed. No forced updates attempted.' }

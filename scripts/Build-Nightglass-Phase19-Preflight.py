@@ -98,7 +98,9 @@ def read_host_report(path: Path) -> dict:
     try:
         item = json.loads(data.decode("utf-8-sig"), object_pairs_hook=pairs_unique,
                           parse_constant=lambda _: (_ for _ in ()).throw(GateError("Non-finite JSON value")))
-    except (UnicodeError, json.JSONDecodeError) as exc:
+    except GateError:
+        raise  # keep the specific message (e.g. duplicate key)
+    except (ValueError, RecursionError) as exc:  # incl. JSON, Unicode and int-digit-limit errors
         raise GateError("Host evidence is not valid UTF-8 JSON") from exc
     return validate_host(item)
 

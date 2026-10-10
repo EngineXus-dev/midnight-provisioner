@@ -207,8 +207,13 @@ class ColdBackup:
                 target.parent.mkdir(mode=0o700, exist_ok=True)
                 digest = hashlib.sha256()
                 count = 0
-                with asset.source.open("rb") as origin, target.open("xb") as output:
-                    os.chmod(target, 0o600)
+                # O_NOFOLLOW: the checked disk path must not be swapped for a symlink before opening.
+                fd = os.open(asset.source, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+                with os.fdopen(fd, "rb") as origin, target.open("xb") as output:
+                    os.fchmod(output.fileno(), 0o600)
+                    opened = os.fstat(origin.fileno())
+                    if not stat.S_ISREG(opened.st_mode) or opened.st_size != asset.size:
+                        raise ToolError("Guest disk changed since preflight: export is INCOMPLETE")
                     for block in iter(lambda: origin.read(CHUNK_BYTES), b""):
                         if self.hypervisor.state(plan.domain).strip().lower() != "shut off":
                             raise ToolError("Guest started during disk copy: export is INCOMPLETE")

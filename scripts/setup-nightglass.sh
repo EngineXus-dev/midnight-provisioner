@@ -5,7 +5,13 @@ set -euo pipefail
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 PYTHON_BIN="${NIGHTGLASS_PYTHON:-python3}"
-DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+if [[ -z "${HOME:-}" || "$HOME" != /* ]]; then
+  echo "HOME must be set to an absolute path." >&2
+  exit 2
+fi
+DATA_HOME="${XDG_DATA_HOME:-}"
+# The XDG spec says relative values are invalid and must be ignored.
+[[ "$DATA_HOME" == /* ]] || DATA_HOME="$HOME/.local/share"
 VENV_DIR="$DATA_HOME/nightglass/venv"
 MARKER="$DATA_HOME/nightglass/installed-by-nightglass-setup"
 
@@ -25,7 +31,15 @@ if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
   echo "Python 3.11+ is required: cannot find $PYTHON_BIN" >&2
   exit 2
 fi
-"$PYTHON_BIN" -c 'import sys; assert sys.version_info >= (3, 11), "Python 3.11+ required"'
+# Explicit exit, not assert: assert is skipped when PYTHONOPTIMIZE is set.
+if ! "$PYTHON_BIN" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)'; then
+  echo "Python 3.11+ is required: $PYTHON_BIN is older." >&2
+  exit 2
+fi
+if [[ ! -f "$ROOT/pyproject.toml" || ! -d "$ROOT/nightglass" ]]; then
+  echo "Run this script from inside a complete Nightglass source checkout." >&2
+  exit 2
+fi
 if [[ -L "$DATA_HOME/nightglass" || -L "$VENV_DIR" || -L "$MARKER" ]]; then
   echo "Refusing symlinked Nightglass installation paths." >&2
   exit 2
@@ -58,10 +72,21 @@ if [[ ! -e "$VENV_DIR" ]]; then
   "$PYTHON_BIN" -m venv "$VENV_DIR"
 fi
 if [[ ! -x "$VENV_DIR/bin/python" ]]; then
+  # Our marker proves we created this directory; finish an interrupted venv
+  # creation in place. Nothing is deleted.
+  echo "Completing an interrupted Nightglass venv creation..."
+  "$PYTHON_BIN" -m venv "$VENV_DIR" || true
+fi
+if [[ ! -x "$VENV_DIR/bin/python" ]]; then
   echo "Nightglass venv is not functional. Existing content was not removed." >&2
+  echo "On Fedora, 'python3 -m venv' needs the python3 package (ensurepip included)." >&2
   exit 2
 fi
 "$VENV_DIR/bin/python" -m pip install --disable-pip-version-check -e "$ROOT"
+if ! "$VENV_DIR/bin/python" -c 'import nightglass.cli' >/dev/null 2>&1; then
+  echo "Installation finished but Nightglass cannot be imported from its venv." >&2
+  exit 1
+fi
 touch -- "$MARKER"
 chmod 600 -- "$MARKER"
 echo
@@ -69,6 +94,8 @@ echo "Nightglass installed. Resource mode: Auto (clamped to this computer's actu
 echo "Launch: $VENV_DIR/bin/nightglass gui"
 echo "Change resource profile inside Nightglass -> Machine settings."
 echo "You can run this script again to refresh Nightglass dependencies; no files are deleted."
+echo "This is an editable install: keep this source checkout at $ROOT (moving or deleting it breaks the app)."
+echo "After 'nightglass update', run this script again so new dependencies are installed."
 missing=()
 for command_name in virsh virt-manager virt-viewer podman distrobox; do
   command -v "$command_name" >/dev/null 2>&1 || missing+=("$command_name")

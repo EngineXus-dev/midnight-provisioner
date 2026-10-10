@@ -80,7 +80,9 @@ def read_manifest(path: Path, module) -> list[tuple[str, Path, Path]]:
             payload.decode("utf-8"), object_pairs_hook=unique_keys,
             parse_constant=lambda _: (_ for _ in ()).throw(
                 SetError("Non-finite JSON values forbidden")))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+    except (SetError, module.BackupError):
+        raise  # keep the specific message (e.g. duplicate key, linked path)
+    except (OSError, ValueError, RecursionError) as exc:
         raise SetError("Manifest missing, unreadable or invalid JSON") from exc
     if (not isinstance(data, dict) or type(data.get("version")) is not int
             or data["version"] != 1 or set(data) != {"version", "entries"}):

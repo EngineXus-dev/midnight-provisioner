@@ -68,6 +68,9 @@ def _other_disk_alias(source: str | None, disk: Path) -> str | None:
     if not posixpath.isabs(source):
         return "Other registered VM has a relative disk path; independence cannot be verified"
     normalized = posixpath.normpath(source)
+    # POSIX normpath keeps a leading "//", but Linux treats it as "/".
+    if normalized.startswith("//"):
+        normalized = "/" + normalized.lstrip("/")
     if normalized == str(disk):
         return "Another registered VM references the same disk image (including a lexical path alias)"
     candidate = Path(normalized)
