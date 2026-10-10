@@ -49,6 +49,7 @@ from .system_discovery import collect_system, describe as describe_discovery
 from .install_disclosure import disclosure_for, ACKNOWLEDGMENT
 from .install_target_preview import build_target_preview, describe_target_preview
 from .install_change_review import build_change_review, describe_change_review
+from .install_proposal_review import read_proposal_file, review_proposal, describe_proposal, ProposalError
 
 class NoWheelComboBox(QComboBox):
     """Prevent incidental wheel scrolling from changing a saved profile."""
@@ -1693,6 +1694,27 @@ class MainWindow(QMainWindow):
         self.discovery_change_review.setReadOnly(True)
         self.discovery_change_review.setMinimumHeight(340)
         controls.addWidget(self.discovery_change_review)
+        proposal_heading = QLabel("USER-SUPPLIED OPERATION PROPOSAL  ·  UNTRUSTED")
+        proposal_heading.setObjectName("SectionHeading")
+        controls.addWidget(proposal_heading)
+        proposal_note = QLabel(
+            "Optional: manually open an untrusted proposal JSON from a future installer "
+            "or the bundled example. It can be wrong or incomplete. This never "
+            "executes operations or proves the target, EFI changes or backups.")
+        proposal_note.setObjectName("SubTitle")
+        proposal_note.setWordWrap(True)
+        controls.addWidget(proposal_note)
+        self.discovery_proposal_button = QPushButton(
+            "Review local operation proposal JSON — NO WRITES")
+        self.discovery_proposal_button.clicked.connect(
+            lambda *_args: self.review_proposal_file())
+        controls.addWidget(self.discovery_proposal_button)
+        self.discovery_proposal_report = QPlainTextEdit()
+        self.discovery_proposal_report.setReadOnly(True)
+        self.discovery_proposal_report.setMinimumHeight(210)
+        self.discovery_proposal_report.setPlainText(
+            "NO PROPOSAL SELECTED. Nothing has been read or verified.")
+        controls.addWidget(self.discovery_proposal_report)
         self.discovery_folder_names = QCheckBox(
             "Also inspect personal directory NAMES (opt-in; local only, no files read)")
         self.discovery_folder_names.setChecked(False)
@@ -1791,6 +1813,24 @@ class MainWindow(QMainWindow):
         self.discovery_change_review.setPlainText(describe_change_review(review))
         return review
 
+    def review_proposal_file(self):
+        """Read only a small explicitly chosen local JSON file; never install."""
+        selected, _filter = QFileDialog.getOpenFileName(
+            self, "Review UNTRUSTED local installer proposal", str(Path.home()),
+            "JSON documents (*.json)")
+        if not selected:
+            return
+        self.discovery_proposal_report.setPlainText(
+            "Inspecting supplied JSON schema locally. It cannot authorize writes.")
+        try:
+            report = review_proposal(read_proposal_file(Path(selected)))
+        except ProposalError as exc:
+            self.discovery_proposal_report.setPlainText(
+                "PROPOSAL REJECTED: " + str(exc) +
+                "\nNo installer or storage operation was performed.")
+            return
+        self.discovery_proposal_report.setPlainText(describe_proposal(report))
+
     def begin_system_discovery(self):
         if getattr(self, "_discovery_scanning", False):
             return
@@ -1804,6 +1844,8 @@ class MainWindow(QMainWindow):
             "Previous target selection discarded. A fresh snapshot must be reviewed.")
         self.discovery_change_review.setPlainText(
             "Previous installation-impact plan invalidated. No partition/EFI changes authorized.")
+        self.discovery_proposal_report.setPlainText(
+            "Hardware refreshed; previous proposal review discarded. Choose a file again.")
         self._discovery_scanning = True
         self.discovery_button.setEnabled(False)
         self.discovery_status.setText("Reading bounded host and storage metadata …")
