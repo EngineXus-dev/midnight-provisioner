@@ -63,7 +63,7 @@ The local config `config/windows11-pro-custom.json` provides:
 - `options = ["activate_during_setup", "activate_later"]`
 - `status = PLAN_ONLY_NOT_INSTALLED`
 
-`scripts/Invoke-Nightglass-Win11ProCustom.ps1` offers
+`scripts/windows/Invoke-Nightglass-Win11ProCustom.ps1` offers
 `-ActivationTiming ActivateLater` (default) or
 `-ActivationTiming DuringSetup`. This only displays future manual
 steps; `ExportPlan` can record the timing in a **new** local JSON
@@ -72,12 +72,12 @@ Setup.
 
 For a platform-neutral, pure-Python media plan:
 
-    python scripts/Plan-Nightglass-InstallMedia.py
+    python scripts/windows/Plan-Nightglass-InstallMedia.py
 
 This default prints a JSON proposal with activation deferred. To
 preview the alternative:
 
-    python scripts/Plan-Nightglass-InstallMedia.py --activation activate_during_setup
+    python scripts/windows/Plan-Nightglass-InstallMedia.py --activation activate_during_setup
 
 Both default previews do NOT inspect, hash, download or write any ISO,
 USB, partition, firmware entry or personal files.
@@ -87,7 +87,7 @@ USB, partition, firmware entry or personal files.
 Once the actual official Windows 11 Pro ISO and Fedora KDE Live ISO
 have been obtained and separately publisher-verified, run:
 
-    python scripts/Plan-Nightglass-InstallMedia.py --check-files --windows-iso "X:/official-Win11.iso" --fedora-iso "X:/official-Fedora.iso" --usable-usb-bytes 15000000000
+    python scripts/windows/Plan-Nightglass-InstallMedia.py --check-files --windows-iso "X:/official-Win11.iso" --fedora-iso "X:/official-Fedora.iso" --usable-usb-bytes 15000000000
 
 **Those names and sizes are examples only, not actual paths/capacity.**
 Use the **observed free/usable capacity** of the disposable USB stick,

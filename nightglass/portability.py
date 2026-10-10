@@ -9,10 +9,10 @@ from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
-import stat
 
 from .diagnostics import total_ram_gib
 from .models import WorkspaceError
+from .privatefiles import make_private
 
 PRESETS = ("auto", "compact", "balanced", "performance")
 
@@ -128,7 +128,7 @@ def save_machine_preferences(prefs: MachinePreferences, path: Path | None = None
     tmp = path.parent / f".{path.name}.{os.getpid()}.tmp"
     try:
         with tmp.open("x", encoding="utf-8") as fh:
-            os.fchmod(fh.fileno(), stat.S_IRUSR | stat.S_IWUSR)
+            make_private(fh.fileno())
             fh.write(content)
             fh.flush()
             os.fsync(fh.fileno())

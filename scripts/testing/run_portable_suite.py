@@ -12,7 +12,7 @@ from pathlib import Path
 import sys
 import unittest
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def run_pattern(pattern: str, *, root: Path = ROOT) -> int:
@@ -29,7 +29,7 @@ def run_pattern(pattern: str, *, root: Path = ROOT) -> int:
             or source.is_symlink() or not source.is_file()):
         print("[BLOCKED] Missing, linked, or wrong-checkout test suite", file=sys.stderr)
         return 2
-    # Executing 'python scripts/run_portable_suite.py' sets sys.path[0]
+    # Executing 'python scripts/testing/run_portable_suite.py' sets sys.path[0]
     # to scripts/, NOT to the project root. Discovery adds tests/ only;
     # it does not make 'import nightglass' available. Add the trusted
     # checked-out root explicitly before loading test modules.

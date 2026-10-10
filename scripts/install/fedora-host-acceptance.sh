@@ -15,6 +15,6 @@ if ! command -v python3 >/dev/null 2>&1; then
   exit 2
 fi
 
-PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 export PYTHONPATH="$PROJECT_ROOT"
 exec python3 -B -m nightglass.host_acceptance "$@"

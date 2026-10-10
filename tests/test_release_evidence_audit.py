@@ -11,7 +11,7 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-AUDITOR = ROOT / "scripts" / "Audit-Nightglass-Release-Evidence.py"
+AUDITOR = ROOT / "scripts" / "release" / "Audit-Nightglass-Release-Evidence.py"
 spec = importlib.util.spec_from_file_location("nightglass_release_evidence_test_module", AUDITOR)
 audit_module = importlib.util.module_from_spec(spec)
 assert spec.loader is not None

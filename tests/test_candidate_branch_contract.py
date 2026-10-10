@@ -14,9 +14,9 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "config" / "nightglass-pr-stack-snapshot.json"
 SOURCES = (
-    ("scripts/Run-Nightglass-Offline-Release-Gate.py", "BRANCH"),
-    ("scripts/Audit-Nightglass-Release-Evidence.py", "BRANCH"),
-    ("scripts/Audit-Nightglass-PR-Stack.py", "CANDIDATE"),
+    ("scripts/testing/Run-Nightglass-Offline-Release-Gate.py", "BRANCH"),
+    ("scripts/release/Audit-Nightglass-Release-Evidence.py", "BRANCH"),
+    ("scripts/release/Audit-Nightglass-PR-Stack.py", "CANDIDATE"),
 )
 
 
@@ -82,13 +82,13 @@ class CandidateBranchContractTests(unittest.TestCase):
                                  self.branch)
 
     def test_powershell_launcher_targets_same_candidate(self):
-        code = (ROOT / "scripts" / "Invoke-Nightglass-OfflineChecks.ps1").read_text(
+        code = (ROOT / "scripts" / "testing" / "Invoke-Nightglass-OfflineChecks.ps1").read_text(
             encoding="utf-8")
         matches = re.findall(r"(?m)^\$branch\s*=\s*'([^']+)'\s*$", code)
         self.assertEqual(matches, [self.branch])
 
     def test_stack_auditor_last_head_matches_snapshot(self):
-        target = ROOT / "scripts" / "Audit-Nightglass-PR-Stack.py"
+        target = ROOT / "scripts" / "release" / "Audit-Nightglass-PR-Stack.py"
         self.assertEqual(constant_string(target, "LAST_STACK_HEAD"),
                          self.manifest["pull_requests"][-1]["head"])
 

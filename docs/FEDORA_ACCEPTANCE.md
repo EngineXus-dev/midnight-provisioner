@@ -9,11 +9,11 @@ not establish isolation or successful recovery.
 A separate non-root audit is now available for an actual Fedora test
 installation. It does not require a staged backup or an existing guest:
 
-    bash scripts/fedora-host-acceptance.sh
+    bash scripts/install/fedora-host-acceptance.sh
 
 Optional NEW 0600 local status-only evidence (never uploads or overwrites):
 
-    bash scripts/fedora-host-acceptance.sh --report "$HOME/nightglass-host-prerequisites-new.json"
+    bash scripts/install/fedora-host-acceptance.sh --report "$HOME/nightglass-host-prerequisites-new.json"
 
 It checks Fedora identity, ordinary-user privileges, SELinux enforcing
 state, accessible KVM, native validation utilities and read-only
@@ -36,7 +36,7 @@ nightglass recover verify /path/to/recovered-new-guest
 nightglass recover preflight /path/to/recovered-new-guest
 
 # Or run the combined non-root, read-only script from the project root:
-bash scripts/fedora-recovery-smoke.sh /path/to/recovered-new-guest
+bash scripts/backup/fedora-recovery-smoke.sh /path/to/recovered-new-guest
 ```
 
 The last check uses installed **virt-xml-validate** and **qemu-img info** to

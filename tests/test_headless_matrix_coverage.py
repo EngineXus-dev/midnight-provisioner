@@ -9,8 +9,8 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
-MATRIX = ROOT / "scripts" / "run_headless_matrix.py"
-RELEASE_GATE = ROOT / "scripts" / "Run-Nightglass-Offline-Release-Gate.py"
+MATRIX = ROOT / "scripts" / "testing" / "run_headless_matrix.py"
+RELEASE_GATE = ROOT / "scripts" / "testing" / "Run-Nightglass-Offline-Release-Gate.py"
 
 spec = importlib.util.spec_from_file_location("nightglass_matrix_gate", MATRIX)
 matrix = importlib.util.module_from_spec(spec)
@@ -70,7 +70,7 @@ class MatrixCoverageTests(unittest.TestCase):
 
     def test_release_gate_invokes_minimum_matrix_checker_for_each_version(self):
         source = RELEASE_GATE.read_text(encoding="utf-8")
-        self.assertIn('"python", "-B", "scripts/run_headless_matrix.py"', source)
+        self.assertIn('"python", "-B", "scripts/testing/run_headless_matrix.py"', source)
         self.assertIn('VERSIONS = ("3.11", "3.12", "3.13")', source)
         self.assertIn('"--network", "none"', source)
         self.assertNotIn('"python", "-B", "-m", "unittest", "discover"', source)

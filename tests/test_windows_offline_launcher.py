@@ -11,8 +11,8 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-LAUNCHER = ROOT / "scripts" / "Invoke-Nightglass-OfflineChecks.ps1"
-GATE = ROOT / "scripts" / "Run-Nightglass-Offline-Release-Gate.py"
+LAUNCHER = ROOT / "scripts" / "testing" / "Invoke-Nightglass-OfflineChecks.ps1"
+GATE = ROOT / "scripts" / "testing" / "Run-Nightglass-Offline-Release-Gate.py"
 
 
 class WindowsOneCommandOfflineChecksTests(unittest.TestCase):

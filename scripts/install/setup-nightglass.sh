@@ -3,7 +3,7 @@
 # Does not install or partition an operating system, modify UEFI, or use sudo.
 set -euo pipefail
 
-ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 PYTHON_BIN="${NIGHTGLASS_PYTHON:-python3}"
 if [[ -z "${HOME:-}" || "$HOME" != /* ]]; then
   echo "HOME must be set to an absolute path." >&2
@@ -16,7 +16,7 @@ VENV_DIR="$DATA_HOME/nightglass/venv"
 MARKER="$DATA_HOME/nightglass/installed-by-nightglass-setup"
 
 if [[ "${1:-}" != "" && "${1:-}" != "--yes" ]]; then
-  echo "Usage: ./scripts/setup-nightglass.sh [--yes]" >&2
+  echo "Usage: ./scripts/install/setup-nightglass.sh [--yes]" >&2
   exit 2
 fi
 if [[ "$(uname -s)" != "Linux" ]]; then
@@ -102,5 +102,5 @@ for command_name in virsh virt-manager virt-viewer podman distrobox; do
 done
 if (( ${#missing[@]} )); then
   printf 'Host tool(s) not installed: %s\n' "${missing[*]}"
-  echo "Review scripts/fedora-dependencies.sh to install missing host packages separately."
+  echo "Review scripts/install/fedora-dependencies.sh to install missing host packages separately."
 fi

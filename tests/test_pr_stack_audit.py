@@ -16,7 +16,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "Audit-Nightglass-PR-Stack.py"
+SCRIPT = ROOT / "scripts" / "release" / "Audit-Nightglass-PR-Stack.py"
 spec = importlib.util.spec_from_file_location("nightglass_stack_audit_tests", SCRIPT)
 audit = importlib.util.module_from_spec(spec)
 assert spec.loader is not None

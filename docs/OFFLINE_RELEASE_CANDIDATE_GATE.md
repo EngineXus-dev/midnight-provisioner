@@ -68,7 +68,7 @@ From the user's original nightglass-workspaces PowerShell directory:
     New-Item -ItemType Directory -Path $dir | Out-Null
     $runner = Join-Path $dir "Run-Nightglass-Offline-Release-Gate.py"
 
-    $scriptText = & git show origin/verification/phase17-qemu-subset-integrity:scripts/Run-Nightglass-Offline-Release-Gate.py
+    $scriptText = & git show origin/verification/phase17-qemu-subset-integrity:scripts/testing/Run-Nightglass-Offline-Release-Gate.py
     if ($LASTEXITCODE -ne 0) { throw "Runner retrieval failed" }
     $scriptText | Set-Content -LiteralPath $runner -Encoding UTF8
 
@@ -126,7 +126,7 @@ a v2 report with the exact tested commit, unchanged original main
 before/after SHA values, a completed local test-log SHA-256 and explicit
 `deployment_approved=false`, `release_attested=false`.
 A separate read-only script,
-`scripts/Audit-Nightglass-Release-Evidence.py`, rejects missing or
+`scripts/release/Audit-Nightglass-Release-Evidence.py`, rejects missing or
 failed checks, stale commits and tampered logs, and never treats
 synthetic Docker verification as real hardware certification.
 
@@ -157,7 +157,7 @@ New tests are committed but have not yet been run on Windows/Docker.
 
 The latest test candidate fixes a stale Git-worktree regression
 assertion and prevents empty/skipped test suites from reporting PASS.
-Python 3.11–3.13 now invoke `scripts/run_headless_matrix.py`,
+Python 3.11–3.13 now invoke `scripts/testing/run_headless_matrix.py`,
 requiring 60 collected / 40 executed tests. Fedora 43's `--all`
 requires real, non-skipped Qt and QEMU/libvirt fixture suites
 (at least five tests each). Missing Linux Bash syntax validation

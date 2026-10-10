@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNNER = ROOT / "scripts" / "run_portable_suite.py"
+RUNNER = ROOT / "scripts" / "testing" / "run_portable_suite.py"
 spec = importlib.util.spec_from_file_location("nightglass_portable_suite_test", RUNNER)
 portable = importlib.util.module_from_spec(spec)
 assert spec.loader is not None

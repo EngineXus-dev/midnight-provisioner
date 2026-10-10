@@ -11,7 +11,7 @@ Kali/offline analysis guests or erase any device.
 
 ## Default behavior: PLAN ONLY
 
-`scripts/Invoke-Nightglass-OfflineChecks.ps1` has these modes:
+`scripts/testing/Invoke-Nightglass-OfflineChecks.ps1` has these modes:
 
 | Switch | Effect | Filesystem/network behavior |
 | --- | --- | --- |
@@ -48,7 +48,7 @@ $dir = Join-Path $env:TEMP ("Nightglass-Checks-" + [guid]::NewGuid().ToString("N
 New-Item -ItemType Directory -Path $dir -ErrorAction Stop | Out-Null
 $launcher = Join-Path $dir "Invoke-Nightglass-OfflineChecks.ps1"
 
-$lines = @(git show origin/verification/phase17-qemu-subset-integrity:scripts/Invoke-Nightglass-OfflineChecks.ps1)
+$lines = @(git show origin/verification/phase17-qemu-subset-integrity:scripts/testing/Invoke-Nightglass-OfflineChecks.ps1)
 if ($LASTEXITCODE -ne 0 -or $lines.Count -eq 0) { throw "Script retrieval failed" }
 $lines | Set-Content -LiteralPath $launcher -Encoding UTF8
 
@@ -148,9 +148,9 @@ No real Windows junction acceptance is claimed yet.
 
 ## Phase 15: safer Windows-portable verifier
 
-For a native Windows `python scripts/verify_local.py` run,
+For a native Windows `python scripts/testing/verify_local.py` run,
 every file in the portable allowlist now uses
-`scripts/run_portable_suite.py` to reject zero-test and
+`scripts/testing/run_portable_suite.py` to reject zero-test and
 all-skipped unittest results. It does not claim Fedora security
 acceptance for skipped platform-specific cases. The new checker
 was exercised in a 7-test isolated local fixture, **not**

@@ -14,7 +14,7 @@ pairs**. It still does not perform backups or restore files.
 
 ## Safety and access
 
-`scripts/Verify-Nightglass-BackupSet.py` defaults to **Preview**,
+`scripts/backup/Verify-Nightglass-BackupSet.py` defaults to **Preview**,
 which reads **no manifest, directories or files**. There are three
 modes:
 
@@ -95,7 +95,7 @@ by those patterns. **Keeping the file outside Git entirely is safer.**
 From a checkout that contains the new script:
 
 ```powershell
-python scripts/Verify-Nightglass-BackupSet.py
+python scripts/backup/Verify-Nightglass-BackupSet.py
 ```
 
 No file access, hashing, manifest parsing, backup copying,
@@ -104,7 +104,7 @@ restore, registry change, Git operation, USB write or Windows Setup.
 ## Step 3 — inspect only when copies exist
 
 ```powershell
-python scripts/Verify-Nightglass-BackupSet.py --mode Inspect `
+python scripts/backup/Verify-Nightglass-BackupSet.py --mode Inspect `
   --manifest "C:\\REPLACE\\my-backups.nightglass-backup-set.local.json"
 ```
 
@@ -118,7 +118,7 @@ After copies are complete and source applications have stopped
 writing to those files:
 
 ```powershell
-python scripts/Verify-Nightglass-BackupSet.py --mode Verify `
+python scripts/backup/Verify-Nightglass-BackupSet.py --mode Verify `
   --manifest "C:\\REPLACE\\my-backups.nightglass-backup-set.local.json"
 ```
 
@@ -156,7 +156,7 @@ usb_format_authorized = false
 Add a new path outside ALL inspected source/backup roots:
 
 ```powershell
-python scripts/Verify-Nightglass-BackupSet.py --mode Verify `
+python scripts/backup/Verify-Nightglass-BackupSet.py --mode Verify `
   --manifest "C:\\REPLACE\\my-backups.nightglass-backup-set.local.json" `
   --report "C:\\REPLACE\\my-check.nightglass-backup-report.local.json"
 ```

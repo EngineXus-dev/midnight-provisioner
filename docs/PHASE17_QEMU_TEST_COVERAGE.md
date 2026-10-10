@@ -6,7 +6,7 @@
 
 ## Confirmed risk
 
-`scripts/verify_local.py` previously invoked the Windows-safe
+`scripts/testing/verify_local.py` previously invoked the Windows-safe
 `test_kali_process_label.py` subset with one `unittest -k`
 argument for each selected method name. Unittest may return success
 when one of those names no longer exists, provided other matching
@@ -23,7 +23,7 @@ that scope must be a separate decision.
 ## Repair
 
 The Windows QEMU section now invokes
-`python -B scripts/run_windows_qemu_subset.py` rather than raw
+`python -B scripts/testing/run_windows_qemu_subset.py` rather than raw
 unittest `-k` filters. The new stdlib runner:
 
 - accepts only the fixed `test_kali_process_label.py` module and
@@ -48,7 +48,7 @@ were first authored and executed in an isolated local Python
 environment. Their Git object SHA values were then compared to
 the fetched GitHub source and both **match exactly**:
 
-- `scripts/run_windows_qemu_subset.py`
+- `scripts/testing/run_windows_qemu_subset.py`
   SHA: `d20e74b09d6c01cc6e1b18d44fbcb9ec1ba3efa0`
 - `tests/test_windows_qemu_subset_integrity.py`
   SHA: `ba9f8a9c6991a8a364848aa7c75f5ecccc97e235`

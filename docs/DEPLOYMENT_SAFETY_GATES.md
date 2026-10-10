@@ -8,7 +8,7 @@ does not partition disks, manage firmware entries or install an OS.
 
 ## Read-only Windows review
 
-The standalone script at scripts/Review-Windows-DualBoot.ps1 observes:
+The standalone script at scripts/windows/Review-Windows-DualBoot.ps1 observes:
 Windows/CPU/RAM; firmware and Secure Boot status (when readable);
 the Fast Startup registry flag; OS BitLocker/device-encryption status
 (never recovery keys); sanitized disk numbers, styles, sizes and
@@ -33,7 +33,7 @@ directory:
     New-Item -ItemType Directory -Path $dir | Out-Null
     $review = Join-Path $dir "Review-Windows-DualBoot.ps1"
 
-    git show origin/deployment/windows-dualboot-readiness-gates:scripts/Review-Windows-DualBoot.ps1 |
+    git show origin/deployment/windows-dualboot-readiness-gates:scripts/windows/Review-Windows-DualBoot.ps1 |
         Set-Content -LiteralPath $review -Encoding UTF8
     if ($LASTEXITCODE -ne 0) { throw "Could not fetch review script" }
 

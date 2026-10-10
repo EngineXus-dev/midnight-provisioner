@@ -282,7 +282,7 @@ def verify(*, root: Path, allow_pull: bool, allow_build: bool,
                          "-e", "XDG_CONFIG_HOME=/tmp/ng-config",
                          "-e", "PYTHONDONTWRITEBYTECODE=1",
                          "-e", "PYTHONNOUSERSITE=1", image,
-                         "python", "-B", "scripts/run_headless_matrix.py"]
+                         "python", "-B", "scripts/testing/run_headless_matrix.py"]
                 results[key] = ("PASS" if run_logged(args, cwd=checkout,
                                    stream=log) else "FAIL")
                 print(f"{key}: {results[key]}")
@@ -340,7 +340,7 @@ def verify(*, root: Path, allow_pull: bool, allow_build: bool,
         return 1
     print("Local log (review before sharing):", log_path)
     print("Private status-only summary:", report_path)
-    print("Independent local evidence auditor: scripts/Audit-Nightglass-Release-Evidence.py")
+    print("Independent local evidence auditor: scripts/release/Audit-Nightglass-Release-Evidence.py")
     print("Evidence remains UNAUTHENTICATED; review full logs and exact Git SHA.")
     print("Physical Fedora hardware acceptance: PENDING.")
     print("No OS install, USB formatting, PR merge or GitHub Actions.")

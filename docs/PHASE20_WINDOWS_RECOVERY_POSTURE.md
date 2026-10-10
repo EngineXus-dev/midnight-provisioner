@@ -6,7 +6,7 @@ Phase 19 passed the defined Windows and Fedora 43 container test gates at `81aa3
 
 ## New observer
 
-`scripts/Read-Nightglass-Recovery-Posture.ps1` uses only:
+`scripts/windows/Read-Nightglass-Recovery-Posture.ps1` uses only:
 
 - `reagentc.exe /info` to read Windows Recovery Environment (WinRE) status (Microsoft documents **/info** as the display-only operation).
 - `powercfg.exe /a` to view **available** sleep states (NOT to enable/disable hibernation).
@@ -29,7 +29,7 @@ Per Microsoft, `Confirm-SecureBootUEFI` requires Windows PowerShell **administra
 
 ## Backup/recovery gate remains independent
 
-The existing `scripts/Verify-Nightglass-BackupSet.py` can read source/backup pairs **only when** the operator supplies an explicit PRIVATE manifest; it hashes a bounded set of selected files and does not modify either copy. This can provide byte-match evidence of selected folders but cannot prove full-machine backup completeness or successful restoration.
+The existing `scripts/backup/Verify-Nightglass-BackupSet.py` can read source/backup pairs **only when** the operator supplies an explicit PRIVATE manifest; it hashes a bounded set of selected files and does not modify either copy. This can provide byte-match evidence of selected folders but cannot prove full-machine backup completeness or successful restoration.
 
 The operator must still, privately, confirm: a verified independent full-system backup and recovery medium, a controlled restore into a disposable/new target, offline Windows/device-encryption recovery keys, exact physical EFI/recovery/OEM layout, Windows 10 support/ESU coverage, authentic signed Fedora KDE checksum, live-USB hardware support, and, later on an authorized Fedora installation, KVM/libvirt/SELinux/sVirt guest and offline network-denial isolation.
 

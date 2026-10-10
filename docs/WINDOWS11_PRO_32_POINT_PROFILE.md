@@ -168,7 +168,7 @@ into an automatic "just do everything" pass.
 On **this branch's isolated files**, use the planner on *any Windows
 PowerShell 5.1 session* only after its native parser passes:
 
-    powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File scripts/Invoke-Nightglass-Win11ProCustom.ps1 -Mode Preview
+    powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File scripts/windows/Invoke-Nightglass-Win11ProCustom.ps1 -Mode Preview
 
 Default `-Mode Preview` reads only the JSON in
 `config/windows11-pro-custom.json`; it neither calls Win11Debloat,
@@ -177,7 +177,7 @@ OS services, apps, startup or USB disks.
 
 For an optional **new private plan-only JSON** in an existing directory:
 
-    powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File scripts/Invoke-Nightglass-Win11ProCustom.ps1 -Mode ExportPlan -PlanPath "<new-plan-path>.json"
+    powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File scripts/windows/Invoke-Nightglass-Win11ProCustom.ps1 -Mode ExportPlan -PlanPath "<new-plan-path>.json"
 
 Exclusive `CreateNew` refuses an existing destination. This reports
 which flags are candidates only; no app removal, automatic encryption

@@ -13,7 +13,7 @@ isolation or a successful VM recovery.
 On a separate, properly configured **Fedora KDE test installation**,
 from a clean Nightglass source checkout **on the Fedora machine**:
 
-    bash scripts/fedora-host-acceptance.sh
+    bash scripts/install/fedora-host-acceptance.sh
 
 This command uses Python standard-library plus the existing Nightglass
 host-posture module. It does not require PySide6, download packages,
@@ -37,7 +37,7 @@ separate acceptance requirements.
 To explicitly create **a NEW 0600 JSON evidence file** in an existing
 directory:
 
-    bash scripts/fedora-host-acceptance.sh --report "$HOME/nightglass-host-prerequisites-new.json"
+    bash scripts/install/fedora-host-acceptance.sh --report "$HOME/nightglass-host-prerequisites-new.json"
 
 Never run this example twice with the same filename. It uses exclusive
 creation and will refuse an existing destination or a direct symlink;

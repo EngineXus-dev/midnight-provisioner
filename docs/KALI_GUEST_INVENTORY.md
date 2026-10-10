@@ -1,7 +1,7 @@
 # Kali offline guest package inventory helper (manual use, read-only)
 
 Nightglass now includes a **standalone Python 3 helper** at
-`scripts/kali-guest-inventory.py` in the source checkout. It reduces manual
+`scripts/kali/kali-guest-inventory.py` in the source checkout. It reduces manual
 copying of package versions by using read-only, locally installed
 `dpkg-query`, `apt-cache policy`, and `dpkg --audit` commands **inside
 an already-installed, benign Kali test guest**.

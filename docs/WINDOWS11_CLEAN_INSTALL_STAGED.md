@@ -169,7 +169,7 @@ No changes have been applied to current Windows 10.
 ## Phase 10 — locally verify a copied backup without modifying the portable drive
 
 The source and copied project folders can be checked with the
-preview-first `scripts/Inspect-Nightglass-Backup.py` tool **after**
+preview-first `scripts/backup/Inspect-Nightglass-Backup.py` tool **after**
 the user independently makes a backup. Default `Preview` reads
 nothing; `Inspect` compares presence/sizes and `Verify` streams
 SHA-256 hashes of regular files on both sides. Hidden `.env`,

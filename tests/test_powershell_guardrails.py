@@ -12,9 +12,9 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
-SCANNER = SCRIPTS / "check_powershell_guardrails.py"
-CHECKED = SCRIPTS / "Run-Nightglass-GUI-Smoke.ps1"
-ARCHIVER = SCRIPTS / "Archive-Nightglass-TestResults.ps1"
+SCANNER = SCRIPTS / "testing" / "check_powershell_guardrails.py"
+CHECKED = SCRIPTS / "testing" / "Run-Nightglass-GUI-Smoke.ps1"
+ARCHIVER = SCRIPTS / "testing" / "Archive-Nightglass-TestResults.ps1"
 
 spec = importlib.util.spec_from_file_location("nightglass_ps_guardrails", SCANNER)
 scanner = importlib.util.module_from_spec(spec)

@@ -29,7 +29,7 @@ nightglass templates lock /safe/private/recon-plan.json /safe/private/first-inve
 
 Only a **complete self-reported package set with a clean reported dpkg audit**
 may be locked. Capture a newer inventory from the **same guest** later,
-using the optional manual `scripts/kali-guest-inventory.py` helper on the
+using the optional manual `scripts/kali/kali-guest-inventory.py` helper on the
 guest and a separately approved transfer, then run:
 
 ```bash

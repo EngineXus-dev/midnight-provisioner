@@ -12,7 +12,7 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "Read-Nightglass-Recovery-Posture.ps1"
+SCRIPT = ROOT / "scripts" / "windows" / "Read-Nightglass-Recovery-Posture.ps1"
 
 
 class WindowsRecoveryPostureContract(unittest.TestCase):

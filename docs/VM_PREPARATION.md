@@ -12,7 +12,7 @@ in virt-manager under your control.
    official website. Obtain the **SHA-256 checksum from an authenticated
    publisher page**; do not rely on a hash supplied by an untrusted mirror.
 2. On Fedora KDE, install the virtualization dependencies separately after
-   reviewing `scripts/fedora-dependencies.sh`. The VM preview requires
+   reviewing `scripts/install/fedora-dependencies.sh`. The VM preview requires
    `virt-install` (the `virtinst` package), working `qemu:///system`
    connectivity and a supported UEFI firmware setup.
 3. Start Nightglass, choose **Prepare VM**, and select *Pentesting* or

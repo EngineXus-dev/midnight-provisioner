@@ -202,8 +202,11 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
         # XML references can differ textually while resolving to the same path.
         # The intermediate folder doesn't even have to exist for normpath to
         # expose a lexical alias; no other disk is opened.
-        # Linux also treats a leading "//" as "/", which normpath preserves.
-        for alias in (str(self.disk.parent / "unused" / ".." / self.disk.name), "/" + str(self.disk)):
+        aliases = [str(self.disk.parent / "unused" / ".." / self.disk.name)]
+        if str(self.disk).startswith("/"):
+            # POSIX only: Linux treats a leading "//" as "/", which normpath preserves.
+            aliases.append("/" + str(self.disk))
+        for alias in aliases:
             with self.subTest(alias=alias):
                 self.hv.docs["someone-else"] = {
                     "current": domain("someone-else", alias),

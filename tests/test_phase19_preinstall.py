@@ -12,7 +12,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "Build-Nightglass-Phase19-Preflight.py"
+SCRIPT = ROOT / "scripts" / "windows" / "Build-Nightglass-Phase19-Preflight.py"
 spec = importlib.util.spec_from_file_location("nightglass_phase19_preflight", SCRIPT)
 tool = importlib.util.module_from_spec(spec)
 assert spec.loader is not None

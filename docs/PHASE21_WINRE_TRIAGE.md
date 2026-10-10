@@ -4,7 +4,7 @@
 
 ## Purpose
 
-The earlier native Phase 20 check reported WinRE status **UNKNOWN**, without distinguishing absent `reagentc.exe`, an unsuccessful command invocation or an output format the parser could not recognize. The report did **not** establish Windows recovery failure. Phase 21 adds `scripts/Read-Nightglass-WinRE-Triage.ps1` to categorize why the non-elevated Windows RE inspection is inconclusive, while still treating every observed result as insufficient for recovery or installation approval.
+The earlier native Phase 20 check reported WinRE status **UNKNOWN**, without distinguishing absent `reagentc.exe`, an unsuccessful command invocation or an output format the parser could not recognize. The report did **not** establish Windows recovery failure. Phase 21 adds `scripts/windows/Read-Nightglass-WinRE-Triage.ps1` to categorize why the non-elevated Windows RE inspection is inconclusive, while still treating every observed result as insufficient for recovery or installation approval.
 
 The new observer uses only Windows' real `[Environment]::SystemDirectory` and `reagentc.exe /info`, a documented read-only status query. It never invokes `/enable`, `/disable`, `/boottore`, DISM, BCD changes, BitLocker changes, disk operations, a reboot, elevation or VM tools. It does **not** download files or create a report file; it emits a bounded, sanitized JSON value to stdout. The separate opt-in operator harness preserves that JSON and test logs in uniquely named archives.
 

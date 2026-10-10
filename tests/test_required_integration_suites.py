@@ -12,8 +12,8 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
-TOOL = ROOT / "scripts" / "run_required_suite.py"
-VERIFY = ROOT / "scripts" / "verify_local.py"
+TOOL = ROOT / "scripts" / "testing" / "run_required_suite.py"
+VERIFY = ROOT / "scripts" / "testing" / "verify_local.py"
 
 spec = importlib.util.spec_from_file_location("ng_required_tests", TOOL)
 required = importlib.util.module_from_spec(spec)
@@ -79,7 +79,7 @@ class RequiredIntegrationSuitesTests(unittest.TestCase):
 
     def test_verification_all_uses_explicit_non_skipping_runner(self):
         code = VERIFY.read_text(encoding="utf-8")
-        self.assertIn('"scripts/run_required_suite.py", "--check", "gui"', code)
+        self.assertIn('"scripts/testing/run_required_suite.py", "--check", "gui"', code)
         self.assertIn('"--check", "native"', code)
         self.assertIn("Full Linux verification requires Bash syntax validation.", code)
         self.assertIn("if args.all:", code)

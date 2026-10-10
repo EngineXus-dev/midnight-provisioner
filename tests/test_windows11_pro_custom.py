@@ -15,7 +15,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "config" / "windows11-pro-custom.json"
-SCRIPT = ROOT / "scripts" / "Invoke-Nightglass-Win11ProCustom.ps1"
+SCRIPT = ROOT / "scripts" / "windows" / "Invoke-Nightglass-Win11ProCustom.ps1"
 
 
 class Windows11ProCustomContract(unittest.TestCase):

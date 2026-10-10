@@ -6,7 +6,7 @@
 
 PR #55 has cross-platform **synthetic** Windows/Fedora container tests at exact SHA `af220ecd382ad59ce4f18694bbc2ae349be14589`. A container cannot prove physical Fedora/KVM/sVirt network isolation or backup recovery. First, collect a minimal, bounded read-only Windows posture report **on the machine that would eventually dual boot**.
 
-The existing `scripts/Review-Windows-DualBoot.ps1` remains an interactive console inventory. This phase adds `scripts/Read-Nightglass-Windows-HostGate.ps1`, a **sanitized JSON-only observer** suitable for archiving and reviewing without accidentally disclosing full disk identifiers, serials, hostnames, personal file paths, machine GUIDs, TPM owner data or BitLocker recovery keys. It uses only native read queries and does not require elevation.
+The existing `scripts/windows/Review-Windows-DualBoot.ps1` remains an interactive console inventory. This phase adds `scripts/windows/Read-Nightglass-Windows-HostGate.ps1`, a **sanitized JSON-only observer** suitable for archiving and reviewing without accidentally disclosing full disk identifiers, serials, hostnames, personal file paths, machine GUIDs, TPM owner data or BitLocker recovery keys. It uses only native read queries and does not require elevation.
 
 ## Information observed (NOT certified)
 

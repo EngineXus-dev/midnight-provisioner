@@ -3,9 +3,9 @@
 from __future__ import annotations
 import json
 import os
-import stat
 from pathlib import Path
 from .models import DEFAULT_WORKSPACES, Workspace, WorkspaceError
+from .privatefiles import make_private
 
 
 def config_file() -> Path:
@@ -46,7 +46,7 @@ def save_workspaces(spaces: list[Workspace], path: Path | None = None) -> None:
     tmp = path.parent / f".{path.name}.{os.getpid()}.tmp"
     try:
         with tmp.open("x", encoding="utf-8") as fh:
-            os.fchmod(fh.fileno(), stat.S_IRUSR | stat.S_IWUSR)
+            make_private(fh.fileno())
             fh.write(content)
             fh.flush()
             os.fsync(fh.fileno())

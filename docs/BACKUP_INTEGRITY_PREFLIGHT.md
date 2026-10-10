@@ -18,7 +18,7 @@ personal data backup.**
 
 ## New read-only tool
 
-`scripts/Inspect-Nightglass-Backup.py` uses only the Python standard
+`scripts/backup/Inspect-Nightglass-Backup.py` uses only the Python standard
 library, runs on Windows 10/11 or Linux, and supports the following
 separate modes:
 
@@ -40,7 +40,7 @@ number (which can change after reboot).
 From a checkout containing the new tool:
 
 ```powershell
-python scripts/Inspect-Nightglass-Backup.py
+python scripts/backup/Inspect-Nightglass-Backup.py
 ```
 
 This has **no file reads, no GitHub/network requests, no hash work,
@@ -56,12 +56,12 @@ copy. Do not interpret the sample `E:` letter as a known drive.
 
 ```powershell
 # Metadata / relative-path inventory only. Does NOT prove byte equality.
-python scripts/Inspect-Nightglass-Backup.py --mode Inspect `
+python scripts/backup/Inspect-Nightglass-Backup.py --mode Inspect `
   --source "C:\Users\YOURNAME\Documents\nightglass-workspaces" `
   --backup "E:\MY-BACKUP\nightglass-workspaces"
 
 # Stronger read-only matching after copying is finished and files are idle.
-python scripts/Inspect-Nightglass-Backup.py --mode Verify `
+python scripts/backup/Inspect-Nightglass-Backup.py --mode Verify `
   --source "C:\Users\YOURNAME\Documents\nightglass-workspaces" `
   --backup "E:\MY-BACKUP\nightglass-workspaces"
 ```

@@ -70,7 +70,7 @@ On **Fedora/Linux**, the default runs source syntax and the full
 Python synthetic unit suite (and bash syntax when bash is available):
 
 \`\`\`bash
-python3 -B scripts/verify_local.py
+python3 -B scripts/testing/verify_local.py
 \`\`\`
 
 On **Windows 10/11**, the same command deliberately runs only six
@@ -83,7 +83,7 @@ It reports **WINDOWS-PORTABLE SUBSET PASSED ONLY** if these checks pass.
 To narrow down those QEMU synthetic fixtures:
 
 \`\`\`powershell
-python -B scripts/verify_local.py --focused
+python -B scripts/testing/verify_local.py --focused
 \`\`\`
 
 Use \`--full\` on Windows only when deliberately investigating
@@ -95,14 +95,14 @@ With **PySide6 already installed locally**, opt into the actual Qt
 offscreen smoke tests:
 
 \`\`\`bash
-python3 -B scripts/verify_local.py --gui
+python3 -B scripts/testing/verify_local.py --gui
 \`\`\`
 
 With existing \`virt-xml-validate\` and \`qemu-img\` installed, test only
 harmless native libvirt/QEMU **fixtures**, never guest creation:
 
 \`\`\`bash
-python3 -B scripts/verify_local.py --native
+python3 -B scripts/testing/verify_local.py --native
 \`\`\`
 
 Use \`--all\` to request both optional suites, or \`--dry-run\` to see
@@ -121,11 +121,11 @@ prove malicious guest isolation.
 
 For fuller **Linux test semantics** without hosted Actions minutes, an
 additional PowerShell runner is now available:
-`scripts/Run-Nightglass-Fedora-Checks.ps1` and its standalone
-`scripts/Start-Nightglass-Fedora-Checks.ps1` bootstrap.
+`scripts/testing/Run-Nightglass-Fedora-Checks.ps1` and its standalone
+`scripts/testing/Start-Nightglass-Fedora-Checks.ps1` bootstrap.
 It fetches a clean **new git worktree**, builds Fedora 43 test tools
 using an empty-source Docker build context and runs
-`python3 -B scripts/verify_local.py --all` in a **nonroot, read-only,
+`python3 -B scripts/testing/verify_local.py --all` in a **nonroot, read-only,
 network-disabled container**. This includes the complete Linux unit
 suite, actual PySide6 offscreen Qt widgets and native QEMU/libvirt
 fixture validators. The initial image build may download packages,
@@ -434,7 +434,7 @@ item. This is historical evidence, not a persistent real-time check.
 
 The new branch `verification/stack-integration-readiness` adds
 `config/nightglass-pr-stack-snapshot.json`, a no-write-by-default
-`scripts/Audit-Nightglass-PR-Stack.py`, and synthetic
+`scripts/release/Audit-Nightglass-PR-Stack.py`, and synthetic
 `tests/test_pr_stack_audit.py`, now in the Windows-portable
 offline suite. The auditor reads only existing Git refs and path names;
 it never fetches/merges, modifies source or invokes Windows/Fedora
@@ -477,7 +477,7 @@ Windows/USB/portable backup drive changed. See
 ## Phase 8 — optional Windows one-command offline verification
 
 The repository now includes
-`scripts/Invoke-Nightglass-OfflineChecks.ps1`, a Windows PowerShell
+`scripts/testing/Invoke-Nightglass-OfflineChecks.ps1`, a Windows PowerShell
 5.1 launcher designed to be fetched into a **new temporary folder**
 while the user's actual Windows checkout remains on `main`.
 Default execution only previews options; `-FetchRefs` updates Git
@@ -523,7 +523,7 @@ sync/update scripts accidentally overwrote local `.env`,
 `.venv` and ignored/user-created files, so remote Git commits are
 not sufficient data-preservation evidence.
 
-`scripts/Inspect-Nightglass-Backup.py` now supports Preview
+`scripts/backup/Inspect-Nightglass-Backup.py` now supports Preview
 (default, **no filesystem access**), Inspect (metadata only), and
 Verify (read-only SHA-256 of all regular files in two separately
 selected folder trees). It includes hidden .git/.env/.venv,
@@ -544,7 +544,7 @@ See [backup verification guide](BACKUP_INTEGRITY_PREFLIGHT.md).
 Phase 10 verified one source/copied directory pair. A Windows 11
 clean install could still destroy local-only files from *other*
 repositories, Desktop, Documents, app-specific folders or datasets.
-Phase 11 therefore adds `scripts/Verify-Nightglass-BackupSet.py`:
+Phase 11 therefore adds `scripts/backup/Verify-Nightglass-BackupSet.py`:
 a pure Python, Preview-only-by-default tool that accepts a separate
 PRIVATE local JSON catalog of source/backup directory pairs.
 
@@ -620,7 +620,7 @@ disk or Fedora host. See
 `verify_local.py` previously called plain unittest discovery for
 each Windows-portable module. Python may exit with code 0 for
 **zero discovered or all-skipped cases**. The new
-`scripts/run_portable_suite.py` checks each allowlisted module
+`scripts/testing/run_portable_suite.py` checks each allowlisted module
 against an actual executed-test count and refuses empty/missing,
 unexpected, all-skipped, import-failed and incomplete runs. Some
 platform-specific skips are allowed only when other tests actually
@@ -665,7 +665,7 @@ See [Phase 16 evidence](PHASE16_IMPORT_PATH_VERIFICATION.md).
 The Windows-only `test_kali_process_label.py` subset previously
 used multiple `unittest -k` filters. If a selected method were
 renamed or removed, the remaining matching tests could still
-return success. The new `scripts/run_windows_qemu_subset.py`
+return success. The new `scripts/testing/run_windows_qemu_subset.py`
 requires each of the **14 selected names** exactly once and
 zero skipped/failed cases. The original file contains 15 tests;
 one intentionally omitted provenance test is not promoted to

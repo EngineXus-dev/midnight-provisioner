@@ -12,7 +12,7 @@ From your original Nightglass Git checkout, if this integration branch's
 runner is already available:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Run-Nightglass-Fedora-Checks.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\testing\Run-Nightglass-Fedora-Checks.ps1
 ```
 
 If your local checkout is still on `main`, use the standalone
@@ -22,12 +22,12 @@ out over your existing files:
 
 ```powershell
 git fetch --no-tags origin chore/offline-integration-verification
-git show origin/chore/offline-integration-verification:scripts/Run-Nightglass-Fedora-Checks.ps1 |
+git show origin/chore/offline-integration-verification:scripts/testing/Run-Nightglass-Fedora-Checks.ps1 |
     Set-Content -Encoding UTF8 "$env:TEMP\Run-Nightglass-Fedora-Checks.ps1"
 powershell -NoProfile -ExecutionPolicy Bypass -File "$env:TEMP\Run-Nightglass-Fedora-Checks.ps1"
 ```
 
-The repository also has `scripts/Start-Nightglass-Fedora-Checks.ps1`
+The repository also has `scripts/testing/Start-Nightglass-Fedora-Checks.ps1`
 as a small bootstrap: it fetches the versioned runner into a NEW
 temporary directory and executes it. The independently distributed
 bootstrap is convenient while your original checkout remains on
@@ -77,7 +77,7 @@ fixtures **inside container tmpfs**, and deletes them automatically.
 
 ## What is run
 
-The committed `scripts/verify_local.py --all` performs:
+The committed `scripts/testing/verify_local.py --all` performs:
 
 1. AST syntax parse of all project Python source
 2. `bash -n` script syntax check (no shell setup scripts are executed)

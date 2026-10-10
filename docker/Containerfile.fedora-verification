@@ -32,5 +32,5 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Only source syntax, synthetic unit tests, offscreen Qt and benign fixture
 # QEMU/libvirt tools. NEVER run a VM, daemon, guest agent, privileged mount,
 # installer, network scanner or production Nightglass CLI lifecycle command.
-ENTRYPOINT ["python3", "-B", "scripts/verify_local.py"]
+ENTRYPOINT ["python3", "-B", "scripts/testing/verify_local.py"]
 CMD ["--all"]

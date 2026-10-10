@@ -19,6 +19,7 @@ import sys
 
 from .host_posture import HostPosture, inspect_host_posture
 from .runner import Runner, ToolError
+from .privatefiles import make_private
 
 _FORMAT = "nightglass-fedora-host-prerequisites"
 _UNVERIFIED = (
@@ -157,8 +158,7 @@ def save_private_evidence(report: HostPrerequisites, destination: Path) -> None:
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
     fd = os.open(path, flags, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as stream:
-        if hasattr(os, "fchmod"):
-            os.fchmod(stream.fileno(), 0o600)
+        make_private(stream.fileno())
         json.dump(report.evidence(), stream, indent=2, sort_keys=True)
         stream.write("\n")
         stream.flush()

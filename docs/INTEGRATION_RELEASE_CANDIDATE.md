@@ -16,9 +16,9 @@
 
 Python CLI, PySide6 Fedora GUI, curated separate Kali VM template profiles, libvirt/KVM and Distrobox control modules, read-only Windows/dual-boot planning, safe storage recognition, non-authorizing installation-impact/proposal reviews, tests, and documentation.
 
-The Fedora application installer is scripts/setup-nightglass.sh. It runs on an **already-installed Fedora** user account and installs dependencies into the user's Nightglass-specific environment only after explicit operator action. It is NOT a physical operating system installer or USB boot medium.
+The Fedora application installer is scripts/install/setup-nightglass.sh. It runs on an **already-installed Fedora** user account and installs dependencies into the user's Nightglass-specific environment only after explicit operator action. It is NOT a physical operating system installer or USB boot medium.
 
-The package creator scripts/Package-Nightglass-ReleaseCandidate.ps1:
+The package creator scripts/release/Package-Nightglass-ReleaseCandidate.ps1:
 1. Requires an explicitly pinned complete Git SHA and checks the source remote.
 2. Rejects tracked secret, environment, OS-image and VM-image filenames.
 3. Uses Git archive to include **tracked files at exactly that SHA**; does not copy user secrets, ignored files, virtual environments, backups, external disks or private untracked files.
@@ -29,7 +29,7 @@ This is a **source package**, not a precompiled desktop binary and not proof of 
 
 ## Merge and release gates
 
-1. Audit all 63 PR edges, exact SHAs, original main SHA, and #53 divergent fork via scripts/Review-Nightglass-Integration.py with the v2 pinned JSON snapshot. The default audit does not execute git commands.
+1. Audit all 63 PR edges, exact SHAs, original main SHA, and #53 divergent fork via scripts/release/Review-Nightglass-Integration.py with the v2 pinned JSON snapshot. The default audit does not execute git commands.
 2. Inspect the cumulative main-to-RC source diff and scan for secrets, binaries, unresolved migration docs and unsafe config defaults.
 3. Verify Windows PowerShell AST, Windows Python synthetic suite including integration-only tests, Fedora 43 full Python suite, real offscreen Qt GUI and native libvirt/QEMU fixtures at the **same exact RC SHA**.
 4. Review PR53 historical investigation and do not reintroduce its obsolete release-gate candidate pointer; keep every original draft PR branch intact.

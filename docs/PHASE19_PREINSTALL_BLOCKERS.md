@@ -8,7 +8,7 @@ Exact previously verified PR #56 commit: `cdbfa223842c6016075c78377134ce5e543ac8
 
 ## New Phase 19 gate
 
-`scripts/Build-Nightglass-Phase19-Preflight.py` reads one **sanitized**, local `nightglass.windows-host-observation.v1` JSON file with an absolute, ordinary-file path. It rejects duplicate JSON keys, symlinks/reparse-point ancestors, traversal, oversized files, malformed facts, missing/duplicate observations and any indication that backup/restore/install/partition write permissions were granted. It never reads raw disk identifiers, backup media, machine secrets or TPM/recovery-key material.
+`scripts/windows/Build-Nightglass-Phase19-Preflight.py` reads one **sanitized**, local `nightglass.windows-host-observation.v1` JSON file with an absolute, ordinary-file path. It rejects duplicate JSON keys, symlinks/reparse-point ancestors, traversal, oversized files, malformed facts, missing/duplicate observations and any indication that backup/restore/install/partition write permissions were granted. It never reads raw disk identifiers, backup media, machine secrets or TPM/recovery-key material.
 
 It emits a `nightglass.preinstall-blockers.v1` JSON report, with all manually required checks marked **PENDING_INDEPENDENT_EVIDENCE** and every write/install/guest-launch permission **false**. The report itself cannot approve a system modification. The runner creates an isolated pinned worktree and retakes a fresh sanitized Phase 18 host observation, verifies the Phase 19 source contract, and archives the original evidence under `Documents/Nightglass-Verification-Results`. No actual host read query is attempted if its safety gate fails.
 

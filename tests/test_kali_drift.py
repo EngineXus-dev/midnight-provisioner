@@ -224,7 +224,7 @@ class KaliVersionDriftTests(unittest.TestCase):
         self.current_path.write_text(json.dumps(self.inventory), encoding="utf-8")
         with patch("nightglass.cli.OfflineProvisioner") as installer, \
              patch("nightglass.cli.Hypervisor") as hypervisor, \
-             patch("nightglass.cli.os.geteuid", return_value=1000), \
+             patch("nightglass.cli.os.geteuid", return_value=1000, create=True), \
              redirect_stdout(output):
             self.assertEqual(main([
                 "templates", "drift", str(self.plan_path),
