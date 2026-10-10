@@ -62,6 +62,16 @@ def main(argv: list[str] | None = None) -> int:
                          help="Notice acknowledged only; not backup evidence or disk-write permission")
     preview.add_argument("--json", action="store_true",
                          help="Print the advisory plan locally; no private file names scanned")
+    changes = sub.add_parser(
+        "install-changes", help="Read-only list of known and unknown partition/EFI impacts")
+    changes.add_argument("--intent", choices=("undecided", "format_target", "coexist"),
+                         default="undecided", help="A user intent, never install authorization")
+    changes.add_argument("--disk-index", type=int,
+                         help="Volatile 0-based observation index, never a permanent physical disk ID")
+    changes.add_argument("--ack-warning", action="store_true",
+                         help="User has acknowledged the warning; NOT backup or erasure proof")
+    changes.add_argument("--json", action="store_true",
+                         help="Emit local no-write advisory data, no file names or disk serials")
     info = sub.add_parser("inspect", help="Read-only policy audit of a configured VM")
     info.add_argument("key", help="Workspace key, e.g. pentest or analysis")
     profile = sub.add_parser("profile", help="Inspect or switch portable hardware profiles")
@@ -446,6 +456,22 @@ def main(argv: list[str] | None = None) -> int:
                 print(SourceUpdater().apply(confirmed=True))
                 return 0
             parser.error("Specify: update check, update apply, or update checks on/off")
+        if cmd == "install-changes":
+            from .system_discovery import collect_system
+            from .install_change_review import review_from_discovery, describe_change_review
+            result = review_from_discovery(
+                collect_system(include_folder_names=False),
+                target_index=args.disk_index,
+                intent=args.intent,
+                backup_warning_acknowledged=args.ack_warning,
+            )
+            if args.json:
+                import json
+                from dataclasses import asdict
+                print(json.dumps(asdict(result), indent=2, sort_keys=True))
+            else:
+                print(describe_change_review(result))
+            return 0  # Review-only success, never an installation permission.
         if cmd == "install-preview":
             from .system_discovery import collect_system
             from .install_target_preview import build_target_preview, describe_target_preview
