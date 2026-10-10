@@ -117,8 +117,12 @@ def linux_storage(raw: dict | None) -> list[dict]:
 def windows_storage(raw: dict | None) -> list[dict]:
     if not isinstance(raw, dict):
         return []
-    disks = raw.get("disks", [])
-    partitions = raw.get("partitions", [])
+    # A completed, explicitly present empty partition list is zero observed.
+    # Missing/failed partition queries must remain unknown, not become zero.
+    if "disks" not in raw or "partitions" not in raw:
+        return []
+    disks = raw["disks"]
+    partitions = raw["partitions"]
     if not isinstance(disks, list) or not isinstance(partitions, list):
         return []
     if len(disks) > MAX_DISKS or len(partitions) > 256:
@@ -140,7 +144,7 @@ def windows_storage(raw: dict | None) -> list[dict]:
             "local_id": "Disk " + str(n) if 0 <= n < 1024 else "UNKNOWN",
             "size_gib_approx": _gib(_safe_size(disk.get("Size"))),
             "bus": _label(str(disk.get("BusType") or "UNKNOWN")),
-            "partition_count_observed": counts.get(n),  # not proof of emptiness
+            "partition_count_observed": counts.get(n, 0),  # not proof of emptiness
             "removable": None,  # BusType never proves this reliably.
             "read_only": _bool(disk.get("IsReadOnly")),
             "system_use_evidence": "WINDOWS_BOOT_OR_SYSTEM" if protected else "NOT_ESTABLISHED",
