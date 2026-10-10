@@ -29,7 +29,7 @@ Nightglass is **independent of all other projects**. Its restrained dark/neon pr
 
 Nightglass now includes a **System discovery** page in the Fedora UI, and a read-only `nightglass discover` command for Windows/Fedora. The app initiates a bounded local hardware and disk recognition on GUI startup; source-specific folder names are **not** inspected unless the user opts in. No disk is assumed to be empty or selected automatically; uncertainties are labeled **UNKNOWN** and left to the operator.
 
-A verified truly blank, dedicated installation drive has no existing data to back up. Backup and recovery obligations still apply to any other existing OS, EFI or data disks that might be touched. All boot, firmware, USB and disk writes remain separately unauthorized. See [Phase 23 first-run discovery](docs/PHASE23_FIRST_RUN_DISCOVERY.md).
+**The planned OS installation may format the user-selected drive or partitions, deleting everything on the formatted area.** Nightglass must warn that **you are responsible for backing up anything you want to keep before installing**; it does **not** make or verify those backups, and proceeding will assume you have already handled them. Selecting a formatting intent is not evidence that a disk is empty or permission to erase it. Existing Windows, EFI/boot and other disks still require their own safety review. All boot, firmware, USB and disk writes remain separately unauthorized. See [Phase 24 formatting disclosure](docs/PHASE24_FORMAT_WARNING.md) and [Phase 23 discovery](docs/PHASE23_FIRST_RUN_DISCOVERY.md).
 
 ```bash
 nightglass discover                     # no changes or private folder-name scanning
