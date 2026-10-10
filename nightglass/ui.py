@@ -47,6 +47,7 @@ from .host_posture import inspect_host_posture
 from .runtime_labels import RuntimeLabelInspector
 from .system_discovery import collect_system, describe as describe_discovery
 from .install_disclosure import disclosure_for, ACKNOWLEDGMENT
+from .install_target_preview import build_target_preview, describe_target_preview
 
 class NoWheelComboBox(QComboBox):
     """Prevent incidental wheel scrolling from changing a saved profile."""
@@ -168,6 +169,7 @@ class MainWindow(QMainWindow):
         self.cards = {}
         self._busy = False
         self.last_acceptance = None
+        self.discovery_snapshot = None  # volatile; never saved or installed from
         self._resource_monitor_enabled = False
         self._resource_monitor_busy = False
         self._build()
@@ -1655,6 +1657,30 @@ class MainWindow(QMainWindow):
             "Acknowledges the data-loss notice only; NOT evidence of backups, "
             "safe target identity, or permission to format.")
         controls.addWidget(self.discovery_backup_acknowledged)
+        target_label = QLabel("OBSERVED INSTALLATION TARGET  ·  PREVIEW ONLY")
+        target_label.setObjectName("SectionHeading")
+        controls.addWidget(target_label)
+        self.discovery_target_combo = NoWheelComboBox()
+        self.discovery_target_combo.addItem("No disk selected — scan first", None)
+        self.discovery_target_combo.currentIndexChanged.connect(
+            lambda *_args: self.discovery_backup_acknowledged.setChecked(False))
+        controls.addWidget(self.discovery_target_combo)
+        target_help = QLabel(
+            "Selecting a disk only previews consequences. This index is not a "
+            "permanent hardware identifier. Windows boot/system disks remain "
+            "protected. The actual installer would have to verify hardware "
+            "identity again immediately before any destructive operation.")
+        target_help.setObjectName("SubTitle")
+        target_help.setWordWrap(True)
+        controls.addWidget(target_help)
+        self.discovery_preview_button = QPushButton("Preview proposed disk changes — NO WRITES")
+        self.discovery_preview_button.clicked.connect(
+            lambda *_args: self.preview_target_plan())
+        controls.addWidget(self.discovery_preview_button)
+        self.discovery_target_preview = QPlainTextEdit()
+        self.discovery_target_preview.setReadOnly(True)
+        self.discovery_target_preview.setMinimumHeight(230)
+        controls.addWidget(self.discovery_target_preview)
         self.discovery_folder_names = QCheckBox(
             "Also inspect personal directory NAMES (opt-in; local only, no files read)")
         self.discovery_folder_names.setChecked(False)
@@ -1719,9 +1745,29 @@ class MainWindow(QMainWindow):
         self.discovery_backup_acknowledged.setChecked(False)
         self.discovery_backup_acknowledged.setEnabled(intent != "undecided")
 
+    def preview_target_plan(self):
+        """No file writes, disk selection persisted, or install credentials."""
+        target_index = self.discovery_target_combo.currentData()
+        preview = build_target_preview(
+            self.discovery_snapshot,
+            target_index=target_index if type(target_index) is int else None,
+            intent=self.discovery_intent.currentData() or "undecided",
+            backup_warning_acknowledged=self.discovery_backup_acknowledged.isChecked(),
+        )
+        self.discovery_target_preview.setPlainText(describe_target_preview(preview))
+        return preview
+
     def begin_system_discovery(self):
         if getattr(self, "_discovery_scanning", False):
             return
+        # Invalidate previous disk indexes before collecting a fresh snapshot.
+        # Disk numbers and physical connections may change.
+        self.discovery_snapshot = None
+        self.discovery_target_combo.clear()
+        self.discovery_target_combo.addItem("No disk selected — scan in progress", None)
+        self.discovery_backup_acknowledged.setChecked(False)
+        self.discovery_target_preview.setPlainText(
+            "Previous target selection discarded. A fresh snapshot must be reviewed.")
         self._discovery_scanning = True
         self.discovery_button.setEnabled(False)
         self.discovery_status.setText("Reading bounded host and storage metadata …")
@@ -1730,9 +1776,24 @@ class MainWindow(QMainWindow):
         def finished(report):
             self._discovery_scanning = False
             self.discovery_button.setEnabled(True)
+            self.discovery_snapshot = report
+            self.discovery_target_combo.clear()
+            self.discovery_target_combo.addItem("Choose observed disk to preview — none selected", None)
+            if report.get("storage_query") == "OBSERVED":
+                for index, disk in enumerate(report.get("disks", [])):
+                    if not isinstance(disk, dict):
+                        continue
+                    label = (
+                        str(disk.get("local_id", "UNKNOWN")) +
+                        "  ·  approx " + str(disk.get("size_gib_approx")) +
+                        " GiB  ·  " + str(disk.get("target_classification", "UNKNOWN"))
+                    )
+                    self.discovery_target_combo.addItem(label[:140], index)
+            self.discovery_backup_acknowledged.setChecked(False)
             self.discovery_status.setText(
                 "Observation complete; all disk targets UNVERIFIED. No changes made.")
             self.discovery_output.setPlainText(describe_discovery(report))
+            self.preview_target_plan()
             # Folder names are visible only after explicit opt-in, never exported
             # to a file or shared automatically.
             if names:
@@ -1747,6 +1808,10 @@ class MainWindow(QMainWindow):
                     "\nOpt-in private folder directory names:\n" + "\n".join(folders))
         def failed(message):
             self._discovery_scanning = False
+            self.discovery_snapshot = None
+            self.discovery_target_combo.clear()
+            self.discovery_target_combo.addItem("Detection unavailable — no target", None)
+            self.discovery_backup_acknowledged.setChecked(False)
             self.discovery_button.setEnabled(True)
             self.discovery_status.setText(
                 "Detection unavailable — UNKNOWN, no disk or install approved.")
