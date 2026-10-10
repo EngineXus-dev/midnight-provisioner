@@ -2,6 +2,9 @@
 
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
+> **Current integration handoff:** This checklist also retains **historical phase snapshots** (including its earlier PR #29/40 statements); do not treat those as the current PR census or merge readiness. For the cumulative owner-controlled PR #66, latest test ledger, exact-head gate and merge/pull plan, use [OWNER_MERGE_HANDOFF.md](OWNER_MERGE_HANDOFF.md). The full current-head Windows/Fedora retest is still unverified.
+
+
 **Status: FEDORA CONTAINER VERIFICATION PASSED / HOST ACCEPTANCE HOLD — no merges until real Fedora/KVM gates and explicit reviewer/owner approval.**
 
 Nightglass is developed as a cumulative chain of **29 open draft pull
