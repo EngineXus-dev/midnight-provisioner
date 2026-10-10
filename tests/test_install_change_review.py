@@ -75,6 +75,32 @@ class Phase26ChangeReviewTests(unittest.TestCase):
         self.assertEqual(r.observed_target, "NOT_SELECTED")
         self.assertFalse(r.os_install_authorized)
 
+    def test_cli_change_review_no_user_folder_names(self):
+        from nightglass.cli import main
+        from unittest.mock import patch
+        import json
+        import io
+        with patch("nightglass.system_discovery.collect_system",
+                   return_value=snapshot()) as collector, \
+             patch("sys.stdout", new_callable=io.StringIO) as result:
+            code = main(["install-changes", "--intent", "format_target",
+                         "--disk-index", "1", "--ack-warning", "--json"])
+        self.assertEqual(code, 0)
+        collector.assert_called_once_with(include_folder_names=False)
+        obj = json.loads(result.getvalue())
+        self.assertEqual(obj["observed_target"], "Disk 1")
+        self.assertFalse(obj["disk_write_authorized"])
+        self.assertFalse(obj["write_manifest_complete"])
+
+    def test_no_write_capable_operations_in_change_review_source(self):
+        import nightglass.install_change_review as impl
+        content = Path(impl.__file__).read_text(encoding="utf-8")
+        for token in ("subprocess.Popen(", "subprocess.run(", "os.system(",
+                      "os.remove(", "shutil.copy", ".write_bytes(",
+                      ".write_text(", "Clear-Disk", "Format-Volume"):
+            with self.subTest(token=token):
+                self.assertNotIn(token, content)
+
     def test_describe_warns_no_exact_writes_and_user_backup(self):
         text = describe_change_review(review_from_discovery(snapshot()))
         self.assertIn("EXACT PARTITION CHANGES: UNKNOWN", text)
