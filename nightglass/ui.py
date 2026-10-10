@@ -2154,7 +2154,11 @@ def run_gui() -> int:
     try:
         window = MainWindow()
     except (WorkspaceError, OSError) as exc:
-        print(f"Unable to load configuration: {exc}")
+        # Launched from the desktop menu there is no terminal: show the problem.
+        message = (f"Unable to load configuration:\n{exc}\n\n"
+                   "Fix or move that file aside, then start Nightglass again. Nothing was changed.")
+        print(message)
+        QMessageBox.critical(None, "Nightglass", message)
         return 2
     window.show()
     return app.exec()

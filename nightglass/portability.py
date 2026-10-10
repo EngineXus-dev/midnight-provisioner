@@ -109,7 +109,7 @@ def load_machine_preferences(path: Path | None = None) -> MachinePreferences:
         fields = {k: v for k, v in document.items() if k != "version"}
         return MachinePreferences(**fields)
     except (OSError, ValueError, TypeError) as exc:
-        raise WorkspaceError(f"Cannot load machine preferences: {exc}") from exc
+        raise WorkspaceError(f"Cannot load machine preferences {path}: {exc}") from exc
 
 
 def save_machine_preferences(prefs: MachinePreferences, path: Path | None = None) -> None:
