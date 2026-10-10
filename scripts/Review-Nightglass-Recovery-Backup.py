@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import stat
 import sys
@@ -148,20 +149,22 @@ def validate_backup(doc: dict) -> dict:
     entries = doc.get("entries")
     if not isinstance(entries, list) or not 1 <= len(entries) <= 32:
         raise EvidenceError("Invalid selected-folder backup entries")
+    if type(doc.get("entry_count")) is not int or doc["entry_count"] != len(entries):
+        raise EvidenceError("Backup entry count mismatch")
     ids = set()
     for entry in entries:
         if not isinstance(entry, dict):
             raise EvidenceError("Invalid backup pair")
         label = entry.get("id")
-        if (not isinstance(label, str) or not 2 <= len(label) <= 31 or
-                not label.isascii() or not label.replace("-", "").replace("_", "").isalnum() or
+        if (not isinstance(label, str) or
+                re.fullmatch(r"[a-z][a-z0-9_-]{1,30}", label) is None or
                 label in ids):
             raise EvidenceError("Ambiguous or repeated private backup group")
         ids.add(label)
         # The normalized reports must not contain absolute paths or hashes.
         if any(key in entry for key in ("source", "backup", "path", "sha256", "hash")):
             raise EvidenceError("Raw file metadata in normalized backup report")
-        if entry.get("verification_succeeded") not in (True, False):
+        if type(entry.get("verification_succeeded")) is not bool:
             raise EvidenceError("Backup entry result missing")
     matched = doc.get("all_selected_content_matched")
     if type(matched) is not bool or matched != all(
