@@ -4,7 +4,11 @@
 
 Midnight Provisioner combines a Fedora KDE workspace manager with Windows 11 installation and customization utilities. Use the Fedora app to organize KVM virtual machines, trusted development containers, and host diagnostics, or use the Windows tools independently. Windows/Fedora dual boot is an optional setup path.
 
-[Fedora installation](#fedora-desktop-installation) · [Windows only](#standalone-windows-11-installation-and-customization) · [Dual boot](#optional-windows-11-and-fedora-dual-boot) · [Documentation](docs/README.md) · [Security model](docs/SECURITY_MODEL.md) · [Contributing](CONTRIBUTING.md)
+[Fedora installation](#fedora-desktop-installation) Â· [Windows only](#standalone-windows-11-installation-and-customization) Â· [Dual boot](#optional-windows-11-and-fedora-dual-boot) Â· [Documentation](docs/README.md) Â· [Security model](docs/SECURITY_MODEL.md) Â· [Contributing](CONTRIBUTING.md)
+
+## Testing status
+
+The Midnight Provisioner GUI has not been fully tested across hardware and desktop configurations.
 
 ## Features
 
@@ -55,7 +59,7 @@ bash scripts/install/fedora-dependencies.sh
 bash scripts/install/setup-midnight-provisioner.sh
 ```
 
-Start the app using the launch command printed by the installer. With the default data directory:
+Setup adds Midnight Provisioner to the application menu and creates a desktop shortcut using the configured desktop folder. You can also use the launch command printed by the installer. With the default data directory:
 
 ```bash
 "$HOME/.local/share/midnight-provisioner/venv/bin/midnight-provisioner" gui
@@ -244,6 +248,7 @@ Official source repositories and documentation for the platforms, libraries, too
 - [Qubes OS documentation (design inspiration)](https://doc.qubes-os.org/en/latest/)
 - [Setuptools](https://setuptools.pypa.io/en/latest/)
 - [Wheel packaging](https://wheel.readthedocs.io/en/stable/)
+- [Desktop entry specification](https://specifications.freedesktop.org/desktop-entry/latest/exec-variables.html)
 - [Git](https://git-scm.com/docs)
 - [Fedora SELinux guidance](https://docs.fedoraproject.org/en-US/quick-docs/selinux-getting-started/)
 

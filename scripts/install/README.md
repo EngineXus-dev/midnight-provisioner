@@ -23,3 +23,5 @@ Then plan disk encryption and review the target disk (`python -m midnight_provis
 Then start the app with `~/.local/share/midnight-provisioner/venv/bin/midnight-provisioner gui` and confirm encryption with `midnight-provisioner encryption-check`.
 
 Run every script as your normal user, not with `sudo`.
+
+Setup adds an application-menu entry and a desktop shortcut. ISO installations add the menu entry system-wide and create the desktop shortcut at each user's first desktop login. Git, firmware, diagnostic utilities and XDG desktop tools are included in the dependency configuration. Existing ISOs must be rebuilt to include these changes.

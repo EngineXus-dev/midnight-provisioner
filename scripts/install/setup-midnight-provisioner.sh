@@ -36,7 +36,7 @@ if ! "$PYTHON_BIN" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) els
   echo "Python 3.11+ is required: $PYTHON_BIN is older." >&2
   exit 2
 fi
-if [[ ! -f "$ROOT/pyproject.toml" || ! -d "$ROOT/midnight-provisioner" ]]; then
+if [[ ! -f "$ROOT/pyproject.toml" || ! -d "$ROOT/midnight_provisioner" ]]; then
   echo "Run this script from inside a complete Midnight Provisioner source checkout." >&2
   exit 2
 fi
