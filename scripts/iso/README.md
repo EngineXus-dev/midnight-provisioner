@@ -31,7 +31,7 @@ The Fedora install downloads packages, so the PC or VM needs internet.
      ```powershell
      powershell -NoProfile -File scripts\iso\Fedora\Build-Midnight-Provisioner-Iso.ps1
      ```
-     The new `Midnight-Provisioner-Installer-....iso` lands in the same folder. The build runs in a privileged Fedora container, because `mkksiso` needs loop devices.
+     The new `Midnight-Provisioner-Installer-....iso` lands in the same folder. The build runs in a privileged Fedora container, because `mkksiso` needs loop devices. Rerunning the build preserves the previous ISO and checksum and adds a UTC `-rebuild-YYYYMMDD-HHMMSS` suffix to the new filename. Use `-OutputName My-Installer.iso` for an exact name, or `-OutputDir` for another folder; an explicit name collision is rejected before the container starts. On Fedora, the matching options are `--name` and `--output`.
    - **Fedora**:
      ```bash
      sudo dnf install lorax xorriso isomd5sum mtools python3-kickstart git gnupg2

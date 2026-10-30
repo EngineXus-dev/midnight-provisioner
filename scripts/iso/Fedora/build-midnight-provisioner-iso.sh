@@ -7,13 +7,15 @@ set -euo pipefail
 usage() {
   cat >&2 <<'EOF'
 Usage: build-midnight-provisioner-iso.sh --iso Fedora-Everything-netinst-x86_64-<ver>.iso
-                              (--checksum <Fedora CHECKSUM file> | --sha256 <hash>) [--output DIR]
+                              (--checksum <Fedora CHECKSUM file> | --sha256 <hash>) [--output DIR] [--name FILE.iso]
   --iso       official Fedora Everything netinstall ISO (x86_64)
   --checksum  Fedora's signed CHECKSUM file (recommended): its GPG signature is
               verified with Fedora's key, then the ISO hash is read from it
   --gpg-key   Fedora signing key (default /etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-<ver>-primary)
   --sha256    alternatively, the ISO's SHA-256 copied from that CHECKSUM file
   --output    folder for the new ISO (default: current folder)
+  --name      exact output filename; existing ISO/checksum is never overwritten
+              default names gain a UTC rebuild suffix when already present
 Needs: lorax (mkksiso), xorriso, isomd5sum, mtools, python3-kickstart, git. mkksiso
 runs as root (via sudo) to rebuild the EFI boot image. --checksum also needs gnupg2.
 EOF
@@ -21,7 +23,7 @@ EOF
 }
 
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-iso="" sha="" checksum="" gpgkey="" out="$PWD"
+iso="" sha="" checksum="" gpgkey="" out="$PWD" output_name=""
 while (( $# )); do
   case "$1" in
     --iso) iso="${2:-}"; shift 2 ;;
@@ -29,6 +31,7 @@ while (( $# )); do
     --checksum) checksum="${2:-}"; shift 2 ;;
     --gpg-key) gpgkey="${2:-}"; shift 2 ;;
     --output) out="${2:-}"; shift 2 ;;
+    --name) output_name="${2:-}"; [[ -n "$output_name" ]] || usage; shift 2 ;;
     *) usage ;;
   esac
 done
@@ -41,6 +44,24 @@ case "$(basename -- "$iso")" in
   *netinst*|*boot*) ;;
   *Live*|*live*) echo "Use the Everything NETINSTALL ISO; Live ISOs cannot apply this kickstart's package set." >&2; exit 2 ;;
 esac
+# Resolve collisions before dependency checks, signature verification or hashing.
+name="${output_name:-Midnight-Provisioner-Installer-$(basename -- "$iso")}"
+[[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*\.iso$ ]] || { echo "--name must be a filename ending in .iso, without a directory." >&2; exit 2; }
+output_exists() { [[ -e "$out/$1" || -L "$out/$1" || -e "$out/$1.sha256" || -L "$out/$1.sha256" ]]; }
+if output_exists "$name"; then
+  [[ -z "$output_name" ]] || { echo "Refusing to overwrite $out/$name or its checksum; choose another --name or --output." >&2; exit 2; }
+  stem="${name%.iso}-rebuild-$(date -u +%Y%m%d-%H%M%S)"
+  name="$stem.iso"
+  sequence=1
+  while output_exists "$name"; do
+    name="$stem-$sequence.iso"
+    ((sequence+=1))
+  done
+  echo "Existing build preserved; using a new output filename."
+fi
+target="$out/$name"
+echo "Output ISO: $target"
+
 for tool in mkksiso xorriso implantisomd5 mcopy git python3; do
   command -v "$tool" >/dev/null 2>&1 || { echo "Missing tool: $tool (sudo dnf install lorax xorriso isomd5sum mtools python3-kickstart git)" >&2; exit 2; }
 done
@@ -75,10 +96,6 @@ if [[ "${actual,,}" != "${sha,,}" ]]; then
   echo "SHA-256 MISMATCH: $actual. Re-download the ISO from fedoraproject.org; nothing was built." >&2
   exit 1
 fi
-
-name="Midnight-Provisioner-Installer-$(basename -- "$iso")"
-target="$out/$name"
-[[ ! -e "$target" && ! -L "$target" ]] || { echo "Refusing to overwrite $target" >&2; exit 2; }
 
 python3 "$HERE/render_kickstart.py" --output "$work/midnight-provisioner.ks"
 if command -v ksvalidator >/dev/null 2>&1; then
