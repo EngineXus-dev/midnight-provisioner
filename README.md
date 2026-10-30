@@ -75,7 +75,7 @@ Keep the source checkout in place: setup uses an editable installation. Review l
 
 The [installer media guide](scripts/iso/README.md) explains how to build an ISO from Fedora's official Everything netinstall image, test it, and prepare a USB installer. It also covers installation alongside Windows.
 
-**Recommended USB writer: [Fedora Media Writer](https://github.com/FedoraQt/MediaWriter/releases/latest).** Choose its local/custom-image option, select the built `Midnight-Provisioner-Installer-*.iso`, and select the intended USB stick. Writing erases that stick. Wait for writing and verification to finish successfully before ejecting it. Select the custom Midnight Provisioner ISO rather than downloading a stock Fedora image in the writer.
+**Recommended USB writer for the Fedora/Midnight Provisioner image: [Fedora Media Writer](https://github.com/FedoraQt/MediaWriter/releases/latest).** Choose its local/custom-image option, select the built `Midnight-Provisioner-Installer-*.iso`, and select the intended USB stick. Writing erases that stick. Wait for writing and verification to finish successfully before ejecting it. Select the custom Midnight Provisioner ISO rather than downloading a stock Fedora image in the writer.
 
 Fedora's installer handles operating-system installation and partitioning. You choose the destination disk and encryption settings there. Back up any data you want to keep before formatting a drive or partition.
 
@@ -203,7 +203,7 @@ The Windows workflow runs independently in Windows PowerShell 5.1 or newer. You 
    ```powershell
    Get-FileHash .\scripts\iso\Windows11\Win11_*.iso -Algorithm SHA256
    ```
-3. Create Windows installation media with Microsoft's Media Creation Tool or Rufus, and boot its UEFI entry. Standard Windows media uses the Windows installation workflow in Rufus; the Fedora image's DD-mode instructions belong to the Fedora image.
+3. **Recommended USB writer for Windows 11: [Rufus](https://rufus.ie/en/).** Select the Windows ISO and the intended USB stick, use the Windows installation workflow for this UEFI/GPT setup, write the media, and boot its UEFI entry. Microsoft's Media Creation Tool is an alternative for stock Windows media. The Fedora image's DD-mode instructions apply to the Fedora image, not the Windows ISO.
 4. Follow [Microsoft's clean-install procedure](https://support.microsoft.com/en-us/windows/deployment/install-upgrade/reinstall-windows-with-the-installation-media). Select the intended disk and an edition matching your license. Windows can use the whole selected OS disk in a Windows-only setup. Choose **I don't have a product key** when offered if you intend to activate later; verify the edition and activate in **Settings > System > Activation**. The **ApplyCore** customization route below and AtlasOS require Windows 11 Pro.
 5. Complete Windows setup, install the manufacturer's chipset/network/storage/graphics drivers and Windows updates, and check activation, Device Encryption/BitLocker, and recovery options before customizing the installation.
 

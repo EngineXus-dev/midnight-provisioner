@@ -63,6 +63,16 @@ How much smaller it gets depends on the ISO, and the script prints the before an
 
 **With AtlasOS,** inject first, then trim the injected ISO. Or trim with `-Format Wim` first, since AME Wizard may need a mountable image. Either way, test the result in a VM.
 
+## Create the Windows USB
+
+**[Rufus](https://rufus.ie/en/) is the recommended USB writer for Windows 11 media.**
+
+1. Select the intended USB stick and the official, single-edition, or reviewed customized Windows ISO in Rufus.
+2. Use the Windows installation workflow and the UEFI/GPT configuration for this project. Confirm the selected USB can be erased, then write the image and wait for completion.
+3. Safely eject the stick and boot its UEFI entry. Microsoft's Media Creation Tool is an alternative for stock Windows media.
+
+For the separate Fedora/Midnight Provisioner ISO, use **Fedora Media Writer** as recommended in the [Fedora media guide](../README.md#3-make-the-usb-installer). Its DD-mode alternative is specific to Fedora media; do not apply those instructions to the Windows ISO.
+
 ## 3. Install Windows for your chosen layout
 
 1. Back up the files you want to keep and disconnect unrelated storage, especially backup drives. Identify the installation disk by model and capacity.
