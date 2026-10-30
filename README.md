@@ -1,10 +1,10 @@
 # Midnight Provisioner
 
-**Fedora workspaces, Windows 11 customization, and optional dual boot.**
+**Fedora workspaces, Kali Linux toolkits, Windows 11 customization, and optional dual boot.**
 
-Midnight Provisioner combines a Fedora KDE workspace manager with Windows 11 installation and customization utilities. Use the Fedora app to organize KVM virtual machines, trusted development containers, and host diagnostics, or use the Windows tools independently. Windows/Fedora dual boot is an optional setup path.
+Midnight Provisioner combines a Fedora KDE workspace manager, purpose-built Kali Linux VM profiles, backup and recovery tools, and Windows 11 installation and customization utilities. Use the Fedora app to organize KVM virtual machines, trusted development containers, and host diagnostics, or use the Windows tools independently. Windows/Fedora dual boot is an optional setup path.
 
-[Fedora installation](#fedora-desktop-installation) Â· [Windows only](#standalone-windows-11-installation-and-customization) Â· [Dual boot](#optional-windows-11-and-fedora-dual-boot) Â· [Documentation](docs/README.md) Â· [Security model](docs/SECURITY_MODEL.md) Â· [Contributing](CONTRIBUTING.md)
+[Fedora installation](#fedora-desktop-installation) · [Kali toolkits](#kali-linux-workspaces-and-toolkits) · [Backups and recovery](#backups-and-recovery) · [Windows only](#standalone-windows-11-installation-and-customization) · [Dual boot](#optional-windows-11-and-fedora-dual-boot) · [Tools and commands](#tools-and-commands) · [Documentation](docs/README.md) · [Security model](docs/SECURITY_MODEL.md)
 
 ## Testing status
 
@@ -12,11 +12,15 @@ The Midnight Provisioner GUI has not been fully tested across hardware and deskt
 
 ## Features
 
-- **Desktop and CLI controls** for workspace status, VM launch and shutdown, console access, and binding existing libvirt guests.
+- **Desktop workspace controls and a companion CLI** for workspace status, VM policy inspection, diagnostics, and preparation. The GUI adds VM launch/shutdown, saved state, console access, and binding existing libvirt guests.
 - **Workspace policies** that inspect restricted VM configurations before Midnight Provisioner starts them.
 - **Trusted development environments** using rootless Podman and Distrobox.
+- **Seven Kali Linux toolkits** for reconnaissance, web assessment, defensive forensics, wireless planning, directory review, exploit labs, and web validation, with separate guest plans and disks.
+- **Kali lifecycle checks** for ISO and host readiness, package inventories, version snapshots and drift, registered guests, cold baselines, recovered guests, and QEMU/sVirt labels.
 - **Resource profiles** with RAM and concurrent-VM limits based on host hardware, plus memory and active-VM monitoring.
-- **Host diagnostics** for virtualization readiness, storage discovery, disk encryption, and Fedora security settings.
+- **Host diagnostics** for virtualization readiness, storage discovery, disk encryption, Fedora security settings, and registered/running guest observations.
+- **Installation planning** with read-only disk discovery, formatting/encryption previews, partition/EFI impact review, and inspection of explicitly supplied operation proposals.
+- **Opt-in source updates** with update checks and fast-forward updates of a clean main checkout.
 - **VM preparation and recovery tools** for ISO verification, cold backups, integrity checks, and recovery into separate staging folders.
 - **Standalone Windows 11 tools** for installation-media preparation, a previewable customization profile, and per-user preferences with snapshots.
 - **Fedora installer ISO tooling** to build installation media with KDE, virtualization packages, and Midnight Provisioner included.
@@ -27,7 +31,7 @@ The Midnight Provisioner GUI has not been fully tested across hardware and deskt
 | --- | --- | --- |
 | Personal Desktop | Native Fedora KDE | Everyday applications, browsing, and media |
 | Trusted Development | Distrobox / rootless Podman | Development with trusted code and host-file access |
-| Authorized Pentesting | KVM / libvirt VM | Authorized testing, offline or on the configured isolated lab network |
+| Authorized Pentesting | Kali Linux in KVM / libvirt | Curated Kali toolkits for authorized testing, offline or on the configured lab network |
 | Malware Analysis | KVM / libvirt VM | Offline research with restricted guest devices and host integration |
 
 Create VM guests with virt-manager, then use **Bind VM** in Midnight Provisioner to associate them with a workspace. The [VM preparation guide](docs/VM_PREPARATION.md) covers image checks and guest configuration.
@@ -72,6 +76,98 @@ Keep the source checkout in place: setup uses an editable installation. Review l
 The [installer media guide](scripts/iso/README.md) explains how to build an ISO from Fedora's official Everything netinstall image, test it, and prepare a USB installer. It also covers installation alongside Windows.
 
 Fedora's installer handles operating-system installation and partitioning. You choose the destination disk and encryption settings there. Back up any data you want to keep before formatting a drive or partition.
+
+## Kali Linux workspaces and toolkits
+
+Kali is the guest environment for authorized security work; Fedora remains the host. **Prepare VM → Kali toolkit** provides seven curated profiles, each intended for its own VM identity and independent qcow2 disk. The catalog includes white-hat, defensive, and authorized red-team roles. Packages are selected individually rather than through an all-tools Kali metapackage.
+
+### Included Kali profiles
+
+| Profile | Role and focus | Suggested guest packages | Default RAM / vCPU / disk |
+| --- | --- | --- | --- |
+| `recon` | White-hat asset discovery | `nmap`, `dnsrecon`, `whois`, `traceroute`, `curl`, `jq` | 2 GiB / 1 / 32 GiB |
+| `web-audit` | White-hat web assessment | `burpsuite`, `whatweb`, `nikto`, `ffuf`, `sqlmap` | 3 GiB / 2 / 48 GiB |
+| `defense` | Defensive triage and forensics | `wireshark`, `tcpdump`, `yara`, `sleuthkit`, `lynis` | 2.5 GiB / 2 / 40 GiB |
+| `wireless` | Wireless survey planning | `aircrack-ng`, `kismet`, `iw`, `wireshark` | 2.5 GiB / 2 / 48 GiB |
+| `ad-review` | Authorized directory and identity review | `impacket-scripts`, `netexec`, `ldap-utils`, `smbclient`, `nmap` | 3 GiB / 2 / 56 GiB |
+| `exploit-lab` | Controlled exploit research | `metasploit-framework`, `exploitdb`, `gdb`, `nmap` | 3 GiB / 2 / 72 GiB |
+| `web-validation` | Authorized red-team web validation | `ffuf`, `sqlmap`, `burpsuite`, `whatweb` | 3 GiB / 2 / 48 GiB |
+
+These are planning defaults. The machine profile clamps RAM and vCPU allocations to the host budget; package dependencies and actual disk use vary by Kali release. Profile details are available through `midnight-provisioner templates show PROFILE` and the [Kali catalog guide](docs/KALI_TEMPLATES.md).
+
+### Prepare and install a Kali VM
+
+1. Obtain the official Kali installer image and its publisher SHA-256. Follow Kali's signed-checksum verification procedure in the [sources below](#kali-linux-and-guest-package-management). Replace the example paths and hash in the commands below; the private-plan folder and VM-storage folder must already exist.
+2. Browse the catalog, export a new setup plan, and check the local ISO, proposed VM definitions, host memory, guest-count limits, and storage headroom:
+
+   ```bash
+   midnight-provisioner templates list
+   midnight-provisioner templates list --category red-team
+   midnight-provisioner templates show recon
+
+   midnight-provisioner templates export recon /absolute/private/recon-plan.json \
+     --iso-sha256 "<verified-64-character-publisher-SHA256>"
+   midnight-provisioner templates verify /absolute/private/recon-plan.json
+   midnight-provisioner templates preflight /absolute/private/recon-plan.json \
+     --iso /absolute/path/kali-installer.iso --storage-dir /existing/path/VMs
+   ```
+
+   Export records the supplied hash; preflight actually hashes the local ISO and checks both installer and post-install `virt-install --dry-run --print-xml` definitions. The standalone preview is also available as `midnight-provisioner provision pentest --template recon --iso /absolute/path/kali-installer.iso --sha256 "<verified-64-character-publisher-SHA256>"`.
+3. Review the plan, then create and install the actual guest through **virt-manager**, using the planned unique VM name and its own disk. Midnight Provisioner's template/preflight commands prepare and inspect plans; they do not create the VM, allocate its disk, or install Kali or its packages. Initial plans have no network adapter, host-folder sharing, clipboard integration, guest agent, or USB passthrough.
+4. Inside the installed guest, review the selected package list and configure any separately approved update connectivity before installing tools. `templates show PROFILE` prints the guest-only package-install preview. Each profile remains separate; Midnight Provisioner does not execute that preview inside the guest.
+5. Bind the installed guest to the **Authorized Pentesting** workspace with **Bind VM** and inspect its real definition before launch. For an optional training network, review and run `bash scripts/install/create-lab-network.sh`. The script creates `midnight-provisioner-lab` without upstream forwarding or DNS relay; review host firewall exposure because the virtual bridge can still expose host services. Malware-analysis guests remain offline.
+
+The wireless profile lists radio-analysis packages, but restricted guests do not permit USB adapter passthrough. A profile alone does not provide physical wireless hardware access. Use all security tools only within an authorized scope. See [VM preparation](docs/VM_PREPARATION.md) and [Kali readiness checks](docs/KALI_TEMPLATE_PREFLIGHT.md).
+
+### Package inventory, version snapshots, and drift
+
+Use **Guest inventory instructions** in the GUI or `midnight-provisioner templates guest-help recon` for the manual guest-side workflow. The standalone [inventory helper](scripts/kali/kali-guest-inventory.py) runs inside the intended Kali VM as its regular user and queries `dpkg-query`, `apt-cache policy`, and `dpkg --audit`:
+
+```bash
+# Inside the Kali guest, after independently transferring the reviewed helper and plan:
+python3 kali-guest-inventory.py --plan recon-plan.json --output guest-inventory.json
+```
+
+After transferring the resulting inventory back through your independently reviewed process, compare it on the Fedora host:
+
+```bash
+midnight-provisioner templates compare /absolute/private/recon-plan.json /absolute/private/guest-inventory.json
+midnight-provisioner templates lock /absolute/private/recon-plan.json /absolute/private/guest-inventory.json /absolute/private/versions.json
+midnight-provisioner templates drift /absolute/private/recon-plan.json /absolute/private/versions.json /absolute/private/new-inventory.json
+```
+
+The plan, inventory, and version snapshot are local records. Snapshot creation requires the selected packages' installed/candidate versions and a reported clean package audit. It does not pin repository contents, install packages, or authenticate the guest's report. Midnight Provisioner has no integrated host-to-guest command or file-transfer channel. Read the [setup-manifest guide](docs/KALI_SETUP_MANIFESTS.md), [guest inventory guide](docs/KALI_GUEST_INVENTORY.md), and [version-drift guide](docs/KALI_VERSION_DRIFT.md).
+
+### Kali guest, backup, recovery, and runtime checks
+
+All of these actions are available under **Prepare VM**. Their CLI forms begin with `midnight-provisioner templates`; the linked guides give the required plan, disk, backup, staging, guest-name, and optional private-report arguments.
+
+| Action | Command | What it checks |
+| --- | --- | --- |
+| Installed template | `templates registered` | A manually installed, shut-off guest against its plan and selected independent disk; [registered-template guide](docs/KALI_REGISTERED_TEMPLATES.md) |
+| Cold baseline | `templates baseline` | The shut-off guest's identity, disk/NVRAM bindings, backup hashes, and qcow2 metadata; [cold-baseline guide](docs/KALI_COLD_BASELINES.md) |
+| Recovery copy | `templates recovery-link` | An existing independent recovery staging folder against the original template backup; [recovery-link guide](docs/KALI_RECOVERY_LINK.md) |
+| Registered recovery | `templates recovery-registered` | A manually registered, shut-off recovered guest against its staged copy and source backup; [registered-recovery guide](docs/KALI_REGISTERED_RECOVERY.md) |
+| Running recovery | `templates observe-running` | Identity, selected disk, and libvirt-reported labels of an already-running, manually started benign recovery guest; [running-observation guide](docs/KALI_RUNNING_OBSERVATION.md) |
+| Effective QEMU label | `templates process-label` | The matched QEMU process's observed SELinux context against libvirt's expected sVirt label; [process-label guide](docs/KALI_QEMU_PROCESS_LABEL.md) |
+
+These checks report configuration and observations. Passing them does not prove successful restoration, package provenance, packet-level network isolation, or malware containment. Cold-backup creation and recovery file copying use the separate workflows below.
+
+## Backups and recovery
+
+Midnight Provisioner provides separate workflows for VM backups/recovery and for checking copies of ordinary files before an OS installation.
+
+| Workflow | Commands or tools | Result |
+| --- | --- | --- |
+| Cold VM backup | `backup plan`, `backup create`, `backup verify` | Checks eligibility of a shut-off bound guest, then copies supported disk/NVRAM/XML assets into a new backup directory with SHA-256 integrity records; [cold-backup guide](docs/COLD_BACKUP.md) |
+| Offline recovery staging | `recover plan`, `recover stage`, `recover verify` | Copies a verified backup to a new folder with a new guest identity and disconnected XML; [staging guide](docs/RECOVERY_STAGING.md) |
+| Recovery import readiness | `recover preflight` | Checks host/tool/storage readiness for a separately controlled import; [Fedora preflight](docs/FEDORA_HOST_PREFLIGHT.md) |
+| Registered handoff | `recover handoff`, `accept` | Compares an independently registered guest with staging and checks its actual libvirt definitions; [handoff guide](docs/RECOVERY_HANDOFF.md), [guest audit](docs/REGISTERED_GUEST_AUDIT.md) |
+| Ordinary-file backup inspection | `scripts/backup/Inspect-Midnight-Provisioner-Backup.py` | Compares a specifically selected source folder and existing copy; [integrity guide](docs/BACKUP_INTEGRITY_PREFLIGHT.md) |
+| Multiple backup roots | `scripts/backup/Verify-Midnight-Provisioner-BackupSet.py` | Reviews a private catalog of source/copy pairs and optionally verifies regular-file hashes; [multi-source guide](docs/MULTI_SOURCE_BACKUP_READINESS.md) |
+| Recovery/backup review | `scripts/backup/Review-Midnight-Provisioner-Recovery-Backup.py`, `scripts/backup/fedora-recovery-smoke.sh` | Read-only planning and benign recovery rehearsal support; [recovery acceptance guide](docs/PHASE22_RECOVERY_BACKUP_ACCEPTANCE.md) |
+
+GUI controls include **Cold backup**, **Verify saved backup**, **Recover into NEW folder**, **Verify staged recovery**, **Check Fedora import readiness**, and **Verify registered handoff**. Copy operations require confirmation and new destinations. Recovery staging does not register or boot a VM. Ordinary-file inspectors verify only the selected copies; they do not make backups or establish whole-system recovery coverage.
 
 ## Standalone Windows 11 installation and customization
 
@@ -206,6 +302,28 @@ midnight-provisioner --help
 
 Workspace configuration lives in `~/.config/midnight-provisioner/workspaces.json`, or under `$XDG_CONFIG_HOME` when set. Moving VM workspaces to another computer also requires transferring or recreating their guest disks and host configuration.
 
+## Tools and commands
+
+Use `midnight-provisioner COMMAND --help` and the [script directory](scripts/README.md) for full arguments. The following map covers the remaining host, desktop, installation-review, update, and maintainer tools.
+
+| Area | Entry points | Purpose and guide |
+| --- | --- | --- |
+| Desktop workspaces | `gui`, `list`, `inspect` | Manage native Fedora, trusted containers, and bound VM workspaces; the GUI provides start/shutdown, saved state, and console controls. [Workspace security model](docs/SECURITY_MODEL.md) |
+| Host readiness | `doctor`, `host-security`, `encryption-check` | Inspect dependencies/KVM, SELinux/firewall/forwarding posture, and LUKS-backed Fedora root storage. [Host posture](docs/HOST_POSTURE.md), [encryption](docs/DISK_ENCRYPTION.md) |
+| Machine limits and pressure | `resources`, `profile show`, `profile apply` | Review available RAM/swap, all active system-libvirt guests, and Auto/Compact/Balanced/Performance limits. [Resource monitor](docs/RESOURCE_MONITOR.md) |
+| Registered and running guests | `accept`, `runtime-label` | Inspect registered XML and an already-running guest's reported dynamic sVirt labels. [Registered audit](docs/REGISTERED_GUEST_AUDIT.md), [runtime observations](docs/RUNTIME_SVIRT_OBSERVATION.md) |
+| Source updates | `update check`, `update apply`, `update checks on`, `update checks off` | Opt into notices, fetch update metadata, or fast-forward a clean official `main` checkout. Editable source installations use this route; the fixed ISO payload is updated by rebuilding/reinstalling or switching to a source checkout. |
+| System discovery | `discover` | Read-only host/disk observations; personal-folder-name discovery is optional and local. [Discovery guide](docs/PHASE23_FIRST_RUN_DISCOVERY.md) |
+| Installation previews | `install-preview`, `install-changes` | Review target intent, Linux encryption choices, format risks, and known/unknown partition or EFI effects. [Target preview](docs/PHASE25_TARGET_PREVIEW.md), [change review](docs/PHASE26_INSTALL_CHANGE_REVIEW.md) |
+| Operation-list review | `proposal-review` | Inspect an explicitly selected untrusted JSON operation list, including other-drive and bootloader claims. [Proposal guide](docs/PHASE27_UNTRUSTED_PROPOSAL_REVIEW.md) |
+| Windows host and dual-boot checks | `scripts/windows/check-windows-hardware.ps1`, `Review-Windows-DualBoot.ps1`, `Read-Midnight-Provisioner-Windows-HostGate.ps1` | Review CPU/firmware/storage and Windows host readiness. [Host-gate guide](docs/PHASE18_WINDOWS_HOST_GATE.md) |
+| Windows recovery and media planning | `Read-Midnight-Provisioner-Recovery-Posture.ps1`, `Read-Midnight-Provisioner-WinRE-Triage.ps1`, `Build-Midnight-Provisioner-Phase19-Preflight.py`, `Plan-Midnight-Provisioner-InstallMedia.py` in `scripts/windows/` | Read recovery status, combine explicit preinstall observations, and estimate whether selected ISO files fit measured media capacity. [Recovery posture](docs/PHASE20_WINDOWS_RECOVERY_POSTURE.md), [WinRE triage](docs/PHASE21_WINRE_TRIAGE.md), [media planning](docs/WINDOWS11_PRO_ACTIVATE_LATER.md) |
+| Installation and networking | `scripts/install/` | Install dependencies/application launchers, run Fedora host acceptance, and optionally create the training-lab network. [Installation guide](scripts/install/README.md) |
+| Installer images and Windows settings | `scripts/iso/`, `scripts/windows/` | Build and verify Fedora media, export one Windows edition, and preview/apply the Windows customization helpers described above. [Media guide](scripts/iso/README.md) |
+| Verification and packaging | `scripts/testing/`, `scripts/release/` | Local/portable suites, Fedora-container and GUI checks, Python compatibility, result archives, release packaging, and maintainer integration/evidence audits. [Verification index](docs/README.md#development-and-verification) |
+
+The discovery and installation-review commands are advisory: they do not partition, format, write EFI entries, create USB media, or invoke an OS installation. Fedora's installer and Windows Setup perform the actual OS installation. Host-status and runtime-label results describe what was observed; a local pass does not certify guest isolation.
+
 ## Security model
 
 Midnight Provisioner relies on Fedora, KVM/QEMU, libvirt, and SELinux for isolation. It checks restricted guest definitions before launches issued through the app; administrators and external virtualization tools can bypass those checks. Midnight Provisioner does not provide Qubes OS's security architecture or guarantee malware containment.
@@ -216,10 +334,12 @@ Distrobox shares the host environment and is intended for trusted code. Use dedi
 
 - [Install and configure Midnight Provisioner](scripts/install/README.md)
 - [Build installer media and set up dual boot](scripts/iso/README.md)
-- [Disk encryption](docs/DISK_ENCRYPTION.md)
-- [Prepare VM guests](docs/VM_PREPARATION.md)
-- [Cold backups](docs/COLD_BACKUP.md) and [recovery staging](docs/RECOVERY_STAGING.md)
-- [Complete documentation index](docs/README.md)
+- [Kali profiles](docs/KALI_TEMPLATES.md), [setup plans and package inventories](docs/KALI_SETUP_MANIFESTS.md), and [runtime/recovery checks](#kali-guest-backup-recovery-and-runtime-checks)
+- [Disk encryption](docs/DISK_ENCRYPTION.md), [host security posture](docs/HOST_POSTURE.md), and [resource monitoring](docs/RESOURCE_MONITOR.md)
+- [Prepare VM guests](docs/VM_PREPARATION.md) and [audit registered guests](docs/REGISTERED_GUEST_AUDIT.md)
+- [Cold backups](docs/COLD_BACKUP.md), [recovery staging](docs/RECOVERY_STAGING.md), and [registered recovery handoff](docs/RECOVERY_HANDOFF.md)
+- [Read-only discovery and installation reviews](#tools-and-commands)
+- [Complete documentation index](docs/README.md) and [script directory](scripts/README.md)
 
 ## Contributing
 
@@ -267,11 +387,16 @@ Official source repositories and documentation for the platforms, libraries, too
 - [Docker Desktop on Windows](https://docs.docker.com/desktop/setup/install/windows-install/)
 - [Official Ubuntu container images](https://hub.docker.com/_/ubuntu)
 
-### Guest environments
+### Kali Linux and guest package management
 
+- [Official Kali Linux downloads](https://www.kali.org/get-kali/)
+- [Kali image verification and signed checksums](https://www.kali.org/docs/introduction/download-images-securely/)
+- [Kali in QEMU/libvirt with virt-manager](https://www.kali.org/docs/virtualization/install-qemu-guest-vm/)
 - [Kali tool catalog](https://www.kali.org/tools/)
 - [Kali metapackages](https://www.kali.org/docs/general-use/metapackages/)
 - [Updating Kali](https://www.kali.org/docs/general-use/updating-kali/)
+- [Debian package-management manuals: apt-cache, dpkg-query, and dpkg](https://manpages.debian.org/)
+- [Project Kali profile definitions](midnight_provisioner/kali_templates.py) and [guest inventory helper](scripts/kali/kali-guest-inventory.py)
 
 ### Installer, encryption, and boot media
 

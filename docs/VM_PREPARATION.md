@@ -51,7 +51,7 @@ midnight-provisioner provision analysis --iso /absolute/path/to/linux.iso --sha2
 - This preview does **not** ensure the ISO is trustworthy, only that its bytes
   match the provided checksum. A checksum sourced from an attacker provides
   no assurance.
-- Guest image and VM backup/restore automation are not available yet.
+- Prepare VM does not create guest images or run an installation. [Cold VM backup](COLD_BACKUP.md) and [offline recovery staging](RECOVERY_STAGING.md) are separate, confirmation-gated file-copy workflows; staging does not register or boot a recovered guest.
 - On an 8 GiB laptop, use one VM at a time; even one guest with 2–3 GiB RAM
   may require closing memory-heavy host applications.
 - Malware labs must not be treated as safe for high-risk samples until
