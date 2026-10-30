@@ -10,14 +10,14 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from nightglass.cli import main
-from nightglass.kali_setup import (
+from midnight_provisioner.cli import main
+from midnight_provisioner.kali_setup import (
     PLAN_FORMAT, LOCK_FORMAT, INVENTORY_FORMAT,
     build_setup_plan, catalog_digest, compare_inventory,
     compare_inventory_files, load_setup_plan, save_setup_plan,
     save_version_lock, verify_setup_plan,
 )
-from nightglass.runner import ToolError
+from midnight_provisioner.runner import ToolError
 
 
 # Native Windows cannot perform POSIX fchmod. Isolate this capability only
@@ -28,7 +28,7 @@ _fixture_mode_patch = None
 def setUpModule():
     global _fixture_mode_patch
     if os.name == "nt":
-        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch = patch("midnight_provisioner.kali_setup.os.fchmod", create=True)
         _fixture_mode_patch.start()
 
 
@@ -253,9 +253,9 @@ class KaliSetupTests(unittest.TestCase):
     def test_cli_export_verify_compare_lock_never_calls_vm_or_installer(self):
         target = self.folder / "cli-plan.json"
         out = StringIO()
-        with patch("nightglass.cli.OfflineProvisioner") as install, \
-             patch("nightglass.cli.Hypervisor") as hypervisor, \
-             patch("nightglass.cli.os.geteuid", return_value=1000, create=True), redirect_stdout(out):
+        with patch("midnight_provisioner.cli.OfflineProvisioner") as install, \
+             patch("midnight_provisioner.cli.Hypervisor") as hypervisor, \
+             patch("midnight_provisioner.cli.os.geteuid", return_value=1000, create=True), redirect_stdout(out):
             self.assertEqual(main([
                 "templates", "export", "recon", str(target),
             ]), 0)

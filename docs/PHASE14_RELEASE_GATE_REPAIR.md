@@ -16,12 +16,12 @@ The predecessor snapshot also stopped before #48.
 On branch `verification/phase14-release-gate-repair`, the active
 candidate is the same across:
 
-- `config/nightglass-pr-stack-snapshot.json` (47 predecessors:
+- `config/midnight-provisioner-pr-stack-snapshot.json` (47 predecessors:
   PRs #1–29 and #31–48, PR #30 absent)
-- `scripts/release/Audit-Nightglass-PR-Stack.py`
-- `scripts/release/Audit-Nightglass-Release-Evidence.py`
-- `scripts/testing/Run-Nightglass-Offline-Release-Gate.py`
-- `scripts/testing/Invoke-Nightglass-OfflineChecks.ps1`
+- `scripts/release/Audit-Midnight-Provisioner-PR-Stack.py`
+- `scripts/release/Audit-Midnight-Provisioner-Release-Evidence.py`
+- `scripts/testing/Run-Midnight-Provisioner-Offline-Release-Gate.py`
+- `scripts/testing/Invoke-Midnight-Provisioner-OfflineChecks.ps1`
 - `tests/test_pr_stack_audit.py` and
   `tests/test_offline_release_gate.py`
 - The current Windows launch, cumulative gate, and evidence runbooks

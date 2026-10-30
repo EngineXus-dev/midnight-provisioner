@@ -1,5 +1,5 @@
 {
-  "schema": "nightglass.untrusted-install-proposal.v1",
+  "schema": "midnight-provisioner.untrusted-install-proposal.v1",
   "source": "unverified_user_supplied",
   "intent": "format_target",
   "target_ref": "target_a",

@@ -1,14 +1,14 @@
-# Standalone GitHub publish script. Only operates on Nightglass project directory.
+# Standalone GitHub publish script. Only operates on Midnight Provisioner project directory.
 # Requires GitHub CLI (gh) and git; never pulls, overwrites, deletes, or merges existing repos.
 [CmdletBinding()]
-param([string]$RepoName = 'nightglass-workspaces')
+param([string]$RepoName = 'midnight-provisioner')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Push-Location $projectRoot
 try {
-    if (-not (Test-Path 'pyproject.toml') -or -not (Test-Path 'nightglass\ui.py')) {
-        throw 'Not running inside a Nightglass source checkout.'
+    if (-not (Test-Path 'pyproject.toml') -or -not (Test-Path 'midnight_provisioner\ui.py')) {
+        throw 'Not running inside a Midnight Provisioner source checkout.'
     }
     if ($RepoName -notmatch '^[a-zA-Z0-9][a-zA-Z0-9._-]{0,99}$') {
         throw 'Unsafe GitHub repository name.'
@@ -23,7 +23,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'git init failed' }
         & git add -- .
         if ($LASTEXITCODE -ne 0) { throw 'git add failed' }
-        & git commit -m 'Initial Nightglass workspace controller'
+        & git commit -m 'Initial Midnight Provisioner workspace controller'
         if ($LASTEXITCODE -ne 0) { throw 'git commit failed; configure git user.name and user.email' }
     } else {
         $changes = & git status --porcelain

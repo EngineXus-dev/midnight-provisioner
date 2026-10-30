@@ -16,13 +16,13 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "release" / "Audit-Nightglass-PR-Stack.py"
-spec = importlib.util.spec_from_file_location("nightglass_stack_audit_tests", SCRIPT)
+SCRIPT = ROOT / "scripts" / "release" / "Audit-Midnight-Provisioner-PR-Stack.py"
+spec = importlib.util.spec_from_file_location("midnight_provisioner_stack_audit_tests", SCRIPT)
 audit = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(audit)
 
-MANIFEST = ROOT / "config" / "nightglass-pr-stack-snapshot.json"
+MANIFEST = ROOT / "config" / "midnight-provisioner-pr-stack-snapshot.json"
 CANDIDATE_SHA = "c" * 40
 MAIN_SHA = "a" * 40
 BASE_SHA = "b" * 40
@@ -109,7 +109,7 @@ class StackAuditTests(unittest.TestCase):
             ["show", CANDIDATE_SHA + ":" + audit.MANIFEST_PATH],
             root=ROOT, raw=True)
         self.assertEqual(audit.MANIFEST_PATH,
-                         "config/nightglass-pr-stack-snapshot.json")
+                         "config/midnight-provisioner-pr-stack-snapshot.json")
         with self.assertRaises(audit.StackError):
             audit.read_manifest_at_ref(ROOT, candidate_sha="INVALID")
         with patch.object(audit, "git", return_value=b""):
@@ -122,9 +122,9 @@ class StackAuditTests(unittest.TestCase):
             ("foo/.env", "POSSIBLE_SECRET_FILE_REVIEW"),
             ("secrets/accounts.json", "POSSIBLE_SECRET_FILE_REVIEW"),
             ("keys/id_ed25519", "POSSIBLE_SECRET_FILE_REVIEW"),
-            ("dist/nightglass.iso", "BINARY_ARTIFACT_REVIEW"),
+            ("dist/midnight-provisioner.iso", "BINARY_ARTIFACT_REVIEW"),
             ("scripts/windows-installer.ps1", "OS_DEPLOYMENT_PATH_REVIEW"),
-            ("nightglass/app.py", None),
+            ("midnight_provisioner/app.py", None),
         )
         for value, expected in examples:
             with self.subTest(path=value):
@@ -140,7 +140,7 @@ class StackAuditTests(unittest.TestCase):
             if args[:2] == ["rev-parse", "--show-toplevel"]:
                 return str(ROOT)
             if args[:3] == ["remote", "get-url", "origin"]:
-                return "https://github.com/EngineXus-dev/nightglass-workspaces.git"
+                return "https://github.com/EngineXus-dev/midnight-provisioner.git"
             if args[:2] == ["show-ref", "--verify"]:
                 key = args[3]
                 if key == "refs/heads/main":
@@ -160,7 +160,7 @@ class StackAuditTests(unittest.TestCase):
             if args[0] == "diff":
                 assert raw is True
                 return (diff_bytes if diff_bytes is not None else
-                        b".github/workflows/verify.yml\0nightglass/app.py\0")
+                        b".github/workflows/verify.yml\0midnight-provisioner/app.py\0")
             raise AssertionError("unexpected Git query: " + str(args))
 
         def fake_run(args, **kwargs):

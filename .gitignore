@@ -33,8 +33,8 @@ build/
 .vscode/
 
 # Keep personal source/backup locations and inspection summaries local
-*.nightglass-backup-set.local.json
-*.nightglass-backup-report.local.json
+*.midnight-provisioner-backup-set.local.json
+*.midnight-provisioner-backup-report.local.json
 
 # Installer inputs/outputs kept next to scripts/iso (never committed)
 *.apbx
@@ -43,3 +43,7 @@ build/
 *.exe
 *-CHECKSUM
 *.iso.sha256
+
+# Retain protection for private reports made before the project rename.
+*.nightglass-backup-set.local.json
+*.nightglass-backup-report.local.json

@@ -9,11 +9,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from nightglass.portability import budget_for
-from nightglass.resources import (
+from midnight_provisioner.portability import budget_for
+from midnight_provisioner.resources import (
     ACTIVE_STATES, MemoryPressure, collect_resources, host_memory, parse_meminfo,
 )
-from nightglass.runner import ToolError
+from midnight_provisioner.runner import ToolError
 
 
 class FakeHV:
@@ -37,7 +37,7 @@ class ResourceMonitorTests(unittest.TestCase):
     def setUp(self):
         self.budget = budget_for(8.0, 6)
         self.good = MemoryPressure(8.0, 4.25, 2.0, 0.25)
-        self.bound = [SimpleNamespace(kind="vm", identifier="nightglass-kali")]
+        self.bound = [SimpleNamespace(kind="vm", identifier="midnight-provisioner-kali")]
 
     def snapshot(self, states=None, memory=None, bound=None, failure=None):
         fake = FakeHV(states, failure)
@@ -75,32 +75,32 @@ class ResourceMonitorTests(unittest.TestCase):
             self.assertIsNone(host_memory(absent).available_gib)
 
     def test_idle_no_active_vm_is_normal(self):
-        result, hv = self.snapshot({"nightglass-kali": "shut off"})
+        result, hv = self.snapshot({"midnight-provisioner-kali": "shut off"})
         self.assertEqual(result.level, "NORMAL")
         self.assertTrue(result.libvirt_available)
         self.assertEqual(result.active_vms, ())
         self.assertEqual(result.unbound_vms, ())
-        self.assertEqual(hv.calls, ["list", "state:nightglass-kali"])
+        self.assertEqual(hv.calls, ["list", "state:midnight-provisioner-kali"])
 
     def test_active_bound_vm_reports_budget_consumed(self):
-        result, hv = self.snapshot({"nightglass-kali": "running"})
+        result, hv = self.snapshot({"midnight-provisioner-kali": "running"})
         self.assertEqual(result.level, "CAUTION")
-        self.assertEqual(result.active_vms, ("nightglass-kali",))
+        self.assertEqual(result.active_vms, ("midnight-provisioner-kali",))
         self.assertEqual(result.unbound_vms, ())
         self.assertTrue(any("concurrency budget" in s for s in result.warnings))
 
     def test_external_vm_is_reported_without_stopping(self):
         result, hv = self.snapshot({
-            "nightglass-kali": "shut off",
-            "unregistered-by-nightglass": "running",
+            "midnight-provisioner-kali": "shut off",
+            "unregistered-by-midnight-provisioner": "running",
         })
         self.assertEqual(result.level, "CAUTION")
-        self.assertEqual(result.unbound_vms, ("unregistered-by-nightglass",))
+        self.assertEqual(result.unbound_vms, ("unregistered-by-midnight-provisioner",))
         self.assertFalse(any("destroy" in call or "shutdown" in call for call in hv.calls))
 
     def test_paused_guest_is_active_and_over_limit_is_critical(self):
         result, _ = self.snapshot({
-            "nightglass-kali": "paused",
+            "midnight-provisioner-kali": "paused",
             "other-vm": "running",
         })
         self.assertEqual(result.level, "CRITICAL")

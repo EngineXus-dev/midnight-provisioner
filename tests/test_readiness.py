@@ -8,13 +8,13 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from nightglass.portability import budget_for
-from nightglass.readiness import RecoveryReadiness
-from nightglass.runner import Output, ToolError
+from midnight_provisioner.portability import budget_for
+from midnight_provisioner.readiness import RecoveryReadiness
+from midnight_provisioner.runner import Output, ToolError
 
 
 XML_TEMPLATE = """<domain type="kvm">
-<name>nightglass-recovered</name><memory unit="MiB">2048</memory>
+<name>midnight-provisioner-recovered</name><memory unit="MiB">2048</memory>
 <devices><graphics type="vnc" listen="127.0.0.1"/>
 <disk type="file" device="disk"><driver name="qemu" type="qcow2"/>
 <source file="__DISK__"/></disk></devices></domain>"""
@@ -76,9 +76,9 @@ class ReadinessTests(unittest.TestCase):
                 "sha256": hashlib.sha256(data).hexdigest(),
             }
         self.manifest.write_text(json.dumps({
-            "format": "nightglass-recovery-staging",
+            "format": "midnight-provisioner-recovery-staging",
             "version": 1,
-            "guest": "nightglass-recovered",
+            "guest": "midnight-provisioner-recovered",
             "original_guest": "original-guest",
             "original_policy": "isolated",
             "network": "offline",
@@ -89,16 +89,16 @@ class ReadinessTests(unittest.TestCase):
         }), encoding="utf-8")
 
     def check(self):
-        with patch("nightglass.readiness.platform.system", return_value="Linux"), \
-             patch("nightglass.readiness._kvm_accessible", return_value=True), \
-             patch("nightglass.readiness.current_budget", return_value=budget_for(8, 6)):
+        with patch("midnight_provisioner.readiness.platform.system", return_value="Linux"), \
+             patch("midnight_provisioner.readiness._kvm_accessible", return_value=True), \
+             patch("midnight_provisioner.readiness.current_budget", return_value=budget_for(8, 6)):
             return self.service.check(self.dir)
 
     def test_readiness_never_mutates_or_defines_guest(self):
         before = self.disk.read_bytes()
         report = self.check()
         self.assertEqual(report.disks, 1)
-        self.assertEqual(report.guest, "nightglass-recovered")
+        self.assertEqual(report.guest, "midnight-provisioner-recovered")
         self.assertIn("NO VM WAS DEFINED", report.describe())
         self.assertEqual(self.disk.read_bytes(), before)
         verbs = [x[0] for x in self.runner.calls]
@@ -107,7 +107,7 @@ class ReadinessTests(unittest.TestCase):
         self.assertEqual(self.runner.calls[1][:3], ("qemu-img", "info", "--output=json"))
 
     def test_registered_name_blocks_before_any_native_tool(self):
-        self.hv.names = ["nightglass-recovered"]
+        self.hv.names = ["midnight-provisioner-recovered"]
         with self.assertRaisesRegex(ToolError, "already registered"):
             self.check()
         self.assertEqual(self.runner.calls, [])
@@ -174,13 +174,13 @@ class ReadinessTests(unittest.TestCase):
         self.assertEqual(self.runner.calls, [])
 
     def test_unavailable_kvm_blocks(self):
-        with patch("nightglass.readiness.platform.system", return_value="Linux"), \
-             patch("nightglass.readiness._kvm_accessible", return_value=False):
+        with patch("midnight_provisioner.readiness.platform.system", return_value="Linux"), \
+             patch("midnight_provisioner.readiness._kvm_accessible", return_value=False):
             with self.assertRaisesRegex(ToolError, "KVM access unavailable"):
                 self.service.check(self.dir)
 
     def test_non_linux_host_blocks(self):
-        with patch("nightglass.readiness.platform.system", return_value="Windows"):
+        with patch("midnight_provisioner.readiness.platform.system", return_value="Windows"):
             with self.assertRaisesRegex(ToolError, "Fedora/Linux"):
                 self.service.check(self.dir)
 
@@ -189,11 +189,11 @@ class ReadinessTests(unittest.TestCase):
         service = RecoveryReadiness(self.runner, hv)
         def changing():
             hv.calls += 1
-            return [] if hv.calls == 1 else ["nightglass-recovered"]
+            return [] if hv.calls == 1 else ["midnight-provisioner-recovered"]
         hv.list_domains = changing
-        with patch("nightglass.readiness.platform.system", return_value="Linux"), \
-             patch("nightglass.readiness._kvm_accessible", return_value=True), \
-             patch("nightglass.readiness.current_budget", return_value=budget_for(8, 6)):
+        with patch("midnight_provisioner.readiness.platform.system", return_value="Linux"), \
+             patch("midnight_provisioner.readiness._kvm_accessible", return_value=True), \
+             patch("midnight_provisioner.readiness.current_budget", return_value=budget_for(8, 6)):
             with self.assertRaisesRegex(ToolError, "registered during preflight"):
                 service.check(self.dir)
 

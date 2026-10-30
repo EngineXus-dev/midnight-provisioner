@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 
 @unittest.skipUnless(
-    os.environ.get("NIGHTGLASS_GUI_SMOKE") == "1",
+    os.environ.get("MIDNIGHT_PROVISIONER_GUI_SMOKE") == "1",
     "Separate Qt CI job only; PySide6 intentionally not required for unit tests",
 )
 class OffscreenMainWindowTests(unittest.TestCase):
@@ -24,16 +24,16 @@ class OffscreenMainWindowTests(unittest.TestCase):
         # this Linux-only syscall for synthetic Qt tests; never change
         # production permission enforcement or Linux-mode assertions.
         if os.name == "nt":
-            fd_patch = patch("nightglass.settings.os.fchmod", create=True)
+            fd_patch = patch("midnight_provisioner.settings.os.fchmod", create=True)
             fd_patch.start()
             cls.addClassCleanup(fd_patch.stop)
         from PySide6.QtWidgets import QApplication
-        from nightglass.theme import apply_theme
+        from midnight_provisioner.theme import apply_theme
         cls.app = QApplication.instance() or QApplication([])
         apply_theme(cls.app)
 
     def setUp(self):
-        import nightglass.ui as ui
+        import midnight_provisioner.ui as ui
 
         self.ui = ui
         self.temp = tempfile.TemporaryDirectory(prefix="ng-gui-test-")
@@ -57,7 +57,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
 
     def test_casual_dark_palette_and_active_navigation(self):
         from PySide6.QtGui import QPalette
-        from nightglass.theme import COLORS, THEME_NAME
+        from midnight_provisioner.theme import COLORS, THEME_NAME
         self.assertIn("Dark", THEME_NAME)
         self.assertEqual(
             self.app.palette().color(QPalette.ColorRole.Window).name(),
@@ -93,7 +93,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
     def test_real_qt_pages_and_workspace_cards_construct(self):
         self.assertEqual(self.window.stack.count(), 7)
         self.assertEqual(len(self.window.cards), 4)
-        self.assertIn("Nightglass", self.window.windowTitle())
+        self.assertIn("Midnight Provisioner", self.window.windowTitle())
         for index in (0, 1, 3, 4, 5):
             with self.subTest(page=index):
                 self.window.goto(index)
@@ -104,7 +104,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.assertEqual(self.window.stack.currentIndex(), 2)
 
     def test_system_discovery_page_is_never_an_installer_or_silent_file_scan(self):
-        from nightglass.system_discovery import collect_system
+        from midnight_provisioner.system_discovery import collect_system
         from PySide6.QtWidgets import QPlainTextEdit
         self.window.goto(6)
         self.assertEqual(self.window.stack.currentIndex(), 6)
@@ -147,7 +147,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.assertIn("UNVERIFIED", self.window.discovery_status.text())
 
     def test_target_install_plan_never_auto_selects_or_authorizes_disk(self):
-        from nightglass.system_discovery import collect_system
+        from midnight_provisioner.system_discovery import collect_system
         sample = collect_system(
             system="Windows", run_live=False,
             home=Path(self.temp.name), storage_data={
@@ -186,7 +186,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.window.discovery_backup_acknowledged.setChecked(True)
         preview = self.window.preview_target_plan()
         self.assertTrue(preview.user_backup_warning_acknowledged)
-        self.assertFalse(preview.user_backups_proven_by_nightglass)
+        self.assertFalse(preview.user_backups_proven_by_midnight_provisioner)
         self.assertFalse(preview.os_install_authorized)
 
         self.window.discovery_target_combo.setCurrentIndex(1)
@@ -203,7 +203,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.assertIn("discarded", self.window.discovery_target_preview.toPlainText())
 
     def test_change_review_qt_displays_unknown_partitions_and_no_writes(self):
-        from nightglass.system_discovery import collect_system
+        from midnight_provisioner.system_discovery import collect_system
         sample = collect_system(
             system="Windows", run_live=False, home=Path(self.temp.name),
             storage_data={
@@ -244,7 +244,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
 
     def test_local_untrusted_proposal_review_never_executes_or_persists(self):
         import json
-        import nightglass.install_proposal_review as proposal_module
+        import midnight_provisioner.install_proposal_review as proposal_module
         path = Path(self.temp.name) / "untrusted-proposal.json"
         path.write_text(json.dumps({
             "schema": proposal_module.SCHEMA,
@@ -277,7 +277,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
                 self.window.discovery_proposal_report.toPlainText())
 
     def test_preset_controls_are_safe_and_saved_only_to_temp_home(self):
-        import nightglass.portability as portability
+        import midnight_provisioner.portability as portability
 
         options = [
             self.window.profile_combo.itemData(i)
@@ -297,11 +297,11 @@ class OffscreenMainWindowTests(unittest.TestCase):
 
         with patch.object(self.window, "inform"), patch.object(self.window, "refresh"):
             self.window.save_machine_profile()
-        saved = portability.load_machine_preferences(self.config / "nightglass" / "machine.json")
+        saved = portability.load_machine_preferences(self.config / "midnight-provisioner" / "machine.json")
         self.assertEqual(saved, prefs)
         if os.name != "nt":
             self.assertEqual(
-                (self.config / "nightglass" / "machine.json").stat().st_mode & 0o777, 0o600
+                (self.config / "midnight-provisioner" / "machine.json").stat().st_mode & 0o777, 0o600
             )
 
     def test_provisioning_ui_never_creates_guest_for_missing_iso(self):
@@ -310,13 +310,13 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.window.prepare_space("analysis")
             self.assertEqual(self.window.stack.currentIndex(), 4)
             self.assertEqual(self.window.provision_kind.currentData(), "analysis")
-            self.assertEqual(self.window.provision_name.text(), "nightglass-malware")
+            self.assertEqual(self.window.provision_name.text(), "midnight-provisioner-malware")
             self.window.preview_provision()
         error.assert_called_once()
         background.assert_not_called()
 
     def test_kali_templates_are_independent_and_not_installed_by_gui(self):
-        from nightglass.kali_templates import get_template, list_templates
+        from midnight_provisioner.kali_templates import get_template, list_templates
         with patch.object(self.window, "work") as background:
             self.window.prepare_space("pentest")
             self.assertEqual(self.window.stack.currentIndex(), 4)
@@ -337,14 +337,14 @@ class OffscreenMainWindowTests(unittest.TestCase):
             background.assert_not_called()
             self.window.prepare_space("analysis")
             self.assertFalse(self.window.provision_template.isEnabled())
-            self.assertEqual(self.window.provision_name.text(), "nightglass-malware")
+            self.assertEqual(self.window.provision_name.text(), "midnight-provisioner-malware")
             self.window.show_kali_template()
             self.assertIn("must not be attached", self.window.provision_result.toPlainText())
             background.assert_not_called()
 
     def test_new_kali_setup_plan_is_private_and_guest_inventory_is_read_only(self):
         import json
-        from nightglass.kali_setup import INVENTORY_FORMAT, load_setup_plan
+        from midnight_provisioner.kali_setup import INVENTORY_FORMAT, load_setup_plan
         from PySide6.QtWidgets import QPushButton
         self.window.prepare_space("pentest")
         page = self.window.stack.currentWidget()
@@ -419,7 +419,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.assertIn("python3 kali-guest-inventory.py --plan", output)
         self.assertIn("NOT authenticated", output)
         self.assertIn("does NOT provide host/guest file sharing", output)
-        self.assertIn("nightglass-kali-recon", output)
+        self.assertIn("midnight-provisioner-kali-recon", output)
         self.window.prepare_space("analysis")
         self.window.show_guest_inventory_instructions()
         self.assertIn("benign pentest VMs only", self.window.provision_result.toPlainText())
@@ -471,7 +471,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
     def test_kali_vm_readiness_gui_uses_bound_setup_manifest_and_is_cancelable(self):
         from types import SimpleNamespace
         from PySide6.QtWidgets import QPushButton
-        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
         self.window.prepare_space("pentest")
         self.window.provision_template.setCurrentIndex(
             self.window.provision_template.findData("recon")
@@ -545,7 +545,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
     def test_registered_kali_template_audit_is_explicit_and_guest_bound(self):
         from types import SimpleNamespace
         from PySide6.QtWidgets import QPushButton
-        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
         self.window.prepare_space("pentest")
         entry = self.window.provision_template.findData("recon")
         self.window.provision_template.setCurrentIndex(entry)
@@ -605,7 +605,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
     def test_kali_cold_baseline_gui_requires_matching_profile_and_can_cancel(self):
         from types import SimpleNamespace
         from PySide6.QtWidgets import QPushButton
-        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
         self.window.prepare_space("pentest")
         self.window.provision_template.setCurrentIndex(
             self.window.provision_template.findData("recon")
@@ -673,7 +673,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
     def test_kali_recovery_copy_gui_binds_source_template_and_allows_cancellation(self):
         from types import SimpleNamespace
         from PySide6.QtWidgets import QPushButton
-        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
         self.window.prepare_space("pentest")
         self.window.provision_template.setCurrentIndex(
             self.window.provision_template.findData("recon")
@@ -740,7 +740,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
     def test_kali_registered_recovery_gui_is_read_only_bound_and_cancelable(self):
         from types import SimpleNamespace
         from PySide6.QtWidgets import QPushButton
-        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
         self.window.prepare_space("pentest")
         self.window.provision_template.setCurrentIndex(
             self.window.provision_template.findData("recon")
@@ -806,7 +806,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
     def test_running_kali_recovery_gui_is_explicit_guest_bound_and_cancelable(self):
         from types import SimpleNamespace
         from PySide6.QtWidgets import QPushButton
-        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
         self.window.prepare_space("pentest")
         self.window.provision_template.setCurrentIndex(
             self.window.provision_template.findData("recon")
@@ -822,7 +822,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
         backup.mkdir()
         disk = Path(self.temp.name) / "running-recovered.qcow2"
         disk.write_bytes(b"synthetic-never-hashed")
-        recovered = "nightglass-kali-recon-rehearsal"
+        recovered = "midnight-provisioner-kali-recon-rehearsal"
         result = SimpleNamespace(
             ok=True, describe=lambda:
             "KALI RUNNING-GUEST OBSERVATION: PASS (LIBVIRT/SELINUX METADATA ONLY)"
@@ -881,7 +881,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
     def test_qemu_process_label_button_and_compact_kali_grid_are_read_only(self):
         from types import SimpleNamespace
         from PySide6.QtWidgets import QPushButton, QGridLayout
-        from nightglass.kali_setup import build_setup_plan, save_setup_plan
+        from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
         self.window.prepare_space("pentest")
         page = self.window.stack.currentWidget()
         buttons = {b.text(): b for b in page.findChildren(QPushButton)}
@@ -898,7 +898,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
         )
         plan = Path(self.temp.name) / "private-qemu-plan.json"
         save_setup_plan(build_setup_plan("recon"), plan)
-        recovered = "nightglass-kali-recon-rehearsal"
+        recovered = "midnight-provisioner-kali-recon-rehearsal"
         report = SimpleNamespace(
             ok=True,
             describe=lambda: "KALI QEMU PROCESS LABEL: MATCHED (READ-ONLY /PROC OBSERVATION)",
@@ -1006,7 +1006,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
 
     def test_registered_recovery_handoff_gui_is_read_only(self):
         from types import SimpleNamespace
-        from nightglass.handoff import RecoveryHandoff
+        from midnight_provisioner.handoff import RecoveryHandoff
         with patch.object(self.ui.QFileDialog, "getExistingDirectory", return_value="/tmp/synthetic-stage"), \
              patch.object(self.window, "work") as worker:
             self.window.verify_registered_handoff()
@@ -1014,7 +1014,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
             function, success, failure = worker.call_args.args
             self.assertIn("RecoveryHandoff", function.__code__.co_names)
             report = SimpleNamespace(
-                guest="nightglass-new-guest",
+                guest="midnight-provisioner-new-guest",
                 ok=True,
                 describe=lambda: "REGISTERED RECOVERY HANDOFF: PASS (METADATA ONLY)",
             )
@@ -1042,7 +1042,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
 
     def test_read_only_fedora_host_posture_action(self):
         from PySide6.QtWidgets import QPushButton
-        from nightglass.host_posture import HostPosture, PostureCheck
+        from midnight_provisioner.host_posture import HostPosture, PostureCheck
         with patch.object(self.window, "check_host"):
             self.window.goto(2)
         controls = {button.text() for button in self.window.stack.currentWidget().findChildren(QPushButton)}
@@ -1116,7 +1116,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
         for x, y in ((0, 0), (shot.width() - 2, 2), (2, shot.height() - 2)):
             rgb = image.pixelColor(x, y)
             self.assertLess(max(rgb.red(), rgb.green(), rgb.blue()), 90)
-        path = os.environ.get("NIGHTGLASS_GUI_PREVIEW")
+        path = os.environ.get("MIDNIGHT_PROVISIONER_GUI_PREVIEW")
         if path:
             target = Path(path)
             target.parent.mkdir(parents=True, exist_ok=True)

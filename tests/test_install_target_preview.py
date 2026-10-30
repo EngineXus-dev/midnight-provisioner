@@ -6,11 +6,11 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from nightglass.install_disclosure import FORMAT_TARGET, COEXIST, UNDECIDED
-from nightglass.install_target_preview import (
+from midnight_provisioner.install_disclosure import FORMAT_TARGET, COEXIST, UNDECIDED
+from midnight_provisioner.install_target_preview import (
     SCHEMA, build_target_preview, describe_target_preview,
 )
-from nightglass.system_discovery import collect_system
+from midnight_provisioner.system_discovery import collect_system
 
 
 def observation():
@@ -84,7 +84,7 @@ class TargetPreviewTests(unittest.TestCase):
             backup_warning_acknowledged=True,
         )
         self.assertTrue(plan.user_backup_warning_acknowledged)
-        self.assertFalse(plan.user_backups_proven_by_nightglass)
+        self.assertFalse(plan.user_backups_proven_by_midnight_provisioner)
         for field in (
             "target_selected", "target_safe_to_format", "target_format_authorized",
         ):
@@ -153,12 +153,12 @@ class TargetPreviewTests(unittest.TestCase):
         self.assertFalse(plan.disk_write_authorized)
 
     def test_cli_risk_preview_uses_readonly_discovery_and_own_backup_warning(self):
-        from nightglass.cli import main
+        from midnight_provisioner.cli import main
         from unittest.mock import patch
         import io
         import json
         sample = observation()
-        with patch("nightglass.system_discovery.collect_system",
+        with patch("midnight_provisioner.system_discovery.collect_system",
                    return_value=sample) as scan, \
              patch("sys.stdout", new_callable=io.StringIO) as out:
             code = main([
@@ -175,7 +175,7 @@ class TargetPreviewTests(unittest.TestCase):
         self.assertIn("does not make or verify", doc["warning"])
 
     def test_source_has_no_install_format_or_writes(self):
-        import nightglass.install_target_preview as m
+        import midnight_provisioner.install_target_preview as m
         source = Path(m.__file__).read_text(encoding="utf-8")
         for forbidden in ("subprocess", "os.system(", "shutil.", "os.open(", "open(",
                           "os.unlink(", "os.remove(", ".write_text(", ".write_bytes(",

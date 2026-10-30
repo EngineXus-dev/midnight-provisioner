@@ -6,7 +6,7 @@
 
 ## Pre-install safety hold (new planning gate)
 
-Nightglass installation is **NOT authorized** by software readiness checks.
+Midnight Provisioner installation is **NOT authorized** by software readiness checks.
 A native Windows, read-only review script and detailed dual-boot/rollback
 decision gates are available in [Deployment safety gates](DEPLOYMENT_SAFETY_GATES.md).
 Run `scripts/windows/Review-Windows-DualBoot.ps1` only from a separately fetched
@@ -63,12 +63,12 @@ partitioning, or attempt dual-boot deployment automatically.
 - Use UEFI firmware boot chooser to select Windows/Fedora initially. **Avoid replacing Windows Boot Manager or adding rEFInd until the dual boot is independently verified.**
 - Ensure both OS boot entries work, Windows backup recovery remains possible, and Secure Boot handling is understood.
 
-### Stage C — optional virtualization and Nightglass
+### Stage C — optional virtualization and Midnight Provisioner
 
 - Run `./scripts/install/fedora-dependencies.sh` to opt in to packages; it does NOT partition disks or create VMs.
-- Create a normal-user Python virtual environment and install Nightglass as detailed in README.
-- Run `nightglass doctor` and confirm `qemu:///system` libvirt authorization. Do not run Nightglass as root.
-- Provision a separate Kali VM in virt-manager; initially no virtual NIC. Then review and optionally create `nightglass-lab` after deciding host firewall rules. Bind the VM in Nightglass.
+- Create a normal-user Python virtual environment and install Midnight Provisioner as detailed in README.
+- Run `midnight-provisioner doctor` and confirm `qemu:///system` libvirt authorization. Do not run Midnight Provisioner as root.
+- Provision a separate Kali VM in virt-manager; initially no virtual NIC. Then review and optionally create `midnight-provisioner-lab` after deciding host firewall rules. Bind the VM in Midnight Provisioner.
 - Only after VM guardrail testing consider an offline analysis VM. Never import real malware onto the personal host or into Distrobox.
 
 ### Stage D — harden and verify before daily use

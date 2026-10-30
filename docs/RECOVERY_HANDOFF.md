@@ -1,6 +1,6 @@
 # Verified recovery handoff — read-only registered guest comparison
 
-Nightglass distinguishes three independent stages:
+Midnight Provisioner distinguishes three independent stages:
 
 1. **Stage** verified offline backup assets into a **NEW** folder.
 2. **Preflight** the unregistered staging against native QEMU, libvirt XML
@@ -10,21 +10,21 @@ Nightglass distinguishes three independent stages:
    disk/NVRAM images and has not acquired an unsafe network or driver change.
 
 Steps 1 and 2 do not import or boot. Step 3 is **read-only**. There is still
-no automatic VM import or start by Nightglass.
+no automatic VM import or start by Midnight Provisioner.
 
 ## Usage
 
 From the project root with a separate, already-staged recovery folder:
 
 ```bash
-nightglass recover verify /path/to/staged-new-guest
-nightglass recover preflight /path/to/staged-new-guest
+midnight-provisioner recover verify /path/to/staged-new-guest
+midnight-provisioner recover preflight /path/to/staged-new-guest
 
 # After an independently authorized MANUAL new-guest registration:
-nightglass recover handoff /path/to/staged-new-guest
+midnight-provisioner recover handoff /path/to/staged-new-guest
 
 # Optional private, NEW report file (never overwrites):
-nightglass recover handoff /path/to/staged-new-guest \
+midnight-provisioner recover handoff /path/to/staged-new-guest \
     --report /path/to/new-handoff-report.json
 ```
 
@@ -40,10 +40,10 @@ must also point to the staged copy.
 
 For each known staged disk, `qemu-img info --output=json` is checked
 read-only against the XML driver and filename format. An unknown/extra
-registered disk is **never opened** by Nightglass. Any backing chain,
+registered disk is **never opened** by Midnight Provisioner. Any backing chain,
 unexpected snapshot/encryption marker, hash mismatch, symlink, or changed
 registered XML blocks approval. The recovered guest's new UUID is assigned
-by libvirt during intentional manual registration, not by Nightglass.
+by libvirt during intentional manual registration, not by Midnight Provisioner.
 
 ## What approval does **not** mean
 

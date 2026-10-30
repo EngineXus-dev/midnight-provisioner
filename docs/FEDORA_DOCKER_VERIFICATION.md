@@ -1,6 +1,6 @@
 # Fedora Docker verification from Windows 10/11
 
-This is Nightglass's **full Linux synthetic test runner**, designed for
+This is Midnight Provisioner's **full Linux synthetic test runner**, designed for
 the existing Windows workstation and a Docker Desktop **Linux containers**
 engine. It does **not** require GitHub Actions minutes, a Fedora installation
 on the host, WSL distribution installation, elevated PowerShell, or actual
@@ -8,26 +8,26 @@ VM creation.
 
 ## Run
 
-From your original Nightglass Git checkout, if this integration branch's
+From your original Midnight Provisioner Git checkout, if this integration branch's
 runner is already available:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\testing\Run-Nightglass-Fedora-Checks.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\testing\Run-Midnight-Provisioner-Fedora-Checks.ps1
 ```
 
 If your local checkout is still on `main`, use the standalone
-**Start-Nightglass-Fedora-Checks.ps1** launcher distributed with this update,
+**Start-Midnight-Provisioner-Fedora-Checks.ps1** launcher distributed with this update,
 or manually retrieve the committed runner from Git without checking it
 out over your existing files:
 
 ```powershell
 git fetch --no-tags origin chore/offline-integration-verification
-git show origin/chore/offline-integration-verification:scripts/testing/Run-Nightglass-Fedora-Checks.ps1 |
-    Set-Content -Encoding UTF8 "$env:TEMP\Run-Nightglass-Fedora-Checks.ps1"
-powershell -NoProfile -ExecutionPolicy Bypass -File "$env:TEMP\Run-Nightglass-Fedora-Checks.ps1"
+git show origin/chore/offline-integration-verification:scripts/testing/Run-Midnight-Provisioner-Fedora-Checks.ps1 |
+    Set-Content -Encoding UTF8 "$env:TEMP\Run-Midnight-Provisioner-Fedora-Checks.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "$env:TEMP\Run-Midnight-Provisioner-Fedora-Checks.ps1"
 ```
 
-The repository also has `scripts/testing/Start-Nightglass-Fedora-Checks.ps1`
+The repository also has `scripts/testing/Start-Midnight-Provisioner-Fedora-Checks.ps1`
 as a small bootstrap: it fetches the versioned runner into a NEW
 temporary directory and executes it. The independently distributed
 bootstrap is convenient while your original checkout remains on
@@ -35,10 +35,10 @@ bootstrap is convenient while your original checkout remains on
 PowerShell scripts.
 
 The PowerShell runner discovers the existing repo (or accepts
-`-RepoPath "C:\path\to\nightglass-workspaces"`), checks that Docker's
+`-RepoPath "C:\path\to\midnight-provisioner"`), checks that Docker's
 daemon uses **Linux containers**, fetches only the named integration
 branch, and creates a **NEW sibling git worktree** named
-`Nightglass-Fedora-Check-<timestamp>-<random>`. Your original checkout's
+`Midnight-Provisioner-Fedora-Check-<timestamp>-<random>`. Your original checkout's
 `.env`, `.venv`, custom folders and tracked/untracked files are not
 copied, deleted, reset or overwritten. Shared Git metadata is updated
 only for fetch/worktree registration. A new `-results.txt` transcript
@@ -70,7 +70,7 @@ The container uses:
   Windows disk devices, clipboard or host runtime configuration mounted
 
 Docker Desktop uses its own virtualization backend to run containers.
-This workflow does **not** create or start *Nightglass* Kali/KVM guest
+This workflow does **not** create or start *Midnight Provisioner* Kali/KVM guest
 VMs, inspect host libvirt state or modify disk images. The
 `test_native_tools.py` suite creates only tiny throwaway qcow2/raw
 fixtures **inside container tmpfs**, and deletes them automatically.
@@ -108,7 +108,7 @@ The PowerShell wrapper preserves exit status and a complete log.
 - Pull requests remain draft until the container log is reviewed and
   later hardware acceptance gates pass.
 
-**Please return the newly generated `Nightglass-Fedora-Check-...-results.txt`
+**Please return the newly generated `Midnight-Provisioner-Fedora-Check-...-results.txt`
 log if any tests fail.** The code can then be corrected in the connected
 GitHub integration branch without a merge or history rewrite.
 
@@ -152,7 +152,7 @@ The follow-up Docker Desktop run of commit `6a3cc5f` was materially better:
 - Real Qt offscreen GUI smoke: **FAIL — SIGSEGV**, exit `-11`
 
 Python faulthandler identified the first crash site at
-`nightglass/ui.py:383`: `posture_button.clicked.connect(self.check_host_security)`.
+`midnight_provisioner/ui.py:383`: `posture_button.clicked.connect(self.check_host_security)`.
 The C backtrace entered PySide6 6.10 `qobjectConnectCallback` /
 `MetaObjectBuilder` on Fedora Python 3.14. This is consistent with a
 PySide signal-registration interoperability issue; **the exact
@@ -202,7 +202,7 @@ SELinux enforcing state, sVirt/QEMU process and disk contexts,
 physical KVM access/performance, host-and-guest network denial,
 manually supervised benign VM boot and independent cold
 restore/rollback, and Python 3.11/3.12/3.13 compatibility.
-Those are distinct gates; do not call Nightglass release-ready or
+Those are distinct gates; do not call Midnight Provisioner release-ready or
 merge the draft PRs based on container results.
 
 The user's run reports the original local checkout and `main`

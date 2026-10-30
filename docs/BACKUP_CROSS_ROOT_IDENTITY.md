@@ -4,7 +4,7 @@
 
 ## The gap
 
-Earlier Nightglass backup checks rejected a backup hardlink only when
+Earlier Midnight Provisioner backup checks rejected a backup hardlink only when
 it had the same relative filename as its source. A backup could
 still appear content-identical while one file referred directly to
 a *different* original source file. The multi-source catalog had a
@@ -17,7 +17,7 @@ because a hardlinked file has exactly the same bytes as its source.
 
 ## Phase 13 changes
 
-In `scripts/backup/Inspect-Nightglass-Backup.py`, `compare()` builds a
+In `scripts/backup/Inspect-Midnight-Provisioner-Backup.py`, `compare()` builds a
 set of **all nonzero filesystem (device, inode) identifiers from
 the selected source inventory**. It then checks **every backup
 regular file**, including extra backup files and those with
@@ -27,7 +27,7 @@ and a nonzero CLI outcome.
 
 An optional `forbidden_source_ids` argument allows the group
 inspector to supply the combined source identity set.
-`scripts/backup/Verify-Nightglass-BackupSet.py` first inventories
+`scripts/backup/Verify-Midnight-Provisioner-BackupSet.py` first inventories
 ALL selected source/backup groups and builds this combined
 source set. Only then does it compare each pair. Thus a
 backup file linked to another group's source is rejected,

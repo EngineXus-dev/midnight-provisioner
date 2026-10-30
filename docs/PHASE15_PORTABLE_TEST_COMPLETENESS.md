@@ -6,7 +6,7 @@
 
 ## Actual defect
 
-The Nightglass Windows-only portable verification path in
+The Midnight Provisioner Windows-only portable verification path in
 `scripts/testing/verify_local.py` previously invoked `unittest discover`
 for each allowlisted test module. Python unittest can exit **0**
 when a pattern matches no cases or when every discovered case is
@@ -55,7 +55,7 @@ was executed and gave:
 
 The actual new source and test logic was authored and exercised
 locally before being committed to GitHub. The local fixture is
-**not the entire Nightglass repository** and does not prove the
+**not the entire Midnight Provisioner repository** and does not prove the
 native Windows PowerShell parse, Docker images, GUI/native fixture
 execution or physical Fedora host isolation.
 

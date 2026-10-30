@@ -1,6 +1,6 @@
 # Linux disk encryption at startup
 
-Nightglass plans Fedora disk encryption; **Fedora's installer performs it**. Nightglass never formats, partitions or encrypts a disk itself.
+Midnight Provisioner plans Fedora disk encryption; **Fedora's installer performs it**. Midnight Provisioner never formats, partitions or encrypts a disk itself.
 
 ## Choices
 
@@ -19,7 +19,7 @@ The firmware must read `/boot` (kernel and initramfs) and the EFI partition to s
 ## After installing
 
 ```bash
-nightglass encryption-check
+midnight-provisioner encryption-check
 ```
 
 Read-only (`lsblk`). Reports `ENCRYPTED` only when `/` and a separately mounted `/home` are inside a LUKS container; exit code 0 only in that case. Optionally back up the LUKS header to separate encrypted media:

@@ -1,11 +1,11 @@
 # Observing a manually running Kali recovery VM (read-only)
 
-Nightglass's white-hat and authorized red-team Kali templates use separate
+Midnight Provisioner's white-hat and authorized red-team Kali templates use separate
 VMs, separate disks, no default network adapters, and an independently
 verified pre-boot cold-backup/recovery chain.
 
 This phase adds a **supervised, metadata-only runtime check** that runs
-**only after a human has manually started a BENIGN recovery VM**. Nightglass
+**only after a human has manually started a BENIGN recovery VM**. Midnight Provisioner
 does **not** start, import, pause, resume, install, or interact with a guest.
 
 ## Sequence
@@ -13,7 +13,7 @@ does **not** start, import, pause, resume, install, or interact with a guest.
 Before startup, run the previous strict offline handoff:
 
 ```bash
-nightglass templates recovery-registered /path/original-plan.json \
+midnight-provisioner templates recovery-registered /path/original-plan.json \
   --backup /path/existing-cold-backup \
   --staged /path/new-independent-recovery
 ```
@@ -24,18 +24,18 @@ a **benign** Kali test guest and manually starts the **NEW** recovered guest
 under supervised Fedora/KVM, observe its current settings:
 
 ```bash
-nightglass templates observe-running /path/original-plan.json \
+midnight-provisioner templates observe-running /path/original-plan.json \
   --backup /path/existing-cold-backup \
-  --guest nightglass-kali-recon-rehearsal \
+  --guest midnight-provisioner-kali-recon-rehearsal \
   --disk /absolute/path/to/selected-live-recovery.qcow2
 ```
 
 Optional private non-attestation record, **NEW file only**:
 
 ```bash
-nightglass templates observe-running /path/original-plan.json \
+midnight-provisioner templates observe-running /path/original-plan.json \
   --backup /path/existing-cold-backup \
-  --guest nightglass-kali-recon-rehearsal \
+  --guest midnight-provisioner-kali-recon-rehearsal \
   --disk /absolute/path/to/selected-live-recovery.qcow2 \
   --report /path/to/NEW-runtime-observation.json
 ```
@@ -76,7 +76,7 @@ metadata. An additional manual probe can attempt to compare that XML with
 the actual host process security context:
 
 ```bash
-nightglass templates process-label ORIGINAL_PLAN.json --guest ALREADY_RUNNING_NEW_GUEST
+midnight-provisioner templates process-label ORIGINAL_PLAN.json --guest ALREADY_RUNNING_NEW_GUEST
 ```
 
 The GUI offers **Inspect effective QEMU sVirt label**. This read-only,

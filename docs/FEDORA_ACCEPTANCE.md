@@ -1,6 +1,6 @@
 # Fedora/KVM recovery acceptance — read-only preflight and manual live drill
 
-Nightglass's safety model must be evaluated on the **actual Fedora host** before
+Midnight Provisioner's safety model must be evaluated on the **actual Fedora host** before
 a recovered VM is registered. CI tests use simulated libvirt commands and do
 not establish isolation or successful recovery.
 
@@ -13,7 +13,7 @@ installation. It does not require a staged backup or an existing guest:
 
 Optional NEW 0600 local status-only evidence (never uploads or overwrites):
 
-    bash scripts/install/fedora-host-acceptance.sh --report "$HOME/nightglass-host-prerequisites-new.json"
+    bash scripts/install/fedora-host-acceptance.sh --report "$HOME/midnight-provisioner-host-prerequisites-new.json"
 
 It checks Fedora identity, ordinary-user privileges, SELinux enforcing
 state, accessible KVM, native validation utilities and read-only
@@ -25,15 +25,15 @@ do not run with sudo to suppress permissions failures.
 
 ## Automated *read-only* prerequisite
 
-On a Fedora KDE test machine, install the Nightglass app and the reviewed
+On a Fedora KDE test machine, install the Midnight Provisioner app and the reviewed
 virtualization packages. Use a normal desktop user (not root), with legitimate
 libvirt/polkit permissions. Copy an already checked, staged recovery folder
 onto access-controlled encrypted storage, and run:
 
 ```bash
-nightglass doctor
-nightglass recover verify /path/to/recovered-new-guest
-nightglass recover preflight /path/to/recovered-new-guest
+midnight-provisioner doctor
+midnight-provisioner recover verify /path/to/recovered-new-guest
+midnight-provisioner recover preflight /path/to/recovered-new-guest
 
 # Or run the combined non-root, read-only script from the project root:
 bash scripts/backup/fedora-recovery-smoke.sh /path/to/recovered-new-guest
@@ -43,7 +43,7 @@ The last check uses installed **virt-xml-validate** and **qemu-img info** to
 verify libvirt schema validity and disk metadata, as well as the already
 implemented staged-file hashes and offline-device audit. It checks that
 `/dev/kvm` is accessible, the new domain identifier is unused, and the
-proposed RAM fits this machine's Nightglass profile. If the check fails,
+proposed RAM fits this machine's Midnight Provisioner profile. If the check fails,
 nothing is imported or fixed automatically.
 
 **Never substitute `virsh define --validate` for a read-only schema check.**
@@ -60,8 +60,8 @@ Once a human authorizes importing a **separate** guest on a disposable
 test system, run:
 
 ```bash
-nightglass accept new-recovered-vm --policy isolated
-nightglass accept new-recovered-vm --policy isolated --report ~/guest-audit-new.json
+midnight-provisioner accept new-recovered-vm --policy isolated
+midnight-provisioner accept new-recovered-vm --policy isolated --report ~/guest-audit-new.json
 ```
 
 Or select **Backup & verify → Audit registered VM**. The audit compares
@@ -77,7 +77,7 @@ After the separate manual, benign-guest registration and the read-only
 registered XML audit, use:
 
 ```bash
-nightglass recover handoff /path/to/recovered-new-guest
+midnight-provisioner recover handoff /path/to/recovered-new-guest
 ```
 
 This checks all disk/NVRAM paths and QEMU formats in the registered domain
@@ -85,7 +85,7 @@ against the verified recovered files, including both live/current and
 inactive/persistent definitions. It **does not import or boot** the VM.
 See [recovery handoff policy](RECOVERY_HANDOFF.md).
 
-## Separate supervised live acceptance (not automated by Nightglass)
+## Separate supervised live acceptance (not automated by Midnight Provisioner)
 
 | Check | Expected observation |
 |---|---|

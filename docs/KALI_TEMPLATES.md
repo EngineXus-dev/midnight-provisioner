@@ -1,6 +1,6 @@
 # Kali VM template catalog — lightweight, purpose-built guests
 
-Nightglass now supports a catalog of **curated Kali Linux VM profiles**
+Midnight Provisioner now supports a catalog of **curated Kali Linux VM profiles**
 for authorized white-hat and red-team workflows. Each template is a
 **separate planned virtual machine with a unique name and independent qcow2
 disk**. There is no enormous "install every tool" guest.
@@ -8,24 +8,24 @@ disk**. There is no enormous "install every tool" guest.
 Browse without any ISO, network access or host changes:
 
 ```bash
-nightglass templates list
-nightglass templates list --category white-hat
-nightglass templates list --category red-team
-nightglass templates show web-audit
+midnight-provisioner templates list
+midnight-provisioner templates list --category white-hat
+midnight-provisioner templates list --category red-team
+midnight-provisioner templates show web-audit
 ```
 
 Choose one template in the GUI under **Prepare VM → Kali toolkit**, or plan
 it through the existing ISO hash + libvirt XML dry-run:
 
 ```bash
-nightglass provision pentest --template web-audit \
+midnight-provisioner provision pentest --template web-audit \
   --iso /path/to/official-kali-installer.iso \
   --sha256 PUBLISHER_VERIFIED_64_CHARACTER_SHA256
 ```
 
 The `provision` command verifies a **local official Kali ISO checksum**
 and runs `virt-install --dry-run --print-xml` for both installer stages.
-It checks both against Nightglass's conservative restricted guest policy.
+It checks both against Midnight Provisioner's conservative restricted guest policy.
 It **does not** clone/install/register/start a VM, generate a disk, install
 packages, enable Internet routing, run `apt`, or change Windows/EFI.
 
@@ -36,12 +36,12 @@ have **no attached interface by default**; no automatic network bridge,
 host sharing, USB passthrough, microphone, guest agent or clipboard.
 The user must separately authorize any network connectivity or in-guest
 package installation and ensure that actual libvirt XML still passes the
-Nightglass audit. All profiles remain bound by the host resource cap
+Midnight Provisioner audit. All profiles remain bound by the host resource cap
 (e.g. **one running VM at a time** on an 8 GiB machine).
 
 ## Built-in profiles
 
-| VM template | Focus | Suggested packages (not installed by Nightglass) |
+| VM template | Focus | Suggested packages (not installed by Midnight Provisioner) |
 | --- | --- | --- |
 | `recon` | White-hat discovery/inventory | nmap, dnsrecon, whois, traceroute, curl, jq |
 | `web-audit` | White-hat web testing | burpsuite, whatweb, nikto, ffuf, sqlmap |
@@ -62,7 +62,7 @@ not verified reproducible software lockfiles or preinstalled snapshots.
 - **Red-team is an approved exercise role, not a license to access others'
   systems.** Operate only against an explicitly authorized scope. Active
   scanners, fuzzers and exploitation frameworks can disrupt services.
-- **Wireless** requires real radio/USB hardware. Nightglass's restricted
+- **Wireless** requires real radio/USB hardware. Midnight Provisioner's restricted
   guest policy explicitly refuses host USB passthrough; a wireless toolkit
   profile *cannot* silently enable a physical adapter.
 - **Exploit research** is for disposable, controlled lab targets. No default
@@ -93,7 +93,7 @@ and explicitly unverified software provenance and rollback assumptions.
 
 A private setup plan can now be combined with the actual local Kali installer
 ISO and a designated existing host storage directory using
-`nightglass templates preflight PLAN.json --iso LOCAL.iso --storage-dir EXISTING_DIR`.
+`midnight-provisioner templates preflight PLAN.json --iso LOCAL.iso --storage-dir EXISTING_DIR`.
 The GUI offers **Check Kali VM readiness**. This checks the ISO checksum,
 two offline libvirt XML stages, current system-libvirt guest cap, available
 RAM and temporary qcow2 storage headroom; it does not reserve space,
@@ -103,7 +103,7 @@ install the VM or prove isolation. See
 ## Audit a separately installed Kali template (read-only)
 
 After a human manually installs and shuts off a unique Kali guest,
-`nightglass templates registered PLAN.json --disk /absolute/guest.qcow2`
+`midnight-provisioner templates registered PLAN.json --disk /absolute/guest.qcow2`
 compares its registered libvirt definitions with the curated plan and the
 user-selected independent disk, and checks for **exact-path** disk sharing
 with other registered VMs. The GUI offers **Audit installed Kali template VM**.
@@ -113,7 +113,7 @@ certification. See [registered Kali template checks](KALI_REGISTERED_TEMPLATES.m
 ## Verify each independent Kali VM's cold baseline (no restore)
 
 After manually installing and shutting off a benign Kali template VM,
-`nightglass templates baseline PLAN.json --disk /absolute/guest.qcow2
+`midnight-provisioner templates baseline PLAN.json --disk /absolute/guest.qcow2
 --backup /path/to/existing-cold-backup` validates the archived hashes,
 guest identity, disk/NVRAM bindings and native qcow2 metadata. The GUI adds
 **Verify Kali cold backup**. This cannot prove actual restore, boot, Kali

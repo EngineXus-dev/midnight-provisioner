@@ -8,20 +8,20 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from nightglass.cli import main
-from nightglass.portability import MachinePreferences, load_machine_preferences, save_machine_preferences
+from midnight_provisioner.cli import main
+from midnight_provisioner.portability import MachinePreferences, load_machine_preferences, save_machine_preferences
 
 
 class CliSafetyTests(unittest.TestCase):
     def run_cli(self, argv, euid=1000):
         out, err = StringIO(), StringIO()
-        with patch("nightglass.cli.os.geteuid", return_value=euid, create=True), redirect_stdout(out), redirect_stderr(err):
+        with patch("midnight_provisioner.cli.os.geteuid", return_value=euid, create=True), redirect_stdout(out), redirect_stderr(err):
             code = main(argv)
         return code, out.getvalue(), err.getvalue()
 
     def test_root_is_refused_for_writing_commands_only(self):
-        with patch("nightglass.cli.save_machine_preferences") as save, \
-             patch("nightglass.cli.SourceUpdater") as updater:
+        with patch("midnight_provisioner.cli.save_machine_preferences") as save, \
+             patch("midnight_provisioner.cli.SourceUpdater") as updater:
             for argv in (["profile", "apply", "auto", "--yes"], ["update", "check"],
                          ["update", "checks", "on"], ["gui"],
                          ["templates", "export", "recon", "/tmp/x.json"]):
@@ -38,8 +38,8 @@ class CliSafetyTests(unittest.TestCase):
     def test_eof_or_ctrl_c_at_confirmation_cancels(self):
         for error in (EOFError, KeyboardInterrupt):
             with self.subTest(error=error), \
-                 patch("nightglass.cli.save_machine_preferences") as save, \
-                 patch("nightglass.cli.sys.stdin.isatty", return_value=True), \
+                 patch("midnight_provisioner.cli.save_machine_preferences") as save, \
+                 patch("midnight_provisioner.cli.sys.stdin.isatty", return_value=True), \
                  patch("builtins.input", side_effect=error):
                 code, out, _ = self.run_cli(["profile", "apply", "compact"])
                 self.assertEqual(code, 1)
@@ -50,8 +50,8 @@ class CliSafetyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "machine.json"
             save_machine_preferences(MachinePreferences(preset="auto", guest_ram_cap_gib=2.0, vcpu_cap=1), path)
-            with patch("nightglass.cli.load_machine_preferences", lambda: load_machine_preferences(path)), \
-                 patch("nightglass.cli.save_machine_preferences", lambda prefs: save_machine_preferences(prefs, path)):
+            with patch("midnight_provisioner.cli.load_machine_preferences", lambda: load_machine_preferences(path)), \
+                 patch("midnight_provisioner.cli.save_machine_preferences", lambda prefs: save_machine_preferences(prefs, path)):
                 code, out, _ = self.run_cli(["profile", "apply", "performance", "--yes"])
             self.assertEqual(code, 0)
             saved = load_machine_preferences(path)
@@ -59,7 +59,7 @@ class CliSafetyTests(unittest.TestCase):
             self.assertIn("caps are kept", out)
 
     def test_os_error_is_reported_without_traceback(self):
-        with patch("nightglass.cli.save_machine_preferences", side_effect=PermissionError("denied")):
+        with patch("midnight_provisioner.cli.save_machine_preferences", side_effect=PermissionError("denied")):
             code, _, err = self.run_cli(["update", "checks", "on"])
         self.assertEqual(code, 2)
         self.assertIn("denied", err)
@@ -73,8 +73,8 @@ class CliSafetyTests(unittest.TestCase):
         self.assertIn("proposal rejected", err)
 
     def test_deeply_nested_guest_json_is_a_tool_error(self):
-        from nightglass.kali_setup import _read_bounded_json
-        from nightglass.runner import ToolError
+        from midnight_provisioner.kali_setup import _read_bounded_json
+        from midnight_provisioner.runner import ToolError
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "inventory.json"
             path.write_text("[" * 50000 + "]" * 50000, encoding="utf-8")

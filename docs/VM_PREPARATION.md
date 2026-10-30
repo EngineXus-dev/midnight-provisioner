@@ -1,6 +1,6 @@
 # Guided offline VM preparation (v0.2 preview)
 
-Nightglass offers **Prepare VM** on the Kali / malware workspace cards and in the
+Midnight Provisioner offers **Prepare VM** on the Kali / malware workspace cards and in the
 side navigation. The wizard is a **non-mutating preparation tool**: it does not
 define virtual machines, create storage, download images, partition disks,
 alter boot entries, or start guests. Actual VM installation still takes place
@@ -15,7 +15,7 @@ in virt-manager under your control.
    reviewing `scripts/install/fedora-dependencies.sh`. The VM preview requires
    `virt-install` (the `virtinst` package), working `qemu:///system`
    connectivity and a supported UEFI firmware setup.
-3. Start Nightglass, choose **Prepare VM**, and select *Pentesting* or
+3. Start Midnight Provisioner, choose **Prepare VM**, and select *Pentesting* or
    *Malware analysis*. Browse for the local ISO and paste its 64-character
    official checksum.
 4. Review the detected machine profile. The proposed VM RAM / CPU values are
@@ -26,19 +26,19 @@ in virt-manager under your control.
 5. Press **Verify ISO + preview VM**. A chunked SHA-256 check runs first.
    Next, virt-install is invoked **only with both `--dry-run` and
    `--print-xml`**, for the install-stage and post-install-stage XML.
-   Both XML definitions must pass Nightglass's conservative VM audit.
+   Both XML definitions must pass Midnight Provisioner's conservative VM audit.
 6. If the preview passes, inspect the proposed command and settings.
    Open **virt-manager** and create the actual VM there. During VM creation,
-   remove guest-host integration features that fail Nightglass's launch
-   policy. Nightglass **does not run** the proposed command.
-7. After the guest is created, use **Bind VM** in Nightglass. Its current
-   libvirt XML is audited before Nightglass starts the VM.
+   remove guest-host integration features that fail Midnight Provisioner's launch
+   policy. Midnight Provisioner **does not run** the proposed command.
+7. After the guest is created, use **Bind VM** in Midnight Provisioner. Its current
+   libvirt XML is audited before Midnight Provisioner starts the VM.
 
 The command line offers the same read-only preview:
 
 ```bash
-nightglass provision pentest --iso /absolute/path/to/kali.iso --sha256 <PUBLISHER_SHA256>
-nightglass provision analysis --iso /absolute/path/to/linux.iso --sha256 <PUBLISHER_SHA256>
+midnight-provisioner provision pentest --iso /absolute/path/to/kali.iso --sha256 <PUBLISHER_SHA256>
+midnight-provisioner provision analysis --iso /absolute/path/to/linux.iso --sha256 <PUBLISHER_SHA256>
 ```
 
 ## Important limitations
@@ -57,7 +57,7 @@ nightglass provision analysis --iso /absolute/path/to/linux.iso --sha256 <PUBLIS
 - Malware labs must not be treated as safe for high-risk samples until
   guest isolation is validated on real Fedora/KVM hardware. For high-risk
   malware, prefer a dedicated physical analysis host.
-- Nightglass never silently changes an existing guest, storage pool,
+- Midnight Provisioner never silently changes an existing guest, storage pool,
   partition, UEFI configuration, Windows installation, or network.
 
 Reference: [virt-install man page](https://github.com/virt-manager/virt-manager/blob/main/man/virt-install.rst), especially the `--dry-run` and `--print-xml` flags.

@@ -1,8 +1,8 @@
 """Managed-save is an alternate VM definition that must be audited on restore."""
 import unittest
 from unittest.mock import patch
-from nightglass.hypervisor import Hypervisor
-from nightglass.runner import ToolError, Output
+from midnight_provisioner.hypervisor import Hypervisor
+from midnight_provisioner.runner import ToolError, Output
 
 
 def domain(*devices):
@@ -11,9 +11,9 @@ def domain(*devices):
 
 
 VNC = '<graphics type="vnc" listen="127.0.0.1"/>'
-LAB_NIC = '<interface type="network"><source network="nightglass-lab"/></interface>'
-LAB = '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
-FORWARDED = '<network><name>nightglass-lab</name><forward mode="nat"/><bridge name="virbr-nglab"/><dns enable="no"/></network>'
+LAB_NIC = '<interface type="network"><source network="midnight-provisioner-lab"/></interface>'
+LAB = '<network><name>midnight-provisioner-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
+FORWARDED = '<network><name>midnight-provisioner-lab</name><forward mode="nat"/><bridge name="virbr-nglab"/><dns enable="no"/></network>'
 
 
 def virsh(*args):
@@ -32,7 +32,7 @@ class FakeRunner:
         if saved is not None:
             self.values[virsh('managedsave-dumpxml', 'sample')] = saved
         if lab is not None:
-            self.values[virsh('net-dumpxml', 'nightglass-lab')] = lab
+            self.values[virsh('net-dumpxml', 'midnight-provisioner-lab')] = lab
 
     def run(self, argv, timeout=12):
         self.calls.append((argv, timeout))
@@ -60,7 +60,7 @@ class SavedStateTest(unittest.TestCase):
     def test_valid_saved_resume_permitted(self):
         r = FakeRunner(saved=domain(VNC))
         r.values[virsh('start', 'sample')] = 'Domain sample started\n'
-        with patch('nightglass.hypervisor.total_ram_gib', return_value=7.7):
+        with patch('midnight_provisioner.hypervisor.total_ram_gib', return_value=7.7):
             self.assertIn('started', Hypervisor(r).start('sample', 'isolated'))
         self.assertIn((list(virsh('managedsave-dumpxml', 'sample')), 12), r.calls)
 
@@ -84,7 +84,7 @@ class SavedStateTest(unittest.TestCase):
     def test_saved_memory_limit_applies(self):
         big = domain(VNC).replace('unit="MiB">3072', 'unit="GiB">5')
         r = FakeRunner(saved=big)
-        with patch('nightglass.hypervisor.total_ram_gib', return_value=7.7):
+        with patch('midnight_provisioner.hypervisor.total_ram_gib', return_value=7.7):
             with self.assertRaisesRegex(ToolError, 'Low-memory guard: VM declares up to'):
                 Hypervisor(r).start('sample', 'isolated')
         self.assertNotIn((list(virsh('start', 'sample')), 120), r.calls)

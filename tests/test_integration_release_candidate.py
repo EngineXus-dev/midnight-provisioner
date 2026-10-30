@@ -1,4 +1,4 @@
-"""Cumulative Nightglass source RC controls; never inspect real drives or merge."""
+"""Cumulative Midnight Provisioner source RC controls; never inspect real drives or merge."""
 from __future__ import annotations
 import importlib.util
 import json
@@ -6,16 +6,16 @@ from pathlib import Path
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SNAP = ROOT / "config/nightglass-integration-snapshot-v2.json"
-AUDIT = ROOT / "scripts/release/Review-Nightglass-Integration.py"
-PACK = ROOT / "scripts/release/Package-Nightglass-ReleaseCandidate.ps1"
+SNAP = ROOT / "config/midnight-provisioner-integration-snapshot-v2.json"
+AUDIT = ROOT / "scripts/release/Review-Midnight-Provisioner-Integration.py"
+PACK = ROOT / "scripts/release/Package-Midnight-Provisioner-ReleaseCandidate.ps1"
 
 
 class IntegrationReleaseCandidateTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.data = json.loads(SNAP.read_text(encoding="utf-8"))
-        spec = importlib.util.spec_from_file_location("nightglass_integration", AUDIT)
+        spec = importlib.util.spec_from_file_location("midnight_provisioner_integration", AUDIT)
         cls.audit = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cls.audit)
 

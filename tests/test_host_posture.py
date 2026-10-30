@@ -4,8 +4,8 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-import nightglass.host_posture as posture
-from nightglass.runner import Output, ToolError
+import midnight_provisioner.host_posture as posture
+from midnight_provisioner.runner import Output, ToolError
 
 
 class FakeRunner:

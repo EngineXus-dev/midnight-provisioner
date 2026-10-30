@@ -34,7 +34,7 @@ a successful OS exploit or any writes to the user's machine**.
 
 ## Changes
 
-`scripts/backup/Inspect-Nightglass-Backup.py` now has
+`scripts/backup/Inspect-Midnight-Provisioner-Backup.py` now has
 `reject_linked_ancestors(path)`:
 
 - Walks the chosen path component-by-component back to the volume
@@ -53,7 +53,7 @@ a successful OS exploit or any writes to the user's machine**.
   created within either inspected tree and cannot overwrite an
   existing file.
 
-`scripts/backup/Verify-Nightglass-BackupSet.py` invokes the same guard
+`scripts/backup/Verify-Midnight-Provisioner-BackupSet.py` invokes the same guard
 on the explicitly named private manifest path **before opening
 the manifest**. Every subsequent source/backup root is passed
 through `checked_root`.

@@ -6,7 +6,7 @@
 
 ## Confirmed execution blocker
 
-The three Nightglass test helpers are run as scripts:
+The three Midnight Provisioner test helpers are run as scripts:
 
 ```
 python -B scripts/testing/run_portable_suite.py --pattern test_kali_templates.py
@@ -17,13 +17,13 @@ python -B scripts/testing/run_required_suite.py --check gui
 Under ordinary Python behavior, executing a path inside `scripts/`
 places **that scripts directory** on `sys.path`. unittest discovery
 subsequently adds `tests/`, but not necessarily the repository root.
-Nightglass test modules import from `nightglass`, a package located
+Midnight Provisioner test modules import from `midnight-provisioner`, a package located
 at the project root. This can produce `ModuleNotFoundError:
-No module named 'nightglass'` even when the checkout is intact.
+No module named 'midnight-provisioner'` even when the checkout is intact.
 
 This was reproduced in a disposable Python 3.13 project **before**
 the fix, with `scripts/runner.py`, `tests/test_x.py` and a local
-`nightglass/__init__.py`. The fixture's loader detected an import
+`midnight_provisioner/__init__.py`. The fixture's loader detected an import
 error instead of running the test.
 
 ## Fix
@@ -50,7 +50,7 @@ No target VM is started or software installed by these helpers.
 
 `tests/test_isolated_runner_imports.py` constructs a new
 temporary, synthetic project that has its own `scripts/`,
-`tests/` and `nightglass/` directories. It copies the actual
+`tests/` and `midnight_provisioner/` directories. It copies the actual
 three checked-out runner scripts into that temporary project and
 executes them as separate Python subprocesses with **PYTHONPATH
 removed**. It verifies successful package imports, positive
@@ -64,7 +64,7 @@ included by the Python Docker headless-matrix test discovery.
 ### Evidence collected here
 
 - **Pre-fix reproduced** on the local isolated Python 3.13
-  environment: unittest discovery cannot find `nightglass`.
+  environment: unittest discovery cannot find `midnight-provisioner`.
 - **Post-fix core import-path logic exercised** in the same
   environment: synthetic script-mode runners successfully
   discovered and executed **65 / 75 / 5** representative

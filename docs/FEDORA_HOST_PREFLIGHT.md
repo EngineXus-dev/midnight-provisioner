@@ -11,11 +11,11 @@ isolation or a successful VM recovery.
 ## Phase A: non-root, read-only host prerequisites
 
 On a separate, properly configured **Fedora KDE test installation**,
-from a clean Nightglass source checkout **on the Fedora machine**:
+from a clean Midnight Provisioner source checkout **on the Fedora machine**:
 
     bash scripts/install/fedora-host-acceptance.sh
 
-This command uses Python standard-library plus the existing Nightglass
+This command uses Python standard-library plus the existing Midnight Provisioner
 host-posture module. It does not require PySide6, download packages,
 contact GitHub, use sudo, open a guest or modify libvirt.
 
@@ -37,7 +37,7 @@ separate acceptance requirements.
 To explicitly create **a NEW 0600 JSON evidence file** in an existing
 directory:
 
-    bash scripts/install/fedora-host-acceptance.sh --report "$HOME/nightglass-host-prerequisites-new.json"
+    bash scripts/install/fedora-host-acceptance.sh --report "$HOME/midnight-provisioner-host-prerequisites-new.json"
 
 Never run this example twice with the same filename. It uses exclusive
 creation and will refuse an existing destination or a direct symlink;
@@ -84,7 +84,7 @@ do not run suspicious samples or untrusted guest disk images as fixtures.
    this does not replace real Fedora host validation.
 
 Never run virsh define --validate as a supposedly read-only check:
-it registers a domain. The safe Nightglass XML validator is
+it registers a domain. The safe Midnight Provisioner XML validator is
 virt-xml-validate.
 
 ## Explicit hold points

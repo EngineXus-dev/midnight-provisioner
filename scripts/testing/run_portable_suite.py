@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed Nightglass Windows-portable unittest subset runner.
+"""Fail-closed Midnight Provisioner Windows-portable unittest subset runner.
 
 A plain unittest discover returns exit 0 for zero collected tests or all
 skipped tests. This runner rejects both. No Git/network/Docker/host writes;
@@ -31,7 +31,7 @@ def run_pattern(pattern: str, *, root: Path = ROOT) -> int:
         return 2
     # Executing 'python scripts/testing/run_portable_suite.py' sets sys.path[0]
     # to scripts/, NOT to the project root. Discovery adds tests/ only;
-    # it does not make 'import nightglass' available. Add the trusted
+    # it does not make 'import midnight_provisioner' available. Add the trusted
     # checked-out root explicitly before loading test modules.
     # Place the pinned checkout first, even when an inherited PYTHONPATH
     # already lists it after another potentially conflicting package root.
@@ -58,7 +58,7 @@ def run_pattern(pattern: str, *, root: Path = ROOT) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Require actual Nightglass Windows-portable tests")
+    parser = argparse.ArgumentParser(description="Require actual Midnight Provisioner Windows-portable tests")
     parser.add_argument("--pattern", required=True)
     args = parser.parse_args(argv)
     return run_pattern(args.pattern)

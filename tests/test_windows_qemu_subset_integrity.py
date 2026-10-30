@@ -19,15 +19,15 @@ class QemuSubsetRunnerCoverageTests(unittest.TestCase):
         tmp = tempfile.TemporaryDirectory(prefix="ng-qemu-tests-")
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
-        for folder in ("scripts", "tests", "nightglass"):
+        for folder in ("scripts", "tests", "midnight_provisioner"):
             (root / folder).mkdir()
         (root / "scripts" / "testing").mkdir()
         shutil.copyfile(SCRIPT, root / "scripts" / "testing" / SCRIPT.name)
         (root / "scripts" / "testing" / "verify_local.py").write_text(
             "WINDOWS_QEMU_CASES = " + repr(EXPECTED) + "\n", encoding="utf-8")
-        (root / "nightglass" / "__init__.py").write_text(
+        (root / "midnight_provisioner" / "__init__.py").write_text(
             "SYNTHETIC_VALUE = 7\n", encoding="utf-8")
-        src = ["import unittest", "from nightglass import SYNTHETIC_VALUE",
+        src = ["import unittest", "from midnight_provisioner import SYNTHETIC_VALUE",
                "class SyntheticQemuCases(unittest.TestCase):"]
         for case in EXPECTED:
             if case == missing:
@@ -42,7 +42,7 @@ class QemuSubsetRunnerCoverageTests(unittest.TestCase):
         src += ["class DeliberatelyExcluded(unittest.TestCase):",
                 "    def test_excluded(self): self.fail('should not run')"]
         if import_error:
-            src.insert(1, "import missing_nightglass_synthetic_dependency")
+            src.insert(1, "import missing_midnight_provisioner_synthetic_dependency")
         (root / "tests" / "test_kali_process_label.py").write_text(
             "\n".join(src) + "\n", encoding="utf-8")
         return root

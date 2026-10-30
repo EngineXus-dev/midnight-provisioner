@@ -4,11 +4,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from nightglass.hypervisor import Hypervisor, assess_domain
-from nightglass.containers import Containers
-from nightglass.models import Workspace, WorkspaceError, safe_name
-from nightglass.runner import Runner, ToolError, Output
-from nightglass.settings import load_workspaces, save_workspaces
+from midnight_provisioner.hypervisor import Hypervisor, assess_domain
+from midnight_provisioner.containers import Containers
+from midnight_provisioner.models import Workspace, WorkspaceError, safe_name
+from midnight_provisioner.runner import Runner, ToolError, Output
+from midnight_provisioner.settings import load_workspaces, save_workspaces
 
 
 def domain(*inside: str) -> str:
@@ -16,8 +16,8 @@ def domain(*inside: str) -> str:
 
 
 LOOPBACK_VNC = '<graphics type="vnc" listen="127.0.0.1"/>'
-NO_FORWARD_LAB = "<network><name>nightglass-lab</name><bridge name='virbr-nglab'/><dns enable='no'/></network>"
-FORWARDED_LAB = "<network><name>nightglass-lab</name><forward mode='nat'/><bridge name='virbr-nglab'/><dns enable='no'/></network>"
+NO_FORWARD_LAB = "<network><name>midnight-provisioner-lab</name><bridge name='virbr-nglab'/><dns enable='no'/></network>"
+FORWARDED_LAB = "<network><name>midnight-provisioner-lab</name><forward mode='nat'/><bridge name='virbr-nglab'/><dns enable='no'/></network>"
 
 
 class FakeRunner:
@@ -103,16 +103,16 @@ class DomainAuditTest(unittest.TestCase):
         self.assertFalse(assess_domain(domain('<disk type="block" device="disk"><source dev="/dev/sda"/></disk>', LOOPBACK_VNC), 'isolated').ok)
 
     def test_verified_lab_no_forward(self):
-        nic = '<interface type="network"><source network="nightglass-lab"/></interface>'
+        nic = '<interface type="network"><source network="midnight-provisioner-lab"/></interface>'
         self.assertTrue(assess_domain(domain(nic, LOOPBACK_VNC), 'lab', NO_FORWARD_LAB).ok)
         self.assertFalse(assess_domain(domain(nic, LOOPBACK_VNC), 'lab', FORWARDED_LAB).ok)
         self.assertFalse(assess_domain(domain(nic, LOOPBACK_VNC), 'lab', None).ok)
         self.assertFalse(assess_domain(domain('<interface type="bridge"><source bridge="br0"/></interface>', LOOPBACK_VNC), 'lab', NO_FORWARD_LAB).ok)
 
     def test_lab_network_with_dns_relay_denied(self):
-        nic = '<interface type="network"><source network="nightglass-lab"/></interface>'
-        for net in ("<network><name>nightglass-lab</name><bridge name='virbr-nglab'/></network>",
-                    "<network><name>nightglass-lab</name><bridge name='virbr-nglab'/><dns><forwarder addr='8.8.8.8'/></dns></network>"):
+        nic = '<interface type="network"><source network="midnight-provisioner-lab"/></interface>'
+        for net in ("<network><name>midnight-provisioner-lab</name><bridge name='virbr-nglab'/></network>",
+                    "<network><name>midnight-provisioner-lab</name><bridge name='virbr-nglab'/><dns><forwarder addr='8.8.8.8'/></dns></network>"):
             with self.subTest(net=net):
                 check = assess_domain(domain(nic, LOOPBACK_VNC), 'lab', net)
                 self.assertFalse(check.ok)
@@ -163,8 +163,8 @@ class LifecycleTest(unittest.TestCase):
         # This is a synthetic policy-path test, not a Docker host RAM test.
         # A 2 GiB test container must not make its nominal 3 GiB guest fail.
         # Dedicated low-memory tests separately verify fail-closed limits.
-        with patch("nightglass.hypervisor.total_ram_gib", return_value=16), \
-             patch("nightglass.hypervisor.os.cpu_count", return_value=6):
+        with patch("midnight_provisioner.hypervisor.total_ram_gib", return_value=16), \
+             patch("midnight_provisioner.hypervisor.os.cpu_count", return_value=6):
             result = Hypervisor(runner).start('safevm', 'isolated')
         self.assertIn('started', result)
         self.assertEqual(runner.calls[-1][0], list(virsh('start', 'safevm')))
@@ -196,7 +196,7 @@ class ConfigTest(unittest.TestCase):
             target = Path(td) / 'settings' / 'workspaces.json'
             source = [Workspace('test', 'Test', 'vm', 'safevm', 'isolated', 'offline')]
             if os.name == "nt":
-                with patch("nightglass.settings.os.fchmod", create=True):
+                with patch("midnight_provisioner.settings.os.fchmod", create=True):
                     save_workspaces(source, target)
             else:
                 save_workspaces(source, target)
@@ -223,9 +223,9 @@ class ContainerTest(unittest.TestCase):
         listing = 'ID           | NAME        | STATUS | IMAGE\nabc          | other       | Up     | Ubuntu\n'
         runner = FakeRunner({
             ('distrobox', 'list', '--no-color'): listing,
-            ('distrobox', 'create', '--name', 'nightglass-dev', '--image', 'docker.io/library/ubuntu:24.04', '--yes'): 'Done',
+            ('distrobox', 'create', '--name', 'midnight-provisioner-dev', '--image', 'docker.io/library/ubuntu:24.04', '--yes'): 'Done',
         })
-        self.assertEqual(Containers(runner).create('nightglass-dev'), 'Done')
+        self.assertEqual(Containers(runner).create('midnight-provisioner-dev'), 'Done')
 
     def test_arbitrary_image_not_accepted(self):
         with self.assertRaises(ToolError):
@@ -273,7 +273,7 @@ class MemoryGuardTest(unittest.TestCase):
             virsh('dumpxml', 'safevm'): domain(LOOPBACK_VNC),
             virsh('domstate', 'othervm'): 'running\n',
         })
-        with patch('nightglass.hypervisor.total_ram_gib', return_value=7.7):
+        with patch('midnight_provisioner.hypervisor.total_ram_gib', return_value=7.7):
             with self.assertRaisesRegex(ToolError, 'another VM is already active'):
                 Hypervisor(runner).start('safevm', 'isolated')
         self.assertNotIn((list(virsh('start', 'safevm')), 120), runner.calls)
@@ -284,7 +284,7 @@ class MemoryGuardTest(unittest.TestCase):
             virsh('dominfo', 'safevm'): 'Managed save: no\n',
             virsh('dumpxml', 'safevm'): '<domain><name>safevm</name><memory unit="GiB">5</memory><devices>' + LOOPBACK_VNC + '</devices></domain>',
         })
-        with patch('nightglass.hypervisor.total_ram_gib', return_value=7.7):
+        with patch('midnight_provisioner.hypervisor.total_ram_gib', return_value=7.7):
             with self.assertRaisesRegex(ToolError, 'Low-memory guard: VM declares up to'):
                 Hypervisor(runner).start('safevm', 'isolated')
         self.assertNotIn((list(virsh('start', 'safevm')), 120), runner.calls)
@@ -297,7 +297,7 @@ class HotplugMemoryGuardTest(unittest.TestCase):
             virsh('dominfo', 'safevm'): 'Managed save: no\n',
             virsh('dumpxml', 'safevm'): xml,
         })
-        with patch('nightglass.hypervisor.total_ram_gib', return_value=7.7):
+        with patch('midnight_provisioner.hypervisor.total_ram_gib', return_value=7.7):
             with self.assertRaisesRegex(ToolError, 'Low-memory guard: VM declares up to'):
                 Hypervisor(runner).start('safevm', 'isolated')
         self.assertNotIn((list(virsh('start', 'safevm')), 120), runner.calls)

@@ -1,6 +1,6 @@
 # Kali template cold-backup → offline recovery copy binding
 
-This is the next read-only stage of Nightglass's **separate Kali template
+This is the next read-only stage of Midnight Provisioner's **separate Kali template
 VM** workflow. It checks that an existing, independently staged recovery
 folder really originated from the expected Kali template cold backup.
 
@@ -10,15 +10,15 @@ guest, register a libvirt domain, start a VM or verify a boot.
 ## Sequence
 
 First maintain a benign, manually installed Kali VM in its own disk.
-Manually shut it down and create a **cold backup** using Nightglass's
+Manually shut it down and create a **cold backup** using Midnight Provisioner's
 existing confirmation-gated backup command or GUI, preferably on separate,
 encrypted storage.
 
 Check the backup:
 
 ```bash
-nightglass backup verify /path/to/existing-cold-backup
-nightglass templates baseline /path/to/original-kali-plan.json \
+midnight-provisioner backup verify /path/to/existing-cold-backup
+midnight-provisioner templates baseline /path/to/original-kali-plan.json \
   --disk /path/to/original-kali.qcow2 \
   --backup /path/to/existing-cold-backup
 ```
@@ -31,7 +31,7 @@ not triggered by this command.
 For an *already-created* staging directory, run:
 
 ```bash
-nightglass templates recovery-link /path/to/original-kali-plan.json \
+midnight-provisioner templates recovery-link /path/to/original-kali-plan.json \
   --backup /path/to/existing-cold-backup \
   --staged /path/to/NEW-offline-staging
 ```
@@ -39,7 +39,7 @@ nightglass templates recovery-link /path/to/original-kali-plan.json \
 Optionally write one NEW non-sensitive private report:
 
 ```bash
-nightglass templates recovery-link /path/to/original-kali-plan.json \
+midnight-provisioner templates recovery-link /path/to/original-kali-plan.json \
   --backup /path/to/existing-cold-backup \
   --staged /path/to/NEW-offline-staging \
   --report /path/to/NEW-recovery-link-evidence.json
@@ -77,7 +77,7 @@ The result is **MATCHED (FILES/XML ONLY — NOT RESTORE-PROVEN)**, never
 ## Read-only check after manual registration
 
 After separately inspecting and **manually registering** a new, shut-off
-benign recovery VM, run `nightglass templates recovery-registered PLAN.json
+benign recovery VM, run `midnight-provisioner templates recovery-registered PLAN.json
 --backup EXISTING_BACKUP --staged EXISTING_STAGE`. The GUI offers
 **Audit registered Kali recovery**. This revalidates the backup and copy
 against the actual system-libvirt recovery guest, requiring a new VM UUID,

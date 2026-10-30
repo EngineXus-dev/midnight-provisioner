@@ -9,7 +9,7 @@ from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
-from nightglass.install_proposal_review import (
+from midnight_provisioner.install_proposal_review import (
     SCHEMA, STATUS, ProposalError, parse_proposal, read_proposal_file,
     review_proposal, describe_proposal,
 )
@@ -65,7 +65,7 @@ class ProposalReviewTests(unittest.TestCase):
     def test_user_backups_not_certified_even_when_plan_parses(self):
         d = proposal()
         r = review_proposal(d)
-        self.assertFalse(r.user_backups_verified_by_nightglass)
+        self.assertFalse(r.user_backups_verified_by_midnight_provisioner)
         self.assertFalse(r.independent_destructive_consent)
         self.assertFalse(r.official_installer_origin_verified)
 
@@ -160,7 +160,7 @@ class ProposalReviewTests(unittest.TestCase):
         self.assertNotIn("/dev/", report)
 
     def test_cli_reads_explicit_file_but_never_authorizes(self):
-        from nightglass.cli import main
+        from midnight_provisioner.cli import main
         with TemporaryDirectory() as tmp:
             path = Path(tmp) / "proposal.json"
             path.write_text(json.dumps(proposal()), encoding="utf8")
@@ -173,7 +173,7 @@ class ProposalReviewTests(unittest.TestCase):
             self.assertFalse(doc["os_install_authorized"])
 
     def test_bad_file_returns_error_without_report(self):
-        from nightglass.cli import main
+        from midnight_provisioner.cli import main
         with TemporaryDirectory() as tmp:
             path = Path(tmp) / "invalid.json"
             path.write_text("{}", encoding="utf8")
@@ -192,14 +192,14 @@ class ProposalReviewTests(unittest.TestCase):
                           "actual_partition_geometry_verified",
                           "all_connected_disks_accounted_for",
                           "official_installer_origin_verified",
-                          "user_backups_verified_by_nightglass",
+                          "user_backups_verified_by_midnight_provisioner",
                           "independent_destructive_consent", "disk_write_authorized",
                           "os_install_authorized"):
                 with self.subTest(mode=mode, field=field):
                     self.assertIs(report[field], False)
 
     def test_no_executors_in_parser_module(self):
-        import nightglass.install_proposal_review as mod
+        import midnight_provisioner.install_proposal_review as mod
         source = Path(mod.__file__).read_text(encoding="utf-8")
         for token in ("subprocess.run(", "subprocess.Popen(", "os.system(",
                       ".write_bytes(", ".write_text(", "shutil.copy",

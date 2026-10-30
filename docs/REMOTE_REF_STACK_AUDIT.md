@@ -10,11 +10,11 @@ to preserve local and untracked files.
 
 ## Solution: read one immutable, fetched Git object
 
-`scripts/release/Audit-Nightglass-PR-Stack.py` now reads the manifest from
+`scripts/release/Audit-Midnight-Provisioner-PR-Stack.py` now reads the manifest from
 the **full 40-character SHA** of
 `refs/remotes/origin/verification/remote-ref-stack-audit` using:
 
-    git show <VERIFIED_COMMIT_SHA>:config/nightglass-pr-stack-snapshot.json
+    git show <VERIFIED_COMMIT_SHA>:config/midnight-provisioner-pr-stack-snapshot.json
 
 That command only reads Git's local object database. It does **not**
 checkout or copy the candidate into the user's working tree. The
@@ -55,19 +55,19 @@ version pinning need human review before future workflow activation.
 
 ## Safely run the existing main checkout on Windows
 
-On the user's **original Nightglass main directory** in PowerShell,
+On the user's **original Midnight Provisioner main directory** in PowerShell,
 after reviewing the source for the proposed audit:
 
 ```powershell
 # Updates Git remote-tracking metadata; does NOT check out/merge.
 git fetch --no-tags origin
-if ($LASTEXITCODE -ne 0) { throw "Nightglass fetch failed" }
+if ($LASTEXITCODE -ne 0) { throw "Midnight Provisioner fetch failed" }
 
-$folder = Join-Path $env:TEMP ("Nightglass-StackAudit-" + [guid]::NewGuid().ToString("N"))
+$folder = Join-Path $env:TEMP ("Midnight-Provisioner-StackAudit-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $folder | Out-Null
-$audit = Join-Path $folder "Audit-Nightglass-PR-Stack.py"
+$audit = Join-Path $folder "Audit-Midnight-Provisioner-PR-Stack.py"
 
-$source = git show origin/verification/remote-ref-stack-audit:scripts/release/Audit-Nightglass-PR-Stack.py
+$source = git show origin/verification/remote-ref-stack-audit:scripts/release/Audit-Midnight-Provisioner-PR-Stack.py
 if ($LASTEXITCODE -ne 0) { throw "Failed to obtain audit script" }
 $source | Set-Content -LiteralPath $audit -Encoding UTF8
 

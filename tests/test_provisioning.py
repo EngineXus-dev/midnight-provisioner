@@ -6,14 +6,14 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from nightglass.portability import budget_for
-from nightglass.provisioning import (
+from midnight_provisioner.portability import budget_for
+from midnight_provisioner.provisioning import (
     MIN_ISO_BYTES, OfflineProvisioner, build_plan, verify_iso,
 )
-from nightglass.runner import Output, ToolError
+from midnight_provisioner.runner import Output, ToolError
 
 
-def good_xml(name="nightglass-malware", extra="", ram=2048):
+def good_xml(name="midnight-provisioner-malware", extra="", ram=2048):
     return (
         '<domain type="kvm"><name>' + name + '</name>'
         f'<memory unit="MiB">{ram}</memory><devices>'
@@ -105,7 +105,7 @@ class OfflineProvisioningTests(unittest.TestCase):
         fake = FakeRunner(good_xml(), good_xml())
         class ExistingVM:
             def list_domains(self):
-                return ["nightglass-malware"]
+                return ["midnight-provisioner-malware"]
         with self.assertRaisesRegex(ToolError, "already exists"):
             OfflineProvisioner(fake, ExistingVM()).preview(plan)
         self.assertEqual(fake.calls, [])
@@ -157,19 +157,19 @@ class OfflineProvisioningTests(unittest.TestCase):
 
 
 class HostReadinessTests(unittest.TestCase):
-    @patch("nightglass.diagnostics.shutil.which", return_value=None)
-    @patch("nightglass.diagnostics.os.access", return_value=False)
-    @patch("nightglass.diagnostics.os.path.exists", return_value=True)
+    @patch("midnight_provisioner.diagnostics.shutil.which", return_value=None)
+    @patch("midnight_provisioner.diagnostics.os.access", return_value=False)
+    @patch("midnight_provisioner.diagnostics.os.path.exists", return_value=True)
     def test_kvm_device_without_permission_is_warning(self, _exists, _access, _which):
-        from nightglass.diagnostics import collect_checks
+        from midnight_provisioner.diagnostics import collect_checks
         checks = collect_checks()
         kvm = next(c for c in checks if c.name == "KVM device")
         self.assertFalse(kvm.ok)
         self.assertIn("permissions", kvm.message)
 
-    @patch("nightglass.diagnostics.shutil.which", return_value=None)
+    @patch("midnight_provisioner.diagnostics.shutil.which", return_value=None)
     def test_diagnostics_include_virt_install(self, _which):
-        from nightglass.diagnostics import collect_checks
+        from midnight_provisioner.diagnostics import collect_checks
         self.assertTrue(any(c.name == "virt-install" for c in collect_checks()))
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-# Nightglass deployment decision record (copy privately; never publish secrets)
+# Midnight Provisioner deployment decision record (copy privately; never publish secrets)
 
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
@@ -96,7 +96,7 @@ See ONE_USB_MULTIBOOT_PLAN.md.
 ## Backup to portable drive (planned, not performed)
 
 - [ ] Preserve desired documents, media, programs/licence records, browser
-      data, Nightglass/local Git trees including ignored/untracked changes,
+      data, Midnight Provisioner/local Git trees including ignored/untracked changes,
       local .env/config, secure credentials, and valuable user databases
 - [ ] Copy reviewed data to the user-confirmed portable example backup-drive capacity drive;
       validate sizes, hashes and spot-check opening restored copies

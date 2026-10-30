@@ -12,7 +12,7 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-REVIEW = ROOT / "scripts" / "windows" / "Read-Nightglass-Windows-HostGate.ps1"
+REVIEW = ROOT / "scripts" / "windows" / "Read-Midnight-Provisioner-Windows-HostGate.ps1"
 
 
 class WindowsHostGateTests(unittest.TestCase):
@@ -79,7 +79,7 @@ class WindowsHostGateTests(unittest.TestCase):
                 self.assertIn(f"{field} = $false", self.script)
         self.assertIn("HOLD_MANUAL_DEPLOYMENT_APPROVAL", self.script)
         self.assertIn("manual_requirements = $manual", self.script)
-        self.assertIn("schema = 'nightglass.windows-host-observation.v1'", self.script)
+        self.assertIn("schema = 'midnight-provisioner.windows-host-observation.v1'", self.script)
 
     def test_unknown_and_failure_states_fail_closed(self):
         self.assertIn("@('OBSERVED', 'REVIEW', 'HOLD', 'UNKNOWN')", self.script)

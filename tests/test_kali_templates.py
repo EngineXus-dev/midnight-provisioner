@@ -6,12 +6,12 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from nightglass.cli import main
-from nightglass.kali_templates import (
+from midnight_provisioner.cli import main
+from midnight_provisioner.kali_templates import (
     CATALOG, KaliTemplate, get_template, list_templates, plan_template,
 )
-from nightglass.portability import budget_for
-from nightglass.runner import ToolError
+from midnight_provisioner.portability import budget_for
+from midnight_provisioner.runner import ToolError
 
 VALID_SHA = "a" * 64
 
@@ -32,7 +32,7 @@ class KaliTemplateTests(unittest.TestCase):
         self.assertEqual(len({t.identifier for t in CATALOG}), len(CATALOG))
         self.assertEqual(len({t.default_name for t in CATALOG}), len(CATALOG))
         self.assertEqual({t.category for t in CATALOG}, {"white-hat", "red-team"})
-        self.assertTrue(all(t.default_name.startswith("nightglass-kali-") for t in CATALOG))
+        self.assertTrue(all(t.default_name.startswith("midnight-provisioner-kali-") for t in CATALOG))
         self.assertTrue(all(1 <= len(t.packages) <= 7 for t in CATALOG))
 
     def test_no_everything_or_large_metapackage_and_no_default_network(self):
@@ -109,7 +109,7 @@ class KaliTemplateTests(unittest.TestCase):
         from contextlib import redirect_stdout
         from io import StringIO
         out = StringIO()
-        with patch("nightglass.cli.OfflineProvisioner") as provision, \
+        with patch("midnight_provisioner.cli.OfflineProvisioner") as provision, \
              redirect_stdout(out):
             self.assertEqual(main(["templates", "list", "--category", "red-team"]), 0)
             self.assertIn("red-team", out.getvalue())
@@ -125,7 +125,7 @@ class KaliTemplateTests(unittest.TestCase):
         from contextlib import redirect_stderr
         from io import StringIO
         err = StringIO()
-        with patch("nightglass.cli.OfflineProvisioner") as provision, \
+        with patch("midnight_provisioner.cli.OfflineProvisioner") as provision, \
              redirect_stderr(err):
             self.assertEqual(main([
                 "provision", "analysis", "--template", "recon",

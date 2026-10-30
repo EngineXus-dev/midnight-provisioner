@@ -1,4 +1,4 @@
-"""Offline synthetic verification of Nightglass read-only backup integrity.
+"""Offline synthetic verification of Midnight Provisioner read-only backup integrity.
 
 Uses temporary miniature trees only: no user documents, portable disks,
 GitHub, Git, privileged operations or OS installers are touched.
@@ -19,8 +19,8 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-TOOL = ROOT / "scripts" / "backup" / "Inspect-Nightglass-Backup.py"
-spec = importlib.util.spec_from_file_location("nightglass_backup_inspector", TOOL)
+TOOL = ROOT / "scripts" / "backup" / "Inspect-Midnight-Provisioner-Backup.py"
+spec = importlib.util.spec_from_file_location("midnight_provisioner_backup_inspector", TOOL)
 backup = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 # dataclasses with postponed annotations resolve their declaring module

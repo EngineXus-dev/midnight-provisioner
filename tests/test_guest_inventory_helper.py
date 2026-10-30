@@ -10,11 +10,11 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from nightglass.kali_setup import (
+from midnight_provisioner.kali_setup import (
     build_setup_plan, compare_inventory, guest_inventory_instructions,
     save_setup_plan,
 )
-from nightglass.cli import main as host_cli
+from midnight_provisioner.cli import main as host_cli
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "kali" / "kali-guest-inventory.py"
@@ -31,7 +31,7 @@ _fixture_mode_patch = None
 def setUpModule():
     global _fixture_mode_patch
     if os.name == "nt":
-        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch = patch("midnight_provisioner.kali_setup.os.fchmod", create=True)
         _fixture_mode_patch.start()
 
 
@@ -76,7 +76,7 @@ class GuestInventoryHelperTests(unittest.TestCase):
 
     def test_report_is_consumable_by_existing_host_plan_comparer(self):
         report = self.collect()
-        self.assertEqual(report["format"], "nightglass-kali-guest-inventory")
+        self.assertEqual(report["format"], "midnight-provisioner-kali-guest-inventory")
         self.assertEqual(report["guest"], self.plan["guest"])
         self.assertEqual(report["kali_release"], "kali-rolling")
         self.assertTrue(report["dpkg_audit_clean"])
@@ -196,8 +196,8 @@ class GuestInventoryHelperTests(unittest.TestCase):
         from contextlib import redirect_stdout
         from io import StringIO
         output = StringIO()
-        with patch("nightglass.cli.OfflineProvisioner") as provisioning, \
-             patch("nightglass.cli.Hypervisor") as hypervisor, redirect_stdout(output):
+        with patch("midnight_provisioner.cli.OfflineProvisioner") as provisioning, \
+             patch("midnight_provisioner.cli.Hypervisor") as hypervisor, redirect_stdout(output):
             self.assertEqual(host_cli(["templates", "guest-help", "recon"]), 0)
             provisioning.assert_not_called()
             hypervisor.assert_not_called()

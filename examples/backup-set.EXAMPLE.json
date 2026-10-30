@@ -2,9 +2,9 @@
   "version": 1,
   "entries": [
     {
-      "id": "nightglass",
-      "source": "C:\\REPLACE_WITH_YOUR_ACCOUNT\\Documents\\nightglass-workspaces",
-      "backup": "E:\\REPLACE_WITH_REAL_PORTABLE_DRIVE\\nightglass-workspaces"
+      "id": "midnight-provisioner",
+      "source": "C:\\REPLACE_WITH_YOUR_ACCOUNT\\Documents\\midnight-provisioner",
+      "backup": "E:\\REPLACE_WITH_REAL_PORTABLE_DRIVE\\midnight-provisioner"
     },
     {
       "id": "documents",

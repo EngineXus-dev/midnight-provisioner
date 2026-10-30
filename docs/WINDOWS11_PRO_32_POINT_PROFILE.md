@@ -25,7 +25,7 @@ The user supplied `Get.ps1` (~9 KiB) and a `winutil-main.zip`
   content at runtime, clears/replaces a temporary program directory,
   and launches the downloaded PowerShell with elevation. A quick
   `-WhatIf` assumption would NOT make the downloader passive. The
-  Nightglass helper rejects it as a candidate for later ApplyCore.
+  Midnight Provisioner helper rejects it as a candidate for later ApplyCore.
 - The supplied WinUtil ZIP contains source code, app/tweak/feature
   configuration and automation. Its configuration includes choices
   that can remove Windows widgets, disable hibernation, change
@@ -107,7 +107,7 @@ into an automatic "just do everything" pass.
   preset breaks Windows Update, firewall or SmartScreen.
 - **Copilot app removal is separate.** The actual upstream
   `-DisableCopilot` option disables Copilot and **uninstalls its Appx
-  package**. Nightglass excludes it from ApplyCore even though the
+  package**. Midnight Provisioner excludes it from ApplyCore even though the
   35-item catalog records the user's removal preference. Uninstall
   is approved only in a separate, recovery-reviewed app phase; a
   registry snapshot cannot reinstall removed apps.
@@ -130,7 +130,7 @@ into an automatic "just do everything" pass.
   recommended** and virtualization support; this laptop only reports
   detected RAM capacity usable. Enable only after a separate admin action, reboot
   approval and resource checks; **do not run an additional VM at
-  the same time**. Sandbox itself is not a replacement for Nightglass
+  the same time**. Sandbox itself is not a replacement for Midnight Provisioner
   high-risk offline malware VM isolation, and may have networking.
 - **WSL2** is useful for local dev and Docker Desktop. Preserve
   Windows virtualization features in the NTLite image; enable WSL2
@@ -168,7 +168,7 @@ into an automatic "just do everything" pass.
 On **this branch's isolated files**, use the planner on *any Windows
 PowerShell 5.1 session* only after its native parser passes:
 
-    powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File scripts/windows/Invoke-Nightglass-Win11ProCustom.ps1 -Mode Preview
+    powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File scripts/windows/Invoke-Midnight-Provisioner-Win11ProCustom.ps1 -Mode Preview
 
 Default `-Mode Preview` reads only the JSON in
 `config/windows11-pro-custom.json`; it neither calls Win11Debloat,
@@ -177,7 +177,7 @@ OS services, apps, startup or USB disks.
 
 For an optional **new private plan-only JSON** in an existing directory:
 
-    powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File scripts/windows/Invoke-Nightglass-Win11ProCustom.ps1 -Mode ExportPlan -PlanPath "<new-plan-path>.json"
+    powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File scripts/windows/Invoke-Midnight-Provisioner-Win11ProCustom.ps1 -Mode ExportPlan -PlanPath "<new-plan-path>.json"
 
 Exclusive `CreateNew` refuses an existing destination. This reports
 which flags are candidates only; no app removal, automatic encryption
@@ -215,7 +215,7 @@ Change product key** and enter the private Pro key there.
 
 Alternatively select **DuringSetup** to enter the Pro key privately
 into genuine Microsoft Setup. No key is ever collected, embedded in
-NTLite, saved to JSON, transmitted to GitHub or processed by Nightglass.
+NTLite, saved to JSON, transmitted to GitHub or processed by Midnight Provisioner.
 An unactivated Pro install is NOT a fully activated system; activation
 must be checked before treating the configuration as validated.
 

@@ -1,6 +1,6 @@
 # Native libvirt/QEMU smoke tests (no VM boot)
 
-Nightglass now has two independent verification layers.
+Midnight Provisioner now has two independent verification layers.
 
 1. Unit tests simulate libvirt calls and check that unsafe input is rejected.
 2. Native integration tests use real libvirt XML schema tooling and QEMU
@@ -9,7 +9,7 @@ Nightglass now has two independent verification layers.
 In GitHub Actions, the dedicated native-tools job installs libvirt-clients
 and qemu-utils in an ephemeral Ubuntu runner, then runs the native tests.
 The tests check a schema-valid offline VM definition, demonstrate that a
-schema-valid guest NIC is still prohibited by the Nightglass offline policy,
+schema-valid guest NIC is still prohibited by the Midnight Provisioner offline policy,
 create harmless 8-MiB qcow2/raw disks in a temporary directory, and verify
 that a real QCOW2 external backing-file chain is rejected.
 
@@ -32,4 +32,4 @@ requires both utilities before running.
 
 Run the supervised Fedora/KVM acceptance procedure in FEDORA_ACCEPTANCE.md
 with harmless guest images before enabling automatic VM import or treating
-Nightglass as an isolation boundary.
+Midnight Provisioner as an isolation boundary.

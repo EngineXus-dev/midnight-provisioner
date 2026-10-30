@@ -8,9 +8,9 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from nightglass.acceptance import RegisteredGuestAuditor, save_acceptance
-from nightglass.portability import budget_for
-from nightglass.runner import ToolError
+from midnight_provisioner.acceptance import RegisteredGuestAuditor, save_acceptance
+from midnight_provisioner.portability import budget_for
+from midnight_provisioner.runner import ToolError
 
 
 # Windows lacks POSIX fchmod; mock only while running synthetic tests.
@@ -20,7 +20,7 @@ _fixture_mode_patch = None
 def setUpModule():
     global _fixture_mode_patch
     if os.name == "nt":
-        _fixture_mode_patch = patch("nightglass.acceptance.os.fchmod", create=True)
+        _fixture_mode_patch = patch("midnight_provisioner.acceptance.os.fchmod", create=True)
         _fixture_mode_patch.start()
 
 
@@ -32,10 +32,10 @@ def tearDownModule():
 
 
 VNC = '<graphics type="vnc" listen="127.0.0.1"/>'
-LAB_NIC = '<interface type="network"><source network="nightglass-lab"/></interface>'
+LAB_NIC = '<interface type="network"><source network="midnight-provisioner-lab"/></interface>'
 OTHER_NIC = '<interface type="network"><source network="default"/></interface>'
-LAB_NET = '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
-FORWARD_NET = '<network><name>nightglass-lab</name><forward mode="nat"/><bridge name="virbr-nglab"/><dns enable="no"/></network>'
+LAB_NET = '<network><name>midnight-provisioner-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
+FORWARD_NET = '<network><name>midnight-provisioner-lab</name><forward mode="nat"/><bridge name="virbr-nglab"/><dns enable="no"/></network>'
 
 
 def vm_xml(name="restored-safe", devices="", ram=2048):
@@ -69,7 +69,7 @@ class FakeHypervisor:
             return self.current
         if args == ("dumpxml", "--inactive", "restored-safe"):
             return self.inactive
-        if args == ("net-dumpxml", "nightglass-lab"):
+        if args == ("net-dumpxml", "midnight-provisioner-lab"):
             if self.lab is None:
                 raise ToolError("Network unavailable")
             return self.lab
@@ -82,7 +82,7 @@ class FakeHypervisor:
 
 class RegisteredAcceptanceTests(unittest.TestCase):
     def audited(self, hv, policy="isolated"):
-        with patch("nightglass.acceptance.current_budget", return_value=budget_for(8.0, 6)):
+        with patch("midnight_provisioner.acceptance.current_budget", return_value=budget_for(8.0, 6)):
             return RegisteredGuestAuditor(hv).inspect("restored-safe", policy)
 
     def test_safe_new_guest_checks_all_definitions_without_starting(self):
@@ -135,7 +135,7 @@ class RegisteredAcceptanceTests(unittest.TestCase):
         self.assertTrue(report.ok)
         self.assertEqual(report.interfaces, 1)
         self.assertTrue(any("host bridge" in x for x in report.warnings))
-        self.assertIn(("net-dumpxml", "nightglass-lab"), hv.calls)
+        self.assertIn(("net-dumpxml", "midnight-provisioner-lab"), hv.calls)
 
     def test_nat_lab_network_denied(self):
         hv = FakeHypervisor(current=vm_xml(devices=LAB_NIC),

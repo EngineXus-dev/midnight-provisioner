@@ -6,10 +6,10 @@ from io import StringIO
 import unittest
 from unittest.mock import patch
 
-from nightglass import install_encryption as enc
-from nightglass.cli import main
-from nightglass.install_change_review import review_from_discovery
-from nightglass.install_target_preview import build_target_preview, describe_target_preview
+from midnight_provisioner import install_encryption as enc
+from midnight_provisioner.cli import main
+from midnight_provisioner.install_change_review import review_from_discovery
+from midnight_provisioner.install_target_preview import build_target_preview, describe_target_preview
 
 
 def part(name, fstype=None, mounts=None, children=None, kind="part", fsver=None):
@@ -75,7 +75,7 @@ class EncryptionPlanTests(unittest.TestCase):
 
     def test_cli_install_preview_accepts_encryption(self):
         out = StringIO()
-        with patch("nightglass.system_discovery.collect_system", return_value=None), redirect_stdout(out):
+        with patch("midnight_provisioner.system_discovery.collect_system", return_value=None), redirect_stdout(out):
             self.assertEqual(main(["install-preview", "--encryption", "luks2"]), 0)
         self.assertIn("Encrypt my data", out.getvalue())
 
@@ -103,7 +103,7 @@ class EncryptionCheckTests(unittest.TestCase):
     def test_cli_exit_codes(self):
         for data, code in ((FEDORA_ENCRYPTED, 0), (FEDORA_PLAIN, 2)):
             out = StringIO()
-            with patch("nightglass.install_encryption.collect_encryption",
+            with patch("midnight_provisioner.install_encryption.collect_encryption",
                        return_value=enc.inspect_encryption(data)), redirect_stdout(out):
                 self.assertEqual(main(["encryption-check"]), code)
 

@@ -12,12 +12,12 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from nightglass.cli import main
-from nightglass.kali_cold_baseline import KaliColdBaselineInspector, save_cold_baseline_report
-from nightglass.kali_setup import build_setup_plan, save_setup_plan
-from nightglass.runner import Output, ToolError
+from midnight_provisioner.cli import main
+from midnight_provisioner.kali_cold_baseline import KaliColdBaselineInspector, save_cold_baseline_report
+from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
+from midnight_provisioner.runner import Output, ToolError
 
-GUEST = "nightglass-kali-recon"
+GUEST = "midnight-provisioner-kali-recon"
 UUID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 GIB = 1024 ** 3
 
@@ -42,7 +42,7 @@ _fixture_mode_patch = None
 def setUpModule():
     global _fixture_mode_patch
     if os.name == "nt":
-        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch = patch("midnight_provisioner.kali_setup.os.fchmod", create=True)
         _fixture_mode_patch.start()
 
 
@@ -127,7 +127,7 @@ class KaliColdBaselineTests(unittest.TestCase):
                          "source": self.nvram_source,
                          "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()})
         (self.backup / "manifest.json").write_text(json.dumps({
-            "format": "nightglass-cold-backup", "version": 1,
+            "format": "midnight-provisioner-cold-backup", "version": 1,
             "completed_at_utc": "2026-10-09T00:00:00+00:00",
             "domain": GUEST, "policy": "lab",
             "files": rows,
@@ -201,7 +201,7 @@ class KaliColdBaselineTests(unittest.TestCase):
 
     def test_network_adapter_or_installer_in_archive_blocks(self):
         for extra in (
-            '<interface type="network"><source network="nightglass-lab"/></interface>',
+            '<interface type="network"><source network="midnight-provisioner-lab"/></interface>',
             '<disk type="file" device="cdrom"><source file="/tmp/installer.iso"/></disk>',
         ):
             with self.subTest(extra=extra):
@@ -300,7 +300,7 @@ class KaliColdBaselineTests(unittest.TestCase):
         ]
         report = self.inspect()
         output = StringIO()
-        with patch("nightglass.cli.KaliColdBaselineInspector") as checker, redirect_stdout(output):
+        with patch("midnight_provisioner.cli.KaliColdBaselineInspector") as checker, redirect_stdout(output):
             checker.return_value.inspect.return_value = report
             self.assertEqual(main(arguments), 0)
             checker.return_value.inspect.assert_called_once_with(

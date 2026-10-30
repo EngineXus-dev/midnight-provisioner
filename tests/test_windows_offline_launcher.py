@@ -11,8 +11,8 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-LAUNCHER = ROOT / "scripts" / "testing" / "Invoke-Nightglass-OfflineChecks.ps1"
-GATE = ROOT / "scripts" / "testing" / "Run-Nightglass-Offline-Release-Gate.py"
+LAUNCHER = ROOT / "scripts" / "testing" / "Invoke-Midnight-Provisioner-OfflineChecks.ps1"
+GATE = ROOT / "scripts" / "testing" / "Run-Midnight-Provisioner-Offline-Release-Gate.py"
 
 
 class WindowsOneCommandOfflineChecksTests(unittest.TestCase):
@@ -36,7 +36,7 @@ class WindowsOneCommandOfflineChecksTests(unittest.TestCase):
 
     def test_docker_requires_explicit_literal_consent(self):
         s = self.source
-        self.assertIn("RUN NIGHTGLASS OFFLINE TESTS", s)
+        self.assertIn("RUN MIDNIGHT_PROVISIONER OFFLINE TESTS", s)
         self.assertIn("-cne $requiredConsent", s)
         self.assertIn("($PullPythonImages -or $BuildFedoraImage) -and -not $RunDockerGate", s)
         self.assertIn("Docker image pull/build options require", s)

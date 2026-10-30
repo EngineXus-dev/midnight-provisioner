@@ -8,16 +8,16 @@ import subprocess
 import tempfile
 import unittest
 
-FILE = Path(__file__).resolve().parents[1] / "scripts/release/Review-Nightglass-Integration.py"
-spec = importlib.util.spec_from_file_location("nightglass_integration_graph", FILE)
+FILE = Path(__file__).resolve().parents[1] / "scripts/release/Review-Midnight-Provisioner-Integration.py"
+spec = importlib.util.spec_from_file_location("midnight_provisioner_integration_graph", FILE)
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
 
 def git(root, *args):
-    env = {**os.environ, "GIT_AUTHOR_NAME":"Nightglass Test",
+    env = {**os.environ, "GIT_AUTHOR_NAME":"Midnight Provisioner Test",
            "GIT_AUTHOR_EMAIL":"test@example.org",
-           "GIT_COMMITTER_NAME":"Nightglass Test",
+           "GIT_COMMITTER_NAME":"Midnight Provisioner Test",
            "GIT_COMMITTER_EMAIL":"test@example.org"}
     p = subprocess.run(["git", "-C", str(root), *args], text=True,
                        capture_output=True, check=True, timeout=15, env=env)
@@ -27,7 +27,7 @@ def git(root, *args):
 def synthetic_repo(root):
     git(root, "init", "-q", "-b", "main")
     git(root, "remote", "add", "origin",
-        "https://github.com/EngineXus-dev/nightglass-workspaces.git")
+        "https://github.com/EngineXus-dev/midnight-provisioner.git")
     git(root, "commit", "-q", "--allow-empty", "-m", "baseline")
     main = git(root, "rev-parse", "HEAD")
     git(root, "update-ref", "refs/remotes/origin/main", main)

@@ -1,6 +1,6 @@
 # PR #53 divergence reconciliation — no silent merge
 
-**Recorded October 10, 2026.** Nightglass has 63 open draft PRs on the principal chained path: #1–29, #31–52, #54–65. Draft #53 is a **separate child of #52**, diverged from #54 and therefore never an ancestor of the cumulative candidate. PR #30 does not exist in this sequence. The later mainline was independently tested through #65; the same tests do not imply physical hardware acceptance.
+**Recorded October 10, 2026.** Midnight Provisioner has 63 open draft PRs on the principal chained path: #1–29, #31–52, #54–65. Draft #53 is a **separate child of #52**, diverged from #54 and therefore never an ancestor of the cumulative candidate. PR #30 does not exist in this sequence. The later mainline was independently tested through #65; the same tests do not imply physical hardware acceptance.
 
 ## PR #53's 16 changed files compared with current mainline
 

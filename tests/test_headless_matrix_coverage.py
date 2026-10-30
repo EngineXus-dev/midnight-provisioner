@@ -10,9 +10,9 @@ from unittest.mock import MagicMock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 MATRIX = ROOT / "scripts" / "testing" / "run_headless_matrix.py"
-RELEASE_GATE = ROOT / "scripts" / "testing" / "Run-Nightglass-Offline-Release-Gate.py"
+RELEASE_GATE = ROOT / "scripts" / "testing" / "Run-Midnight-Provisioner-Offline-Release-Gate.py"
 
-spec = importlib.util.spec_from_file_location("nightglass_matrix_gate", MATRIX)
+spec = importlib.util.spec_from_file_location("midnight_provisioner_matrix_gate", MATRIX)
 matrix = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(matrix)

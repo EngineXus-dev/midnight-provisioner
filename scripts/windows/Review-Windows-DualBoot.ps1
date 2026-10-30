@@ -1,7 +1,7 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-  Nightglass Windows-to-Fedora deployment observation. READ ONLY.
+  Midnight Provisioner Windows-to-Fedora deployment observation. READ ONLY.
 .DESCRIPTION
   Displays sanitized hardware/boot/disk/BitLocker/Fast-Startup state and
   clearly separates observed facts from human backup/install approvals.
@@ -44,7 +44,7 @@ function BootMode {
     return 'UNKNOWN'
 }
 
-Write-Host 'NIGHTGLASS  -  WINDOWS 10/11 + FEDORA READINESS OBSERVATION' -ForegroundColor Cyan
+Write-Host 'MIDNIGHT_PROVISIONER  -  WINDOWS 10/11 + FEDORA READINESS OBSERVATION' -ForegroundColor Cyan
 Write-Host 'QUERY ONLY: no sudo/admin, partition changes, bootloader edits, BitLocker/TPM changes or output files.'
 Write-Host 'This script cannot authorize a Windows upgrade or Fedora installation: backup/keys/eligibility/live-USB review remain mandatory.'
 Write-Host ''

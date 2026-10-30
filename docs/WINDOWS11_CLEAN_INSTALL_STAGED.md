@@ -62,7 +62,7 @@ See [Windows 11 Pro activation choices](WINDOWS11_PRO_ACTIVATE_LATER.md).
    exports, program configurations, software licence information,
    network settings, Git repositories including **uncommitted and
    untracked changes**, and app-specific databases.
-3. **Development assets.** For Nightglass and the other unrelated
+3. **Development assets.** For Midnight Provisioner and the other unrelated
    local projects, specifically review all local `.env` files,
    API/SSH keys, project configuration, custom scripts, generated
    assets, private datasets, Docker volumes and any VM images.
@@ -121,7 +121,7 @@ See [Windows 11 Pro activation choices](WINDOWS11_PRO_ACTIVATE_LATER.md).
   Only after Windows is stable should Fedora KDE Live USB and a
   separately authorized dual-boot installation be considered.
 - Fedora remains subject to separate boot/partition/SELinux/KVM/guest
-  acceptance checks. The present Nightglass 16 GB USB plan is a
+  acceptance checks. The present Midnight Provisioner 16 GB USB plan is a
   **boot-menu convenience**, NOT one-click unattended dual boot.
 
 ## STOP / HOLD conditions
@@ -169,7 +169,7 @@ No changes have been applied to current Windows 10.
 ## Phase 10 — locally verify a copied backup without modifying the portable drive
 
 The source and copied project folders can be checked with the
-preview-first `scripts/backup/Inspect-Nightglass-Backup.py` tool **after**
+preview-first `scripts/backup/Inspect-Midnight-Provisioner-Backup.py` tool **after**
 the user independently makes a backup. Default `Preview` reads
 nothing; `Inspect` compares presence/sizes and `Verify` streams
 SHA-256 hashes of regular files on both sides. Hidden `.env`,
@@ -187,7 +187,7 @@ later through genuine Windows Settings.
 
 The future Windows 11 Pro clean installation requires checking
 important data across all user-chosen locations—not only the current
-Nightglass working tree. Phase 11 introduces a private multi-folder
+Midnight Provisioner working tree. Phase 11 introduces a private multi-folder
 catalog and SHA-256 comparison [guide](MULTI_SOURCE_BACKUP_READINESS.md).
 Nothing is copied automatically. A successful content match of
 explicitly named roots still does **not** prove an actual restore,

@@ -4,7 +4,7 @@
 
 **Status: STAGED PLANNING ONLY. User chose a Windows 11 CLEAN INSTALL, but NOT now. NO INSTALL, PARTITION CHANGE OR USB FORMATTING AUTHORIZED.**
 
-Windows 11 is not a technical prerequisite of Nightglass. The user's
+Windows 11 is not a technical prerequisite of Midnight Provisioner. The user's
 current preference is a **future clean Windows 11 installation**,
 explicitly NOT an in-place upgrade, while still finishing other work.
 Prepare verified backups and eligibility first; **finish and validate
@@ -23,7 +23,7 @@ output reported:
 - **Disk 1: measured backup-disk capacity, GPT**, **user-confirmed PORTABLE DRIVE**.
   Its existing contents/backup role have not been inventoried. It is
   **EXCLUDED** from Fedora target selection and from boot-USB formatting
-- RAM detected RAM capacity usable, the detected logical CPU count; one small Nightglass VM at a time
+- RAM detected RAM capacity usable, the detected logical CPU count; one small Midnight Provisioner VM at a time
 - Firmware virtualization reported enabled; VMMonitorModeExtensions and
   SecondLevelAddressTranslationExtensions flags reported False. These
   Windows WMI indicators do NOT prove KVM will or will not work
@@ -105,14 +105,14 @@ decision requires a separate review of the real physical target,
 regardless of how Windows Setup numbers disks.
 
 The user will back up desired files to the **example backup-drive capacity portable drive** and
-verify their integrity. Preserve Nightglass and other projects'
+verify their integrity. Preserve Midnight Provisioner and other projects'
 uncommitted/untracked work, ignored .env/config, keys and datasets
 securely; GitHub alone is not a complete workstation backup. A
 file-copy backup is not necessarily a full bootable Windows recovery
 image. Disconnect the portable drive before any installer/USB-writer
 session so it cannot be selected accidentally.
 
-Nightglass has **no Windows 11 installer, USB formatter or partition
+Midnight Provisioner has **no Windows 11 installer, USB formatter or partition
 script** and does not touch boot entries, BitLocker, TPM, firmware or
 other user disks. The user is *not* installing yet.
 
@@ -128,7 +128,7 @@ After successfully reaching the Windows 11 desktop:
       needed applications, and independent external backups
 - [ ] Recheck recovery USB, encryption/recovery key, Windows boot
       entry, Secure Boot/TPM and Fast Startup state
-- [ ] Rerun the **read-only** Nightglass Windows 10/11 reviewer to
+- [ ] Rerun the **read-only** Midnight Provisioner Windows 10/11 reviewer to
       capture a **NEW** disk/partition/firmware baseline
 - [ ] Preserve user-confirmed portable Disk 1 exactly as-is. Verify
       that the future Fedora target is NOT this drive or a partition
@@ -153,7 +153,7 @@ security gates are still separate and outstanding.
 - Windows Fast Startup is currently enabled. Do not mount an NTFS
   volume read-write in Fedora while Windows is hibernated. Any change
   to Fast Startup should be a later separately approved Windows task.
-- An 8 GB class machine should run only one small Nightglass VM at a
+- An 8 GB class machine should run only one small Midnight Provisioner VM at a
   time with host headroom, regardless of Windows edition.
 
 **This draft phase performs no clean Windows installation, Fedora install,
@@ -164,7 +164,7 @@ See DEPLOYMENT_SAFETY_GATES.md and DEPLOYMENT_DECISION_TEMPLATE.md for
 the mandatory two-OS rollback/acceptance record.
 
 For one dedicated installer USB with Windows 11 and Fedora Live ISOs,
-see [Nightglass multi-ISO USB plan](ONE_USB_MULTIBOOT_PLAN.md).
+see [Midnight Provisioner multi-ISO USB plan](ONE_USB_MULTIBOOT_PLAN.md).
 
 The user reports a separate **16 GB USB**, which should fit two current
 official installation ISOs subject to real file-size and firmware checks.

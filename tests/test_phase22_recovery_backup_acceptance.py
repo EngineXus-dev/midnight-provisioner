@@ -10,8 +10,8 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "backup" / "Review-Nightglass-Recovery-Backup.py"
-spec = importlib.util.spec_from_file_location("nightglass_phase22_review", SCRIPT)
+SCRIPT = ROOT / "scripts" / "backup" / "Review-Midnight-Provisioner-Recovery-Backup.py"
+spec = importlib.util.spec_from_file_location("midnight_provisioner_phase22_review", SCRIPT)
 tool = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(tool)

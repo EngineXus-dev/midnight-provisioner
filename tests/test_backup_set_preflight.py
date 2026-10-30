@@ -16,8 +16,8 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "backup" / "Verify-Nightglass-BackupSet.py"
-spec = importlib.util.spec_from_file_location("nightglass_backup_set_test", SCRIPT)
+SCRIPT = ROOT / "scripts" / "backup" / "Verify-Midnight-Provisioner-BackupSet.py"
+spec = importlib.util.spec_from_file_location("midnight_provisioner_backup_set_test", SCRIPT)
 settool = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(settool)
@@ -30,7 +30,7 @@ class BackupSetTests(unittest.TestCase):
 
     def fixture(self, directory: Path):
         roots = {}
-        for label in ("nightglass", "personal"):
+        for label in ("midnight-provisioner", "personal"):
             original = directory / (label + "-source")
             backup = directory / (label + "-portable-copy")
             original.mkdir()
@@ -93,7 +93,7 @@ class BackupSetTests(unittest.TestCase):
             self.assertEqual(result["status"], "INCOMPLETE")
             self.assertFalse(result["all_selected_content_matched"])
             row = {x["id"]: x for x in result["entries"]}
-            self.assertEqual(row["nightglass"]["different_file_hashes"], 0)
+            self.assertEqual(row["midnight-provisioner"]["different_file_hashes"], 0)
             self.assertEqual(row["personal"]["different_file_hashes"], 1)
 
     def test_missing_copy_blocks_and_isolated_extras_never_deleted(self):
@@ -102,7 +102,7 @@ class BackupSetTests(unittest.TestCase):
             roots = self.fixture(home)
             p = self.manifest(home, roots)
             (roots["personal"][1] / "nested" / "readme.txt").unlink()
-            extra = roots["nightglass"][1] / "older-file.bin"
+            extra = roots["midnight-provisioner"][1] / "older-file.bin"
             extra.write_bytes(b"DO_NOT_DELETE")
             with redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(settool.main(["--mode", "Verify", "--manifest", str(p)]), 1)
@@ -142,7 +142,7 @@ class BackupSetTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             home = Path(temp)
             roots = self.fixture(home)
-            unrelated_original = roots["nightglass"][0] / ".env"
+            unrelated_original = roots["midnight-provisioner"][0] / ".env"
             fake_backup = roots["personal"][1] / ".env"
             fake_backup.unlink()
             try:
@@ -161,7 +161,7 @@ class BackupSetTests(unittest.TestCase):
             self.assertFalse(report["all_selected_content_matched"])
             self.assertEqual(report["source_identity_scope"], "ALL_SELECTED_SOURCE_ROOTS")
             by_id = {row["id"]: row for row in report["entries"]}
-            self.assertEqual(by_id["nightglass"]["same_file_identity_count"], 0)
+            self.assertEqual(by_id["midnight-provisioner"]["same_file_identity_count"], 0)
             self.assertEqual(by_id["personal"]["different_file_hashes"], 0)
             self.assertEqual(by_id["personal"]["same_file_identity_count"], 1)
             self.assertEqual(by_id["personal"]["identity_scope"],
@@ -172,7 +172,7 @@ class BackupSetTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             home = Path(temp)
             roots = self.fixture(home)
-            original = roots["nightglass"][0] / ".env"
+            original = roots["midnight-provisioner"][0] / ".env"
             alias = roots["personal"][1] / ".env"
             alias.unlink()
             try:
@@ -260,7 +260,7 @@ class BackupSetTests(unittest.TestCase):
             roots = self.fixture(home)
             p = self.manifest(home, roots)
             data = json.loads(p.read_text())
-            for value in ("nightglass", "C:/private", "MY EMAIL", "", "a" * 60):
+            for value in ("midnight-provisioner", "C:/private", "MY EMAIL", "", "a" * 60):
                 data["entries"][1]["id"] = value
                 p.write_text(json.dumps(data))
                 with self.subTest(label=value):

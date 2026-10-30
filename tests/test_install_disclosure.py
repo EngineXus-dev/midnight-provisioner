@@ -4,10 +4,10 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-from nightglass.install_disclosure import (
+from midnight_provisioner.install_disclosure import (
     ACKNOWLEDGMENT, FORMAT_TARGET, COEXIST, UNDECIDED, disclosure_for,
 )
-from nightglass.system_discovery import collect_system, describe
+from midnight_provisioner.system_discovery import collect_system, describe
 
 
 class FormatWarningTests(unittest.TestCase):
@@ -16,7 +16,7 @@ class FormatWarningTests(unittest.TestCase):
         warning = disclosure.warning.lower()
         for term in ("format", "deleted", "operating systems", "documents",
                      "before installation", "responsible", "backing",
-                     "nightglass does not", "stop"):
+                     "midnight provisioner does not", "stop"):
             with self.subTest(term=term):
                 self.assertIn(term, warning)
         self.assertIn("formatting can permanently delete", ACKNOWLEDGMENT.lower())
@@ -77,7 +77,7 @@ class FormatWarningTests(unittest.TestCase):
         self.assertIn("responsible", s["format_warning"].lower())
 
     def test_warning_does_not_perform_device_mutations_or_backup_operations(self):
-        import nightglass.install_disclosure as m
+        import midnight_provisioner.install_disclosure as m
         source = Path(m.__file__).read_text(encoding="utf-8")
         for token in ("import subprocess", "os.system", "shutil.copy",
                       "wipefs", "mkfs", "Format-Volume", "Clear-Disk",

@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param()
 $ErrorActionPreference = 'Continue'
-Write-Host '== NIGHTGLASS Windows Host Preflight (READ ONLY) ==' -ForegroundColor Cyan
+Write-Host '== MIDNIGHT_PROVISIONER Windows Host Preflight (READ ONLY) ==' -ForegroundColor Cyan
 Get-CimInstance Win32_OperatingSystem | Select-Object Caption,Version,OSArchitecture | Format-List
 Get-CimInstance Win32_Processor | Select-Object Name,NumberOfLogicalProcessors,VMMonitorModeExtensions,VirtualizationFirmwareEnabled,SecondLevelAddressTranslationExtensions | Format-List
 Get-CimInstance Win32_ComputerSystem | Select-Object Manufacturer,Model,TotalPhysicalMemory,HypervisorPresent | Format-List

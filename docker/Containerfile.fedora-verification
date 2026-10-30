@@ -5,6 +5,7 @@ FROM fedora:43
 
 RUN dnf -y --setopt=install_weak_deps=False install \
         bash \
+        git \
         python3 \
         python3-pyside6 \
         qt6-qtbase-gui \
@@ -23,14 +24,14 @@ WORKDIR /workspace
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONNOUSERSITE=1 \
     QT_QPA_PLATFORM=offscreen \
-    NIGHTGLASS_GUI_SMOKE=0 \
+    MIDNIGHT_PROVISIONER_GUI_SMOKE=0 \
     HOME=/tmp \
-    XDG_CONFIG_HOME=/tmp/nightglass-config \
-    XDG_DATA_HOME=/tmp/nightglass-data \
-    NIGHTGLASS_GUI_PREVIEW=/tmp/nightglass-gui-smoke.png
+    XDG_CONFIG_HOME=/tmp/midnight-provisioner-config \
+    XDG_DATA_HOME=/tmp/midnight-provisioner-data \
+    MIDNIGHT_PROVISIONER_GUI_PREVIEW=/tmp/midnight-provisioner-gui-smoke.png
 
 # Only source syntax, synthetic unit tests, offscreen Qt and benign fixture
 # QEMU/libvirt tools. NEVER run a VM, daemon, guest agent, privileged mount,
-# installer, network scanner or production Nightglass CLI lifecycle command.
+# installer, network scanner or production Midnight Provisioner CLI lifecycle command.
 ENTRYPOINT ["python3", "-B", "scripts/testing/verify_local.py"]
 CMD ["--all"]

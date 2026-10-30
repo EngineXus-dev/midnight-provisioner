@@ -3,19 +3,19 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "nightglass-workspaces"
+name = "midnight-provisioner"
 version = "0.1.0"
-description = "Qubes-inspired security workspace controller for Fedora KDE"
+description = "Local workspace management and workstation setup for Fedora KDE"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
-authors = [{name = "Nightglass contributors"}]
+authors = [{name = "Midnight Provisioner contributors"}]
 keywords = ["libvirt", "virtualization", "workspaces", "kvm", "security"]
 classifiers = ["Programming Language :: Python :: 3", "Operating System :: POSIX :: Linux"]
 dependencies = ["PySide6>=6.7,<7"]
 
 [project.scripts]
-nightglass = "nightglass.cli:main"
+midnight-provisioner = "midnight_provisioner.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["nightglass*"]
+include = ["midnight_provisioner*"]

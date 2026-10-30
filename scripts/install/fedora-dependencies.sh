@@ -10,13 +10,13 @@ if [[ $EUID -eq 0 ]]; then
   exit 2
 fi
 cat <<'NOTICE'
-Nightglass Fedora dependencies:
+Midnight Provisioner Fedora dependencies:
   qemu-kvm, libvirt, virt-manager, virt-viewer, virt-install,
   python3, python3-pip, podman, distrobox, virtiofsd
 
 This step installs RPM packages only. It will NOT repartition a disk,
 change the EFI bootloader, install a Linux ISO, create VMs or change firewall/network rules.
-Afterward create your Python venv and run the read-only 'nightglass doctor'.
+Afterward create your Python venv and run the read-only 'midnight-provisioner doctor'.
 NOTICE
 if [[ ! -t 0 ]]; then
   echo 'Confirmation needed: run this script interactively. Nothing changed.' >&2

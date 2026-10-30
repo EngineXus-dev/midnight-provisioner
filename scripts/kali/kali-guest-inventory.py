@@ -21,7 +21,7 @@ PACKAGE = re.compile(r"^[a-z0-9][a-z0-9+.-]*$")
 VERSION = re.compile(r"^[0-9][A-Za-z0-9.+~:_-]{0,127}$")
 GUEST = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
 RELEASE = re.compile(r"^kali-[a-z0-9][a-z0-9.~-]{0,63}$")
-FORMAT = "nightglass-kali-guest-inventory"
+FORMAT = "midnight-provisioner-kali-guest-inventory"
 
 
 class InventoryError(Exception):
@@ -50,7 +50,7 @@ def read_plan(path: Path) -> tuple[str, tuple[str, ...]]:
     except ValueError as exc:
         raise InventoryError("Invalid setup plan JSON") from exc
     if (not isinstance(plan, dict) or
-            plan.get("format") != "nightglass-kali-setup-plan" or
+            plan.get("format") != "midnight-provisioner-kali-setup-plan" or
             type(plan.get("version")) is not int or plan["version"] != 1):
         raise InventoryError("Unsupported setup plan format/version")
     for key, value in (

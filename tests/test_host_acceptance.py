@@ -9,11 +9,11 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from nightglass.host_acceptance import (
+from midnight_provisioner.host_acceptance import (
     HostPrerequisites, Gate, inspect_prerequisites, save_private_evidence,
 )
-from nightglass.host_posture import HostPosture, PostureCheck
-from nightglass.runner import Output, ToolError
+from midnight_provisioner.host_posture import HostPosture, PostureCheck
+from midnight_provisioner.runner import Output, ToolError
 
 
 class FakeRunner:
@@ -45,8 +45,8 @@ class FedoraHostPrerequisiteTests(unittest.TestCase):
                   runner=None, which=fake_which, system="Linux"):
         runner = runner if runner is not None else FakeRunner()
         posture = posture if posture is not None else healthy_posture()
-        with patch("nightglass.host_acceptance.platform.system", return_value=system), \
-             patch("nightglass.host_acceptance.platform.freedesktop_os_release",
+        with patch("midnight_provisioner.host_acceptance.platform.system", return_value=system), \
+             patch("midnight_provisioner.host_acceptance.platform.freedesktop_os_release",
                    return_value={"ID": release, "VERSION_ID": version}):
             report = inspect_prerequisites(runner=runner, which=which, posture=posture)
         return report, runner

@@ -1,6 +1,6 @@
 # Audit a manually registered Kali template VM (read-only)
 
-Nightglass's Kali toolkit catalog is designed around **separate virtual
+Midnight Provisioner's Kali toolkit catalog is designed around **separate virtual
 machines** for each legitimate testing role—not a fragile, high-maintenance
 Kali installation containing every available security tool.
 
@@ -13,21 +13,21 @@ user-selected independent virtual disk.
 First follow the [offline installer/host preflight](KALI_TEMPLATE_PREFLIGHT.md)
 for a distinct Kali template and name. Under supervision, manually install
 a benign Kali guest with virt-manager. Keep networking disconnected and
-perform an ordinary power-off afterward. Nightglass does **not** install,
+perform an ordinary power-off afterward. Midnight Provisioner does **not** install,
 start, clone or register that VM for you.
 
 On the Fedora host, use:
 
 ```bash
-nightglass templates registered /path/to/recon-plan.json \
-  --disk /path/to/nightglass-kali-recon.qcow2
+midnight-provisioner templates registered /path/to/recon-plan.json \
+  --disk /path/to/midnight-provisioner-kali-recon.qcow2
 ```
 
 Optional local evidence with a **NEW** private file (never overwrite):
 
 ```bash
-nightglass templates registered /path/to/recon-plan.json \
-  --disk /path/to/nightglass-kali-recon.qcow2 \
+midnight-provisioner templates registered /path/to/recon-plan.json \
+  --disk /path/to/midnight-provisioner-kali-recon.qcow2 \
   --report /path/to/new-registration-report.json
 ```
 

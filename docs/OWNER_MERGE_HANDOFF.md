@@ -1,20 +1,20 @@
-# Nightglass — Owner Merge & Next-AI Handoff
+# Midnight Provisioner — Owner Merge & Next-AI Handoff
 
-**Authority and intent:** This repository is the source of Nightglass Workspaces, independent of EngineXus/Enginexus/YenEngine. The human repository owner — **not the next AI and not this handoff** — chooses if and when to merge the cumulative integration PR into `main`. Preparing a PR as *ready for review* does not authorize a merge, OS installation, destructive disk operation, or production deployment.
+**Authority and intent:** This repository is the source of Midnight Provisioner Workspaces, independent of EngineXus/Enginexus/YenEngine. The human repository owner — **not the next AI and not this handoff** — chooses if and when to merge the cumulative integration PR into `main`. Preparing a PR as *ready for review* does not authorize a merge, OS installation, destructive disk operation, or production deployment.
 
 ## One cumulative GitHub change to review
 
-- Repository: `EngineXus-dev/nightglass-workspaces`
-- Cumulative PR: **[#66](https://github.com/EngineXus-dev/nightglass-workspaces/pull/66)**, head `integration/review-merge-stack`, base `main`.
+- Repository: `EngineXus-dev/midnight-provisioner`
+- Cumulative PR: **[#66](https://github.com/EngineXus-dev/midnight-provisioner/pull/66)**, head `integration/review-merge-stack`, base `main`.
 - Source main snapshot at the start of this integration: `7ed599e9724551fffc203203a1ab4173bb7510c9`. **Check current live base and head SHAs immediately before review/merge; they are not fixed by this document.**
 - PR #66 carries the original dependent chain: #1–29, #31–52, #54–65 (63 linked draft PRs). PR #30 never existed in that series. PR #53 forked separately from #52 and **must not be blindly merged or cherry-picked**; see `docs/PR53_DIVERGENT_BRANCH_RECONCILIATION.md` and historical triage.
 - Do not merge the original 63 PRs individually before or after merging the cumulative PR. Retain their branches and PR metadata as history until the owner explicitly disposes of them. Do not force-push or rewrite `main`.
 
 ## Deliverable and actual capabilities
 
-The deliverable is a **Fedora KDE Nightglass Python application source tree**, with CLI and PySide6 interface, Qubes-inspired workspace organization, distinct Kali-purpose template profiles, offline-analysis and development contexts, libvirt/QEMU and Distrobox integrations, Windows/Fedora discovery and conservative device recognition, install-impact previews, recovery/backup checks, and tests. Some features are read-only plans/gates rather than deployed enforcement. Read `README.md`, `docs/INTEGRATION_RELEASE_CANDIDATE.md`, `docs/SECURITY_MODEL.md`, `docs/KALI_TEMPLATES.md`, `docs/PHASE23_FIRST_RUN_DISCOVERY.md`, and `docs/PHASE27_UNTRUSTED_PROPOSAL_REVIEW.md` for exact behavior.
+The deliverable is a **Fedora KDE Midnight Provisioner Python application source tree**, with CLI and PySide6 interface, Qubes-inspired workspace organization, distinct Kali-purpose template profiles, offline-analysis and development contexts, libvirt/QEMU and Distrobox integrations, Windows/Fedora discovery and conservative device recognition, install-impact previews, recovery/backup checks, and tests. Some features are read-only plans/gates rather than deployed enforcement. Read `README.md`, `docs/INTEGRATION_RELEASE_CANDIDATE.md`, `docs/SECURITY_MODEL.md`, `docs/KALI_TEMPLATES.md`, `docs/PHASE23_FIRST_RUN_DISCOVERY.md`, and `docs/PHASE27_UNTRUSTED_PROPOSAL_REVIEW.md` for exact behavior.
 
-**Not delivered:** a bootable Fedora installer or OS image; a customer-ready Windows binary; a proved Windows/Fedora dual-boot; proven physical KVM/SELinux/sVirt isolation or VM containment; a disk formatter; verified external backups or recovery from them; or a deployable appliance. `scripts/install/setup-nightglass.sh` is application setup on an already-installed Fedora host, not an OS installation. No physical disks, EFI, USB media, firmware, installed OSes, backups, or hardware VMs were modified during this PR integration work.
+**Not delivered:** a bootable Fedora installer or OS image; a customer-ready Windows binary; a proved Windows/Fedora dual-boot; proven physical KVM/SELinux/sVirt isolation or VM containment; a disk formatter; verified external backups or recovery from them; or a deployable appliance. `scripts/install/setup-midnight-provisioner.sh` is application setup on an already-installed Fedora host, not an OS installation. No physical disks, EFI, USB media, firmware, installed OSes, backups, or hardware VMs were modified during this PR integration work.
 
 ## Verification ledger — do not overstate
 
@@ -23,7 +23,7 @@ The deliverable is a **Fedora KDE Nightglass Python application source tree**, w
 3. **RC66 optimization `f09f7b505857039e0c2adff2ca072d9fc02349e1`:** graph history is created once per class and the deliberately mutated disposable Git refs are reset per test; nine original cases retained. This source change was committed, but fresh Windows/Fedora results were not obtained.
 4. **RC66 isolation correction `1d41ed3794d5a67a0b9e0f83d542bbabeb14445e`:** fixes a newly identified flaw in the optimization: tests shared and mutated the same Python manifest. Now the expensive Git fixture stays shared while `copy.deepcopy(cls.base_data)` provides isolated per-test input, with additional assertions against state leakage. **The full suite has NOT yet been reported as passing on this correction or later documentation-only commits.**
 5. GitHub Actions minutes were exhausted; `.github/workflows/verify.yml` on this branch has explicit `workflow_dispatch` only, without automatic push/PR triggers. No completed Actions status should be inferred from an empty check list.
-6. Earlier Windows evidence was preserved under `Documents/Nightglass-Verification-Results` on the user's PC, and old reports are not proofs for a new head. Never relabel synthetic, container or mock tests as real Fedora host acceptance.
+6. Earlier Windows evidence was preserved under `Documents/Midnight-Provisioner-Verification-Results` on the user's PC, and old reports are not proofs for a new head. Never relabel synthetic, container or mock tests as real Fedora host acceptance.
 
 ## Owner merge review checklist (pre-merge)
 
@@ -32,7 +32,7 @@ The deliverable is a **Fedora KDE Nightglass Python application source tree**, w
 - [ ] Review the deliberate PR #53 fork disposition; do not silently fold its stale candidate-SHA edits back in.
 - [ ] Run all nine synthetic graph regressions and seven source RC contract tests on the **current** candidate SHA, plus the required Windows Phase23–27 synthetic/CLI tests; do not accept timeout exit 124, missing suite summaries or unexplained skips.
 - [ ] Independently run Fedora 43 full tests in a source-isolated container, real PySide6 offscreen tests and native libvirt/QEMU fixture checks on that same exact candidate SHA. CI is optional if quota-limited; evidence must identify the SHA and any skipped tests.
-- [ ] Check the pinned integration snapshot with `scripts/release/Review-Nightglass-Integration.py`. Its `merge_authorized=false` value is an intentional non-authorizing safety result, not a CI failure. A script cannot grant owner authorization.
+- [ ] Check the pinned integration snapshot with `scripts/release/Review-Midnight-Provisioner-Integration.py`. Its `merge_authorized=false` value is an intentional non-authorizing safety result, not a CI failure. A script cannot grant owner authorization.
 - [ ] **Owner personally approves the actual merge**, with no automatic merge of old drafts. Prefer a normal **merge commit** to preserve cumulative history. Do not force push.
 - [ ] Post-merge, verify `main` contains the intended commit, check the merge commit, and keep the PR graph and evidence accessible.
 
@@ -40,7 +40,7 @@ The deliverable is a **Fedora KDE Nightglass Python application source tree**, w
 
 ## After the owner merges — safe Windows pull
 
-Local location historically: `%USERPROFILE%\Documents\nightglass-workspaces`. Existing local untracked files, `.env`, `.venv`, data and local edits must be preserved.
+Local location historically: `%USERPROFILE%\Documents\midnight-provisioner`. Existing local untracked files, `.env`, `.venv`, data and local edits must be preserved.
 
 In that existing directory, inspect first:
 

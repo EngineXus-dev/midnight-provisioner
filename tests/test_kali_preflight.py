@@ -9,12 +9,12 @@ import unittest
 from unittest.mock import patch
 from types import SimpleNamespace
 
-from nightglass.kali_preflight import GIB, KaliPreflight
-from nightglass.kali_setup import build_setup_plan, save_setup_plan
-from nightglass.portability import budget_for
-from nightglass.provisioning import OfflineProvisioner, MIN_ISO_BYTES
-from nightglass.resources import MemoryPressure, ResourceSnapshot
-from nightglass.runner import Output, ToolError
+from midnight_provisioner.kali_preflight import GIB, KaliPreflight
+from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
+from midnight_provisioner.portability import budget_for
+from midnight_provisioner.provisioning import OfflineProvisioner, MIN_ISO_BYTES
+from midnight_provisioner.resources import MemoryPressure, ResourceSnapshot
+from midnight_provisioner.runner import Output, ToolError
 
 
 def domain(name, extra=""):
@@ -34,7 +34,7 @@ _fixture_mode_patch = None
 def setUpModule():
     global _fixture_mode_patch
     if os.name == "nt":
-        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch = patch("midnight_provisioner.kali_setup.os.fchmod", create=True)
         _fixture_mode_patch.start()
 
 
@@ -69,7 +69,7 @@ class FakeHV:
 
     def list_domains(self):
         self.calls.append("list")
-        return ["nightglass-kali-recon"] if self.existing else []
+        return ["midnight-provisioner-kali-recon"] if self.existing else []
 
 
 class KaliPreflightTests(unittest.TestCase):
@@ -180,7 +180,7 @@ class KaliPreflightTests(unittest.TestCase):
         self.assertEqual(self.runner.calls, [])
 
     def test_reject_incorrect_iso_digest_after_health_checks(self):
-        from nightglass.kali_setup import build_setup_plan
+        from midnight_provisioner.kali_setup import build_setup_plan
         bad_plan = self.folder / "wrong-sha.json"
         save_setup_plan(build_setup_plan("recon", iso_sha256="a" * 64), bad_plan)
         self.plan_path = bad_plan
@@ -206,7 +206,7 @@ class KaliPreflightTests(unittest.TestCase):
     def test_cli_preflight_returns_nonzero_when_blocked_without_vm_creation(self):
         from contextlib import redirect_stdout
         from io import StringIO
-        from nightglass.cli import main
+        from midnight_provisioner.cli import main
         from types import SimpleNamespace
         argv = [
             "templates", "preflight", str(self.plan_path),
@@ -215,7 +215,7 @@ class KaliPreflightTests(unittest.TestCase):
         healthy = SimpleNamespace(ok=True, describe=lambda: "DRY-RUN PASSED — MANUAL REVIEW ONLY")
         blocked = SimpleNamespace(ok=False, describe=lambda: "BLOCKED / UNVERIFIED")
         output = StringIO()
-        with patch("nightglass.cli.KaliPreflight") as checker, redirect_stdout(output):
+        with patch("midnight_provisioner.cli.KaliPreflight") as checker, redirect_stdout(output):
             checker.return_value.inspect.return_value = healthy
             self.assertEqual(main(argv), 0)
             checker.return_value.inspect.assert_called_once_with(
@@ -229,7 +229,7 @@ class KaliPreflightTests(unittest.TestCase):
         self.assertEqual(self.hv.calls, [])
 
     def test_invalid_manifests_refused_before_native_queries(self):
-        self.plan_path.write_text('{"format":"nightglass-kali-setup-plan","version":1}')
+        self.plan_path.write_text('{"format":"midnight-provisioner-kali-setup-plan","version":1}')
         with self.assertRaises(ToolError):
             self.audit()
         self.assertEqual(self.runner.calls, [])

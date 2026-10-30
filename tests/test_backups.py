@@ -6,9 +6,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from nightglass.backups import ColdBackup, verify_backup
-from nightglass.hypervisor import Audit, assess_domain
-from nightglass.runner import Output, ToolError
+from midnight_provisioner.backups import ColdBackup, verify_backup
+from midnight_provisioner.hypervisor import Audit, assess_domain
+from midnight_provisioner.runner import Output, ToolError
 
 
 def domain_xml(path, extra="", nvram=None):

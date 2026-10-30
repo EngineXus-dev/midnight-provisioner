@@ -11,14 +11,14 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-AUDITOR = ROOT / "scripts" / "release" / "Audit-Nightglass-Release-Evidence.py"
-spec = importlib.util.spec_from_file_location("nightglass_release_evidence_test_module", AUDITOR)
+AUDITOR = ROOT / "scripts" / "release" / "Audit-Midnight-Provisioner-Release-Evidence.py"
+spec = importlib.util.spec_from_file_location("midnight_provisioner_release_evidence_test_module", AUDITOR)
 audit_module = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(audit_module)
 
 COMMIT = "c" * 40
-LOG = b"nightglass local synthetic test log\n"
+LOG = b"midnight-provisioner local synthetic test log\n"
 
 
 def valid_report():
@@ -71,7 +71,7 @@ class LocalReleaseEvidenceTests(unittest.TestCase):
             ("report_authentication", "SIGNED"),
             ("execution_error", "TimeoutError"),
             ("branch", "main"),
-            ("format", "nightglass-offline-rc-gate-v1"),
+            ("format", "midnight-provisioner-offline-rc-gate-v1"),
             ("local_log_sha256", "0" * 64),
         )
         for field, value in mutations:

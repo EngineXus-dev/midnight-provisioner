@@ -11,13 +11,13 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from nightglass.cli import main
-from nightglass.kali_running import KaliRunningInspector, save_kali_running_observation
-from nightglass.kali_setup import build_setup_plan, save_setup_plan
-from nightglass.runner import ToolError
+from midnight_provisioner.cli import main
+from midnight_provisioner.kali_running import KaliRunningInspector, save_kali_running_observation
+from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
+from midnight_provisioner.runner import ToolError
 
-OLD = "nightglass-kali-recon"
-GUEST = "nightglass-kali-recon-rehearsal"
+OLD = "midnight-provisioner-kali-recon"
+GUEST = "midnight-provisioner-kali-recon-rehearsal"
 UUID_OLD = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 UUID_NEW = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff"
 
@@ -40,7 +40,7 @@ _fixture_mode_patch = None
 def setUpModule():
     global _fixture_mode_patch
     if os.name == "nt":
-        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch = patch("midnight_provisioner.kali_setup.os.fchmod", create=True)
         _fixture_mode_patch.start()
 
 
@@ -106,7 +106,7 @@ class Tests(unittest.TestCase):
             xml(OLD, "/original-disk.qcow2", uuid=UUID_OLD)
         )
         (self.backup / "manifest.json").write_text(json.dumps({
-            "format": "nightglass-cold-backup", "domain": OLD, "policy": "lab",
+            "format": "midnight-provisioner-cold-backup", "domain": OLD, "policy": "lab",
             "files": [],
         }))
         self.disk = self.root / "selected-live-recovery.qcow2"
@@ -120,7 +120,7 @@ class Tests(unittest.TestCase):
         inspector = KaliRunningInspector(
             hypervisor=self.hv, runtime=self.runtime,
         )
-        with patch("nightglass.kali_running.verify_backup",
+        with patch("midnight_provisioner.kali_running.verify_backup",
                    side_effect=lambda folder: self.verification_calls.append(folder)):
             return inspector.inspect(self.plan, self.backup, guest, disk or self.disk)
 
@@ -224,10 +224,10 @@ class Tests(unittest.TestCase):
 
     def test_running_disk_is_not_hashed_or_native_probed(self):
         before = self.disk.read_bytes()
-        with patch("nightglass.kali_running._safe_disk", wraps=__import__(
-            "nightglass.kali_registration", fromlist=["_safe_disk"]
+        with patch("midnight_provisioner.kali_running._safe_disk", wraps=__import__(
+            "midnight_provisioner.kali_registration", fromlist=["_safe_disk"]
         )._safe_disk) as safe, patch(
-            "nightglass.kali_running.RuntimeLabelInspector"
+            "midnight_provisioner.kali_running.RuntimeLabelInspector"
         ) as label_class:
             report = self.check()
             self.assertTrue(report.ok)
@@ -277,7 +277,7 @@ class Tests(unittest.TestCase):
         ]
         output = StringIO()
         report = self.check()
-        with patch("nightglass.cli.KaliRunningInspector") as checker, redirect_stdout(output):
+        with patch("midnight_provisioner.cli.KaliRunningInspector") as checker, redirect_stdout(output):
             checker.return_value.inspect.return_value = report
             self.assertEqual(main(args), 0)
             checker.return_value.inspect.assert_called_once_with(

@@ -10,7 +10,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNNER = ROOT / "scripts" / "testing" / "Run-Nightglass-Python-Matrix.ps1"
+RUNNER = ROOT / "scripts" / "testing" / "Run-Midnight-Provisioner-Python-Matrix.ps1"
 
 
 class PythonMatrixRunnerTests(unittest.TestCase):
@@ -49,16 +49,16 @@ class PythonMatrixRunnerTests(unittest.TestCase):
         self.assertGreater(capacity_mib, 256)
         self.assertLessEqual(capacity_mib, 768)  # Keep workstation usage low.
         for module in ("backups.py", "recovery.py"):
-            content = (ROOT / "nightglass" / module).read_text(encoding="utf-8")
+            content = (ROOT / "midnight_provisioner" / module).read_text(encoding="utf-8")
             self.assertIn("256 * 1024 * 1024", content)
 
     def test_checkout_is_unique_detached_branch_only_and_no_history_rewrite(self):
         text = RUNNER.read_text(encoding="utf-8")
         self.assertIn("verification/fedora-host-acceptance-preflight", text)
         self.assertIn("worktree add --detach", text)
-        self.assertIn("Nightglass-Python-Matrix-", text)
+        self.assertIn("Midnight-Provisioner-Python-Matrix-", text)
         self.assertIn("Start-Transcript -LiteralPath $logPath -NoClobber", text)
-        self.assertIn("EngineXus-dev/nightglass-workspaces", text)
+        self.assertIn("EngineXus-dev/midnight-provisioner", text)
         self.assertIsNone(re.search(
             r"(?im)^\s*&\s*git\s+.*\b(?:clean|reset|merge|rebase|push)\b",
             text

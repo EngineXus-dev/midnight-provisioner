@@ -1,4 +1,4 @@
-# Nightglass Phase 22 — recovery and backup acceptance evidence (read-only)
+# Midnight Provisioner Phase 22 — recovery and backup acceptance evidence (read-only)
 
 **Status: DRAFT; deployment authorization remains BLOCKED.** Stacked on Phase 21 draft PR #59, previously verified at exact SHA `5e40ae0428684e29c6d492f4dfd8ab11369c9ec4`.
 
@@ -8,12 +8,12 @@ Replace repetitive synthetic readiness checks with useful **private evidence for
 
 ### New offline evidence reviewer
 
-`scripts/backup/Review-Nightglass-Recovery-Backup.py`:
+`scripts/backup/Review-Midnight-Provisioner-Recovery-Backup.py`:
 
 - **Preview (default)**: does not read *any* files or media.
-- **Assess**: accepts an explicit sanitized `nightglass.winre-triage.v1` JSON report; optionally a separate `nightglass.backup-set.v1` report generated in `--mode Verify` by `scripts/backup/Verify-Nightglass-BackupSet.py`.
+- **Assess**: accepts an explicit sanitized `midnight-provisioner.winre-triage.v1` JSON report; optionally a separate `midnight-provisioner.backup-set.v1` report generated in `--mode Verify` by `scripts/backup/Verify-Midnight-Provisioner-BackupSet.py`.
 - Rejects contradictory approval assertions, duplicate-key JSON, malformed report schemas, oversized payloads, symlink/reparse files or ancestor paths, missing or inconsistent selected-backup groups and unsafe raw file paths in standard fields.
-- Produces `nightglass.recovery-backup-acceptance.v1` JSON with selected-folder hash match counts, outstanding requirements and a permanent `HOLD_RECOVERY_BACKUP_AND_PHYSICAL_ACCEPTANCE` status.
+- Produces `midnight_provisioner.recovery-backup-acceptance.v1` JSON with selected-folder hash match counts, outstanding requirements and a permanent `HOLD_RECOVERY_BACKUP_AND_PHYSICAL_ACCEPTANCE` status.
 - **Does not** open original backup files, write a report file, copy or restore data, scan Windows storage automatically, download an ISO, enable BitLocker/WinRE, elevate, write an installer/USB, start a guest, modify boot/EFI or change Windows power policy.
 
 Even a **CONTENT_MATCH** result proves only that the selected directory pairs' contents matched at verification time. It does not prove external-drive independence, a full-machine image, the scope of personal/cloud/VM/container data, successful restoration, or safe Windows/Fedora installation. A supplied JSON report may be forged; its existence is NOT cryptographic origin proof.
@@ -44,13 +44,13 @@ The separate one-click Windows runner is pinned to an exact source SHA and:
 3. Re-queries non-elevated WinRE status only using its reviewed `reagentc /info` tool; no admin elevation.
 4. With **no `-BackupManifest`**, does not read backup drives or hash data, and reports backup evidence NOT SUPPLIED.
 5. Only with explicit `-BackupManifest "<PRIVATE-LOCAL-JSON>"` plus `-VerifyBackupSet`, runs the existing bounded read-only selected-folder verifier and passes its sanitized output to the Phase 22 evidence review.
-6. Archives local tests, sanitized reports, SHA-256 inventory, exact SHA and both **passing and failing** results under `Documents\Nightglass-Verification-Results`; never bundles the PRIVATE manifest or raw WinRE text.
+6. Archives local tests, sanitized reports, SHA-256 inventory, exact SHA and both **passing and failing** results under `Documents\Midnight-Provisioner-Verification-Results`; never bundles the PRIVATE manifest or raw WinRE text.
 
 This is **not** a backup/restore creator. The user must separately decide and accomplish real backups and a safe controlled restore drill with trusted tools.
 
 ## Independent blockers before even planning dual boot
 
-1. **WinRE:** Privately inspect `reagentc /info` in an explicitly user-opened elevated Windows console if appropriate. The only information to share is a coarse Enabled/Disabled/error category; raw WinRE/BCD locations stay private. Do not issue `reagentc /enable` or `/disable` through Nightglass.
+1. **WinRE:** Privately inspect `reagentc /info` in an explicitly user-opened elevated Windows console if appropriate. The only information to share is a coarse Enabled/Disabled/error category; raw WinRE/BCD locations stay private. Do not issue `reagentc /enable` or `/disable` through Midnight Provisioner.
 2. **Independent recovery:** Verify genuine Windows recovery media, encryption recovery-key possession (keep private, never upload keys), correct system-image scope and an actual controlled restore to an independent/disposable destination.
 3. **Windows shutdown:** Windows Fast Startup was observed enabled. Review its impact before Linux touches NTFS; do not auto-disable it or infer a clean shutdown from a flag.
 4. **Windows security:** Resolve Secure Boot and encryption UNKNOWN statuses, verify Windows 10 supported servicing/ESU or a supported Windows upgrade, and review physical EFI/Recovery/OEM partition layout.
@@ -59,4 +59,4 @@ This is **not** a backup/restore creator. The user must separately decide and ac
 
 Official Microsoft guidance: [REAgentC status](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/reagentc-command-line-options) and [Windows 10 servicing / ESU](https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/windows-10-support-has-ended-on-october-14-2025).
 
-**No result in Phase 22 can grant OS installation, disk or USB writes, firmware changes, guest VM launch or repository merge.** All Nightglass PRs must remain draft/unmerged.
+**No result in Phase 22 can grant OS installation, disk or USB writes, firmware changes, guest VM launch or repository merge.** All Midnight Provisioner PRs must remain draft/unmerged.

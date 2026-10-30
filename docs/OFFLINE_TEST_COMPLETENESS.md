@@ -1,11 +1,11 @@
-# Phase 9 — fail-closed test completeness for Nightglass
+# Phase 9 — fail-closed test completeness for Midnight Provisioner
 
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
 **Status: code committed on a new DRAFT branch. Current runtime result:
 NOT TESTED on the user's Windows/Docker machine.**
 
-Nightglass's offline test-runner machinery has grown alongside more than
+Midnight Provisioner's offline test-runner machinery has grown alongside more than
 40 unmerged stacked PRs. The project's user remains on Windows 10, plans
 a **future** licensed Windows 11 Pro clean installation, and explicitly
 does not want that installation or Fedora dual boot started now.
@@ -89,7 +89,7 @@ Do not infer a pass merely from the existence of test fixtures.
 
 ## How to use when owner elects local testing
 
-From the user's existing Nightglass `main` checkout on Windows,
+From the user's existing Midnight Provisioner `main` checkout on Windows,
 use the [preview-first launcher](WINDOWS_ONE_COMMAND_OFFLINE_CHECKS.md).
 The relevant draft candidate is now:
 
@@ -97,7 +97,7 @@ The relevant draft candidate is now:
 
 Default launcher mode only previews, without Git/Docker operations.
 The `-RunDockerGate` path requires the literal approval
-`RUN NIGHTGLASS OFFLINE TESTS`; image downloads and Fedora image
+`RUN MIDNIGHT_PROVISIONER OFFLINE TESTS`; image downloads and Fedora image
 builds require additional explicit switches.
 
 The latest candidate still needs native PowerShell AST parsing,

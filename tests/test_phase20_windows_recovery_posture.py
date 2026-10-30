@@ -1,4 +1,4 @@
-"""Nightglass Phase 20 source-only safety contract.
+"""Midnight Provisioner Phase 20 source-only safety contract.
 
 No Windows recovery utility is executed by this Python test. The host observer
 is invoked only by an explicitly pinned operator run, after this gate passes.
@@ -12,7 +12,7 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "windows" / "Read-Nightglass-Recovery-Posture.ps1"
+SCRIPT = ROOT / "scripts" / "windows" / "Read-Midnight-Provisioner-Recovery-Posture.ps1"
 
 
 class WindowsRecoveryPostureContract(unittest.TestCase):
@@ -91,7 +91,7 @@ class WindowsRecoveryPostureContract(unittest.TestCase):
             with self.subTest(key=key):
                 self.assertIn(f"{key} = $false", self.source)
         self.assertIn("status = 'HOLD_MANUAL_RECOVERY_AND_DEPLOYMENT'", self.source)
-        self.assertIn("schema = 'nightglass.windows-recovery-posture.v1'", self.source)
+        self.assertIn("schema = 'midnight-provisioner.windows-recovery-posture.v1'", self.source)
 
     def test_no_reserved_args_parameter_or_windows_powershell_bom_issue(self):
         self.assertTrue(SCRIPT.read_bytes().isascii())

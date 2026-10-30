@@ -3,20 +3,20 @@
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
 **New draft, not executed on the user's computer.** The user continues
-working from a Windows 10 Nightglass repository on `main`. This phase
+working from a Windows 10 Midnight Provisioner repository on `main`. This phase
 adds an optional Windows PowerShell 5.1 launcher to reduce copy/paste
-mistakes when checking the growing Nightglass PR stack. It does not
+mistakes when checking the growing Midnight Provisioner PR stack. It does not
 merge PRs, install Windows/Fedora, execute Win11 debloat tools, start
 Kali/offline analysis guests or erase any device.
 
 ## Default behavior: PLAN ONLY
 
-`scripts/testing/Invoke-Nightglass-OfflineChecks.ps1` has these modes:
+`scripts/testing/Invoke-Midnight-Provisioner-OfflineChecks.ps1` has these modes:
 
 | Switch | Effect | Filesystem/network behavior |
 | --- | --- | --- |
 | *No switches* | Show planned actions | **No Git, Docker, file write or network call** |
-| `-FetchRefs` | Fetch Nightglass `origin` refs | **Git metadata only**, source checkout not replaced |
+| `-FetchRefs` | Fetch Midnight Provisioner `origin` refs | **Git metadata only**, source checkout not replaced |
 | `-AuditStack` | Audit branch ancestry and manual-only CI policy | Reads existing refs; creates a **new temporary copy** of a pinned Python script |
 | `-RunDockerGate` | Run six cumulative tests (native AST + rootless offline Docker) | **Requires exact consent**; creates detached sibling worktree and new log/JSON |
 | `-PullPythonImages` | Allow Python slim Docker image downloads | Only combined with `-RunDockerGate` |
@@ -36,7 +36,7 @@ No older test results are quietly applied to the newer commit.
 
 ### Fetch and preview safely from current `main`
 
-Run in native Windows PowerShell from the existing Nightglass checkout.
+Run in native Windows PowerShell from the existing Midnight Provisioner checkout.
 No existing source, ignored files, `.env`, `.venv` or untracked
 files are overwritten by the following bootstrap:
 
@@ -44,11 +44,11 @@ files are overwritten by the following bootstrap:
 git fetch --no-tags origin
 if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
-$dir = Join-Path $env:TEMP ("Nightglass-Checks-" + [guid]::NewGuid().ToString("N"))
+$dir = Join-Path $env:TEMP ("Midnight-Provisioner-Checks-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $dir -ErrorAction Stop | Out-Null
-$launcher = Join-Path $dir "Invoke-Nightglass-OfflineChecks.ps1"
+$launcher = Join-Path $dir "Invoke-Midnight-Provisioner-OfflineChecks.ps1"
 
-$lines = @(git show origin/verification/phase17-qemu-subset-integrity:scripts/testing/Invoke-Nightglass-OfflineChecks.ps1)
+$lines = @(git show origin/verification/phase17-qemu-subset-integrity:scripts/testing/Invoke-Midnight-Provisioner-OfflineChecks.ps1)
 if ($LASTEXITCODE -ne 0 -or $lines.Count -eq 0) { throw "Script retrieval failed" }
 $lines | Set-Content -LiteralPath $launcher -Encoding UTF8
 
@@ -89,7 +89,7 @@ are required; missing refs otherwise remain blockers.
 Only when the owner is ready to run local tests:
 
 ```powershell
-powershell.exe -NoProfile -NonInteractive -File $launcher -RunDockerGate -RepoPath (Get-Location).Path -ConfirmOfflineTests "RUN NIGHTGLASS OFFLINE TESTS"
+powershell.exe -NoProfile -NonInteractive -File $launcher -RunDockerGate -RepoPath (Get-Location).Path -ConfirmOfflineTests "RUN MIDNIGHT_PROVISIONER OFFLINE TESTS"
 ```
 
 Optional image preparation requires separate switches
@@ -118,11 +118,11 @@ Windows 11 Pro clean-install acceptance remain independent blockers.
 - No Windows 11 Pro ISO editing, clean install, OneDrive/Copilot removal
   or automatic device-encryption changes have been performed.
 - The user may activate Windows 11 Pro **later** or during genuine
-  setup. Nightglass does not collect or embed activation keys.
+  setup. Midnight Provisioner does not collect or embed activation keys.
 - The example backup-drive capacity portable drive remains BACKUP ONLY.
 - The separate 16 GB USB stays untouched until a future independent
   media selection, ISO integrity and explicit user authorization.
-- All Nightglass GitHub PRs remain **draft and unmerged**; neither this
+- All Midnight Provisioner GitHub PRs remain **draft and unmerged**; neither this
   tool nor synthetic tests approve merge or deployment.
 
 ## Phase 9 — missing/skipped tests are blocking failures
@@ -160,7 +160,7 @@ the real Windows target environment. See
 ## Phase 16 — script-discovery import fix
 
 Portable/GUI/native Python runners now explicitly prioritize the
-candidate project root so test modules importing `nightglass`
+candidate project root so test modules importing `midnight-provisioner`
 can be found when launched from the `scripts/` directory.
 The new subprocess regression runs solely on disposable fake
 project trees; it does not install packages or start VMs.

@@ -1,5 +1,5 @@
 {
-  "schema": "nightglass.windows11.pro.custom.v1",
+  "schema": "midnight-provisioner.windows11.pro.custom.v1",
   "target": {
     "edition": "Windows 11 Pro",
     "release": "26H2",

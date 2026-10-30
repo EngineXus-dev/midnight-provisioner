@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Nightglass read-only local CI alternative.
+"""Midnight Provisioner read-only local CI alternative.
 
 No sudo, guest launch, package install, network request, GitHub Actions job,
 source-tree deletion or overwrite. Tests use unittest's existing temp fixtures.
@@ -80,7 +80,7 @@ LINUX_FOCUSED_SUITES = (
 
 
 def python_sources():
-    for directory in ("nightglass", "tests", "scripts"):
+    for directory in ("midnight_provisioner", "tests", "scripts"):
         folder = ROOT / directory
         if not folder.is_dir():
             raise RuntimeError(f"Required project folder missing: {directory}")
@@ -141,7 +141,7 @@ def unit_args(pattern: str, *, matches=()) -> list[str]:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
-        description="Offline Nightglass checks (Windows subset or Linux full suite)"
+        description="Offline Midnight Provisioner checks (Windows subset or Linux full suite)"
     )
     parser.add_argument("--focused", action="store_true",
                         help="Focus latest Kali recovery/sVirt synthetic tests")
@@ -160,7 +160,7 @@ def main(argv=None) -> int:
 
     windows = sys.platform == "win32"
     linux = sys.platform.startswith("linux")
-    print("Nightglass OFFLINE integration verification", flush=True)
+    print("Midnight Provisioner OFFLINE integration verification", flush=True)
     print("Checkout: " + str(ROOT), flush=True)
     print(f"Platform: {sys.platform} | Python: {sys.version.split()[0]}", flush=True)
     print("No GitHub Actions, sudo, pip, guest starts or network actions.", flush=True)
@@ -168,7 +168,7 @@ def main(argv=None) -> int:
 
     if windows:
         print(
-            "\n[PLATFORM LIMITATION] Fedora/Linux is Nightglass's target platform.\n"
+            "\n[PLATFORM LIMITATION] Fedora/Linux is Midnight Provisioner's target platform.\n"
             "Windows cannot validate SELinux, libvirt, /proc runtime behavior,\n"
             "POSIX chmod 0600, Linux symlinks or Linux filesystem paths.\n"
             "Those security tests remain NOT RUN / PENDING FEDORA acceptance.\n"
@@ -177,7 +177,7 @@ def main(argv=None) -> int:
             flush=True,
         )
     if not linux and not windows:
-        print("[LIMIT] Non-Linux host cannot certify Nightglass's Fedora security model.")
+        print("[LIMIT] Non-Linux host cannot certify Midnight Provisioner's Fedora security model.")
 
     failed = False
     if not args.dry_run:
@@ -190,15 +190,16 @@ def main(argv=None) -> int:
     if linux:
         bash = shutil.which("bash")
         scripts = [
-            str(ROOT / "scripts" / "install" / "setup-nightglass.sh"),
+            str(ROOT / "scripts" / "install" / "setup-midnight-provisioner.sh"),
             str(ROOT / "scripts" / "backup" / "fedora-recovery-smoke.sh"),
             str(ROOT / "scripts" / "install" / "fedora-host-acceptance.sh"),
         ]
         if bash and all(Path(script).is_file() for script in scripts):
-            failed |= bool(run_command(
-                "Bash syntax only (nothing executed)",
-                [bash, "-n", *scripts], dry_run=args.dry_run,
-            ))
+            for script in scripts:
+                failed |= bool(run_command(
+                    f"Bash syntax check ({Path(script).name})",
+                    [bash, "-n", script], dry_run=args.dry_run,
+                ))
         else:
             print("[NOT RUN] Bash script syntax (missing bash or scripts).", flush=True)
             if args.all:
@@ -250,7 +251,7 @@ def main(argv=None) -> int:
             [sys.executable, "-B", "scripts/testing/run_required_suite.py", "--check", "gui"],
             extra_env={
                 "QT_QPA_PLATFORM": "offscreen",
-                "NIGHTGLASS_GUI_SMOKE": "1",
+                "MIDNIGHT_PROVISIONER_GUI_SMOKE": "1",
             },
             dry_run=args.dry_run,
         ))

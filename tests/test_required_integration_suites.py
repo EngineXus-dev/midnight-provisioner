@@ -83,7 +83,7 @@ class RequiredIntegrationSuitesTests(unittest.TestCase):
         self.assertIn('"--check", "native"', code)
         self.assertIn("Full Linux verification requires Bash syntax validation.", code)
         self.assertIn("if args.all:", code)
-        self.assertIn('"NIGHTGLASS_GUI_SMOKE": "1"', code)
+        self.assertIn('"MIDNIGHT_PROVISIONER_GUI_SMOKE": "1"', code)
 
     def test_no_dangerous_operations_in_required_test_runner(self):
         code = TOOL.read_text(encoding="utf-8")

@@ -4,9 +4,9 @@ from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
-from nightglass.system_discovery import collect_system
-from nightglass.install_target_preview import build_target_preview
-from nightglass.install_change_review import build_change_review, review_from_discovery, describe_change_review
+from midnight_provisioner.system_discovery import collect_system
+from midnight_provisioner.install_target_preview import build_target_preview
+from midnight_provisioner.install_change_review import build_change_review, review_from_discovery, describe_change_review
 
 
 def snapshot():
@@ -62,7 +62,7 @@ class Phase26ChangeReviewTests(unittest.TestCase):
         r = review_from_discovery(snapshot(), target_index=1, intent="format_target",
                                   backup_warning_acknowledged=True)
         self.assertTrue(r.user_backup_warning_acknowledged)
-        self.assertFalse(r.backups_certified_by_nightglass)
+        self.assertFalse(r.backups_certified_by_midnight_provisioner)
         self.assertFalse(r.destructive_consent_obtained)
 
     def test_forged_authorized_preview_rejected(self):
@@ -76,11 +76,11 @@ class Phase26ChangeReviewTests(unittest.TestCase):
         self.assertFalse(r.os_install_authorized)
 
     def test_cli_change_review_no_user_folder_names(self):
-        from nightglass.cli import main
+        from midnight_provisioner.cli import main
         from unittest.mock import patch
         import json
         import io
-        with patch("nightglass.system_discovery.collect_system",
+        with patch("midnight_provisioner.system_discovery.collect_system",
                    return_value=snapshot()) as collector, \
              patch("sys.stdout", new_callable=io.StringIO) as result:
             code = main(["install-changes", "--intent", "format_target",
@@ -93,7 +93,7 @@ class Phase26ChangeReviewTests(unittest.TestCase):
         self.assertFalse(obj["write_manifest_complete"])
 
     def test_no_write_capable_operations_in_change_review_source(self):
-        import nightglass.install_change_review as impl
+        import midnight_provisioner.install_change_review as impl
         content = Path(impl.__file__).read_text(encoding="utf-8")
         for token in ("subprocess.Popen(", "subprocess.run(", "os.system(",
                       "os.remove(", "shutil.copy", ".write_bytes(",
