@@ -1,10 +1,10 @@
 # Midnight Provisioner
 
-**Local workspace management and workstation setup for Fedora KDE.**
+**Fedora workspaces, Windows 11 customization, and optional dual boot.**
 
-Midnight Provisioner brings KVM virtual machines, trusted development containers, and host diagnostics into a desktop app and command-line interface. Organize personal work, development, and authorized security research from one place, with resource limits suited to your machine.
+Midnight Provisioner combines a Fedora KDE workspace manager with Windows 11 installation and customization utilities. Use the Fedora app to organize KVM virtual machines, trusted development containers, and host diagnostics, or use the Windows tools independently. Windows/Fedora dual boot is an optional setup path.
 
-[Installation](#installation) · [Documentation](docs/README.md) · [Security model](docs/SECURITY_MODEL.md) · [Contributing](CONTRIBUTING.md)
+[Fedora installation](#fedora-desktop-installation) · [Windows only](#standalone-windows-11-installation-and-customization) · [Dual boot](#optional-windows-11-and-fedora-dual-boot) · [Documentation](docs/README.md) · [Security model](docs/SECURITY_MODEL.md) · [Contributing](CONTRIBUTING.md)
 
 ## Features
 
@@ -14,6 +14,7 @@ Midnight Provisioner brings KVM virtual machines, trusted development containers
 - **Resource profiles** with RAM and concurrent-VM limits based on host hardware, plus memory and active-VM monitoring.
 - **Host diagnostics** for virtualization readiness, storage discovery, disk encryption, and Fedora security settings.
 - **VM preparation and recovery tools** for ISO verification, cold backups, integrity checks, and recovery into separate staging folders.
+- **Standalone Windows 11 tools** for installation-media preparation, a previewable customization profile, and per-user preferences with snapshots.
 - **Fedora installer ISO tooling** to build installation media with KDE, virtualization packages, and Midnight Provisioner included.
 
 ## Workspaces
@@ -27,7 +28,7 @@ Midnight Provisioner brings KVM virtual machines, trusted development containers
 
 Create VM guests with virt-manager, then use **Bind VM** in Midnight Provisioner to associate them with a workspace. The [VM preparation guide](docs/VM_PREPARATION.md) covers image checks and guest configuration.
 
-## Requirements
+## Fedora desktop requirements
 
 - Fedora KDE for the desktop application.
 - Python 3.11 or newer; the application installer installs PySide6 into a dedicated environment.
@@ -35,9 +36,9 @@ Create VM guests with virt-manager, then use **Bind VM** in Midnight Provisioner
 - Podman and Distrobox for the trusted development workspace.
 - Enough available RAM and storage for the guests you intend to run.
 
-The Windows utilities provide installation planning and hardware checks. The Midnight Provisioner desktop app runs on Fedora.
+The Windows workflow has its own PowerShell requirements in the standalone Windows section below. These Linux requirements apply to the Fedora desktop app.
 
-## Installation
+## Fedora desktop installation
 
 ### On an existing Fedora desktop
 
@@ -67,6 +68,119 @@ Keep the source checkout in place: setup uses an editable installation. Review l
 The [installer media guide](scripts/iso/README.md) explains how to build an ISO from Fedora's official Everything netinstall image, test it, and prepare a USB installer. It also covers installation alongside Windows.
 
 Fedora's installer handles operating-system installation and partitioning. You choose the destination disk and encryption settings there. Back up any data you want to keep before formatting a drive or partition.
+
+## Standalone Windows 11 installation and customization
+
+The Windows workflow runs independently in Windows PowerShell 5.1 or newer. You can install and customize Windows 11 without installing Fedora. Download or clone this repository and run its Windows commands from the repository root.
+
+### Install Windows 11
+
+1. Back up the files you want to keep, save any BitLocker recovery keys, and identify the installation drive by model and capacity. A clean installation removes data from the partitions you replace.
+2. Download the official Windows 11 x64 ISO from [Microsoft](https://www.microsoft.com/software-download/windows11) into `scripts/iso/Windows11/`. Compare its SHA-256 with Microsoft's download verification value:
+   ```powershell
+   Get-FileHash .\scripts\iso\Windows11\Win11_*.iso -Algorithm SHA256
+   ```
+3. Create Windows installation media with Microsoft's Media Creation Tool or Rufus, and boot its UEFI entry. Standard Windows media uses the Windows installation workflow in Rufus; the Fedora image's DD-mode instructions belong to the Fedora image.
+4. Follow [Microsoft's clean-install procedure](https://support.microsoft.com/en-us/windows/deployment/install-upgrade/reinstall-windows-with-the-installation-media). Select the intended disk and an edition matching your license. Windows can use the whole selected OS disk in a Windows-only setup. Choose **I don't have a product key** when offered if you intend to activate later; verify the edition and activate in **Settings > System > Activation**. The **ApplyCore** customization route below and AtlasOS require Windows 11 Pro.
+5. Complete Windows setup, install the manufacturer's chipset/network/storage/graphics drivers and Windows updates, and check activation, Device Encryption/BitLocker, and recovery options before customizing the installation.
+
+### Choose how to customize Windows
+
+| Route | Process | Technical effect |
+| --- | --- | --- |
+| Stock Windows + Midnight Provisioner helpers | Install the official ISO, then preview and apply the settings described below. | Windows setup and post-install settings are separate operations. The helpers do not install Windows. |
+| Single-edition ISO | Run `Optimize-Windows11Iso.ps1` before installation. | DISM exports one edition to WIM or compressed ESD; Windows ADK's `oscdimg` rebuilds a new bootable ISO. Other editions are removed; components in the selected edition are retained. |
+| AtlasOS ISO injection | On Windows, load the official ISO and Atlas Playbook into AME Wizard, select AtlasOS and review its options, include needed network drivers, then export a new ISO and install it. | This third-party customization extends beyond Midnight Provisioner's fixed settings profile. Upstream marks ISO injection experimental. Review the [Atlas procedure](https://docs.atlasos.net/getting-started/install/install-iso-injection/) and the [Windows media guide](scripts/iso/Windows11/README.md). |
+| Manual NTLite image editing | Work on a copy of the official ISO, select the licensed edition, make reviewed changes, export a new image, and test installation in a VM. | NTLite performs the image servicing. Preserve Windows Update/servicing, Defender, WinRE, networking, and any virtualization features you need. See the [NTLite sources below](#sources-and-upstream-projects). |
+
+For a smaller, single-edition image, use an elevated Windows PowerShell with the Windows ADK **Deployment Tools** installed:
+
+```powershell
+# Default: Windows 11 Pro exported as install.esd.
+powershell -NoProfile -File scripts\iso\Windows11\Optimize-Windows11Iso.ps1
+
+# WIM output for workflows that need an editable/mountable install.wim.
+powershell -NoProfile -File scripts\iso\Windows11\Optimize-Windows11Iso.ps1 -Format Wim
+```
+
+The script reads the original ISO, exports the selected edition, preserves the original boot files, and writes a new `*-single-edition.iso` and SHA-256 sidecar. Selecting Pro does not supply a Pro license. Keep the untouched Microsoft ISO for recovery. AtlasOS and other image editors can remove apps or alter security features; review their settings separately and retain Defender, security updates, CPU mitigations, and memory integrity where supported.
+
+### Preview and apply post-install settings
+
+The [35-item Windows profile](config/windows11-pro-custom.json) covers privacy, suggestions and advertising, optional AI integrations, Explorer/taskbar behavior, visual preferences, and separate app/virtualization choices. The wrapper applies a fixed subset; the entire catalog is not automatically applied.
+
+```powershell
+# Show the profile and the changes assigned to the fixed core subset.
+powershell -NoProfile -File scripts\windows\Invoke-Midnight-Provisioner-Win11ProCustom.ps1 -Mode Preview
+
+# Save a plan to a new file without changing Windows settings.
+powershell -NoProfile -File scripts\windows\Invoke-Midnight-Provisioner-Win11ProCustom.ps1 -Mode ExportPlan -PlanPath .\windows11-plan.json
+
+# Preview the smaller, per-user preference helper.
+powershell -NoProfile -File scripts\windows\Set-Midnight-Provisioner-Windows11-Preferences.ps1 -Mode Preview
+```
+
+**ApplyCore:** after installing Windows 11 Pro, review a complete local Win11Debloat release, including its supporting files, and record the SHA-256 of the reviewed `Win11Debloat.ps1`. Keep it in its extracted release directory with `Regfiles/`. In an elevated PowerShell, use the following only after independently checking your backups and replacing the example path/hash:
+
+```powershell
+powershell -NoProfile -File scripts\windows\Invoke-Midnight-Provisioner-Win11ProCustom.ps1 `
+  -Mode ApplyCore `
+  -Win11DebloatPath "C:\Reviewed\Win11Debloat\Win11Debloat.ps1" `
+  -ExpectedSha256 "<64-character SHA256 of the reviewed script>" `
+  -BackupVerified `
+  -Consent "APPLY MIDNIGHT_PROVISIONER WINDOWS11 PRO CORE"
+```
+
+The wrapper checks the OS edition, elevation, script hash, and supported parameters, then runs a fixed allowlist from an Administrator/SYSTEM-only copy. It requests a restore point. A hash detects file changes; it does not replace reviewing the upstream release. **ApplyCore excludes app uninstall, drive decryption, Windows installation, and enabling WSL or Sandbox.** Required Windows diagnostic traffic is not guaranteed to disappear. Review the [full settings and limitations](docs/WINDOWS11_PRO_32_POINT_PROFILE.md).
+
+The smaller preference helper changes eight allowlisted **HKCU DWORDs** for file extensions, taskbar buttons, suggestions, and dark mode. Its **Apply** mode requires the exact consent text shown by the script and first saves a snapshot under `%LOCALAPPDATA%\Midnight Provisioner\PreferenceSnapshots`. **Undo** takes that snapshot and restores eligible values only when they still match what the helper applied. This helper runs as the regular user; app removal and WSL/Sandbox setup are separate choices.
+
+### Windows installation technicals
+
+- **Boot and storage:** use native UEFI boot and GPT for this workflow. Windows Setup creates its EFI System Partition, Microsoft Reserved partition, NTFS system volume, and recovery partition as appropriate. Keep recovery and EFI partitions intact after installation.
+- **Encryption:** Windows uses its own Device Encryption/BitLocker configuration. Record recovery keys before boot or storage changes. The customization helpers do not decrypt existing volumes.
+- **Servicing:** WIM/ESD export changes image packaging. It is separate from component removal or post-install policy changes.
+- **Compatibility:** the Pro customization wrapper checks its required upstream switches and refuses an incompatible Win11Debloat version. Sandbox, WSL, browser policies, and app removals require their own installation/rollback decisions.
+
+## Optional Windows 11 and Fedora dual boot
+
+Dual boot is optional. Choose the standalone Windows workflow above for a Windows-only machine, or combine it with the Fedora installer for a workstation that can boot either OS.
+
+| Layout | Windows storage | Fedora storage | Boot arrangement |
+| --- | --- | --- | --- |
+| One drive | Windows partitions on the shared GPT disk | Previously unallocated space on that same disk | Typically a shared EFI System Partition with separate Windows and Fedora boot files |
+| Two drives | A dedicated Windows disk | A dedicated Fedora disk | Each disk has its own EFI System Partition; select an OS through UEFI |
+
+Before either route, verify backups, save the Windows recovery key, and boot both installers in UEFI mode. Keep Secure Boot enabled with supported signed boot files. Disable Windows Fast Startup and fully shut Windows down before accessing its NTFS files from Fedora.
+
+### One drive: shared disk
+
+1. Install Windows first, allocating only the capacity you intend to give it and leaving the Fedora space unallocated. If Windows is already installed, use **Disk Management > Shrink Volume** on its NTFS volume to create unallocated space; Windows may limit shrinking because of unmovable files.
+2. Build and boot the Midnight Provisioner Fedora image using the [installer media guide](scripts/iso/README.md).
+3. Select the shared disk in Fedora's installer and use only the intended unallocated space for Linux. Review every proposed format/delete action. Preserve the Windows NTFS, recovery, and Microsoft Reserved partitions.
+4. For a shared EFI partition, mount the existing FAT32 ESP at **`/boot/efi` without reformatting it**. Enable encryption for Fedora's Linux storage. The Linux filesystem/layout follows your installer selections; the kickstart does not prescribe partitions.
+5. Complete Fedora setup, remove the USB, and verify that both Fedora and Windows boot. Use the UEFI boot menu if Windows is absent from Fedora's menu.
+
+### Two drives: independent Windows and Fedora disks
+
+This route keeps each OS's boot files on its own disk. Selecting a different data disk alone does not ensure that an installer places its EFI files there.
+
+1. Identify the two disks by model and capacity. Power off before disconnecting or reconnecting internal hardware. Where hardware permits, isolate the Windows disk during Windows installation and isolate the Fedora disk during Fedora installation.
+2. **Install or keep Windows on drive A.** For a new installation, disconnect drive B and let Windows Setup create its own GPT/EFI/Windows/recovery layout on drive A. Verify Windows boots.
+3. **Install Fedora on drive B.** Shut down, disconnect drive A, connect drive B, and boot the Fedora USB's UEFI entry. Select drive B as the only installation target and choose encryption for Linux data.
+4. Ensure drive B contains its **own FAT32 EFI System Partition mounted at `/boot/efi`**, an unencrypted `/boot`, and the chosen Linux storage. Fedora's automatic partitioning can create these on the isolated target. For custom partitioning, create or assign those mount points explicitly.
+5. Shut down and reconnect both drives. Use the firmware's one-time boot menu to choose **Windows Boot Manager** or **Fedora**, then set your preferred default boot entry in UEFI.
+6. Verify boot independence: with the computer powered off between changes, temporarily disconnect the Fedora disk and test Windows, then disconnect the Windows disk and test Fedora. Reconnect both afterward.
+
+If hardware cannot be disconnected, use a manufacturer-supported option that actually hides the non-target disk from the installer, or use custom partitioning and explicitly assign the Fedora disk's own ESP to `/boot/efi`. Inspect the proposed storage actions and bootloader destination before confirming. Reusing the Windows disk's ESP would make Fedora depend on that disk even when its Linux files are on drive B.
+
+### Dual-boot technical details
+
+- **UEFI entries and GRUB:** firmware boot entries select EFI loaders. A Windows entry inside Fedora's GRUB menu is convenient, but the firmware menu can boot each drive independently without cross-detection.
+- **Separate encryption:** Windows BitLocker and Fedora LUKS protect their respective volumes. Fedora's `/boot` and EFI partition remain unencrypted in this installation layout; keep the appropriate recovery keys/passphrases.
+- **Fedora payload:** the image starts from the official Everything netinstall ISO, downloads packages, and adds KDE, KVM/libvirt, Podman, Distrobox, PySide6, and Midnight Provisioner under `/opt/midnight-provisioner`.
+- **NVMe boot options:** the builder embeds `nvme_core.default_ps_max_latency_us=0 pcie_aspm=off nvme_core.multipath=N` in the installer boot entries, including embedded EFI images. These power-management options do not disable TRIM/discard.
+- **Post-install verification:** run `midnight-provisioner encryption-check` and `midnight-provisioner doctor` in Fedora, boot Windows again, and confirm each OS's updates, networking, activation/encryption state, and boot entry.
 
 ## Using Midnight Provisioner
 
@@ -175,6 +289,10 @@ Official source repositories and documentation for the platforms, libraries, too
 
 <details>
 <summary>Windows preparation references</summary>
+
+- [Microsoft clean installation with media](https://support.microsoft.com/en-us/windows/deployment/install-upgrade/reinstall-windows-with-the-installation-media)
+- [Windows UEFI/GPT partition layout](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/configure-uefigpt-based-hard-drive-partitions?view=windows-11)
+- [Shrink an NTFS volume](https://learn.microsoft.com/en-us/windows-server/storage/disk-management/shrink-a-basic-volume)
 
 - [Official Windows 11 download](https://www.microsoft.com/en-us/software-download/windows11)
 - [Windows 11 requirements](https://www.microsoft.com/en-us/windows/windows-11-specifications?r=1)
