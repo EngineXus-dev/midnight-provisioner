@@ -6,7 +6,7 @@ param(
     [ValidatePattern('^[A-Fa-f0-9]{40}$')]
     [string] $ExpectedSha,
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_./-]{0,119}$')]
-    [string] $Branch = 'fix/pr52-windows-synthetic-fixtures',
+    [string] $Branch = 'main',
     [ValidateRange(30,3600)]
     [int] $TimeoutSeconds = 600
 )

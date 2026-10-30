@@ -21,6 +21,7 @@
 
 ## Kali Linux profiles and lifecycle checks
 
+- [Kali Studio GUI, appearance choices, and optional guest desktop themes](KALI_STUDIO.md)
 - [Complete Kali workflow in the main README](../README.md#kali-linux-workspaces-and-toolkits)
 - [Seven curated Kali workspace templates](KALI_TEMPLATES.md)
 - [Private setup plans and version snapshots](KALI_SETUP_MANIFESTS.md)
@@ -75,3 +76,5 @@
 - [Release evidence audit](RELEASE_EVIDENCE_AUDIT.md)
 
 The other files in this directory include design notes, historical implementation records, and maintainer runbooks. Instructions tied to a specific branch, machine, or past deployment decision should be read in that context.
+
+Current source verification uses `scripts/testing/verify_local.py`; the Fedora, GUI-smoke, and Python-matrix wrappers now default to `main`. The stacked-PR offline release-gate/evidence scripts and their frozen snapshot manifests are historical audit tools. Their old branch references are preserved in the private archive; they are not the public repository's current release procedure.

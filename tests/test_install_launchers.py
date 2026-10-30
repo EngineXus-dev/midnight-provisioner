@@ -1,5 +1,6 @@
 import importlib.util
 import os
+import sys
 from pathlib import Path
 import tempfile
 import unittest
@@ -37,9 +38,10 @@ class LauncherTests(unittest.TestCase):
     def test_first_login_is_idempotent_and_respects_desktop_directory(self):
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory)
-            executable = base / "midnight-provisioner"
-            executable.write_text("#!/bin/sh\n")
-            executable.chmod(0o755)
+            # The test container's /tmp can be mounted noexec. Use a real
+            # installed executable; this test exercises first-login state,
+            # not permissions on an invented console-script fixture.
+            executable = Path(sys.executable)
             arguments = ["install_launchers.py", "--command", str(executable),
                          "--desktop-only", "--first-login"]
             with patch.dict(os.environ, {"XDG_DATA_HOME": str(base / "data")}), \

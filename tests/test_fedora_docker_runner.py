@@ -61,7 +61,7 @@ class FedoraDockerRunnerContractTests(unittest.TestCase):
         for text in (runner, bootstrap):
             self.assertIn("git -C", text)
             self.assertIn("fetch --no-tags origin", text)
-            self.assertIn("chore/offline-integration-verification", text)
+            self.assertIn('$branch = "main"', text)
             self.assertIsNone(re.search(
                 r"(?im)^\s*&\s*git\s+.*\b(?:reset|clean|merge|rebase|push)\b",
                 text,
@@ -92,6 +92,8 @@ class FedoraDockerRunnerContractTests(unittest.TestCase):
         self.assertNotRegex(
             source, r"\.connect\(self\.[A-Za-z_][A-Za-z_0-9]*\)"
         )
+        studio = (ROOT / "midnight_provisioner" / "kali_studio.py").read_text(encoding="utf-8")
+        self.assertNotRegex(studio, r"\.connect\(self\.[A-Za-z_][A-Za-z_0-9]*\)")
         for handler in (
             "check_host_security",
             "observe_guest_runtime_labels",

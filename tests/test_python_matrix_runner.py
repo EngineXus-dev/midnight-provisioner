@@ -54,7 +54,7 @@ class PythonMatrixRunnerTests(unittest.TestCase):
 
     def test_checkout_is_unique_detached_branch_only_and_no_history_rewrite(self):
         text = RUNNER.read_text(encoding="utf-8")
-        self.assertIn("verification/fedora-host-acceptance-preflight", text)
+        self.assertIn('$branch = "main"', text)
         self.assertIn("worktree add --detach", text)
         self.assertIn("Midnight-Provisioner-Python-Matrix-", text)
         self.assertIn("Start-Transcript -LiteralPath $logPath -NoClobber", text)

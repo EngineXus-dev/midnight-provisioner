@@ -8,7 +8,7 @@
 [CmdletBinding()]
 param([string]$RepoPath = "")
 $ErrorActionPreference = "Stop"
-$branch = "chore/offline-integration-verification"
+$branch = "main"
 try {
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
         throw "Git CLI not available."

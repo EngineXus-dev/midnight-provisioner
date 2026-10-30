@@ -39,7 +39,7 @@ DARK_QSS = """
 QWidget {
     background-color: #090d10;
     color: #dcd4e5;
-    font-family: "Noto Sans", "DejaVu Sans", sans-serif;
+    font-family: "Segoe UI", "Noto Sans", "DejaVu Sans", sans-serif;
     font-size: 12px;
     selection-background-color: #25483d;
     selection-color: #ecf3ef;
@@ -198,7 +198,7 @@ QPlainTextEdit, QTextEdit {
     background-color: #080e11;
     color: #c5b8d7;
     border: 1px solid #273e39;
-    font-family: "JetBrains Mono", "Cascadia Mono", "DejaVu Sans Mono", monospace;
+    font-family: "Cascadia Mono", "Consolas", "JetBrains Mono", "DejaVu Sans Mono", monospace;
     font-size: 12px;
     border-radius: 9px;
     padding: 9px;

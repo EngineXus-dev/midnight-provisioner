@@ -30,6 +30,12 @@ class OffscreenMainWindowTests(unittest.TestCase):
         from PySide6.QtWidgets import QApplication
         from midnight_provisioner.theme import apply_theme
         cls.app = QApplication.instance() or QApplication([])
+        # Windows' offscreen platform has no font database until a font is
+        # registered. Native desktop builds use the normal system database.
+        if os.name == "nt":
+            from PySide6.QtGui import QFontDatabase
+            if not QFontDatabase.families():
+                QFontDatabase.addApplicationFont(str(Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts/segoeui.ttf"))
         apply_theme(cls.app)
 
     def setUp(self):
@@ -82,7 +88,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
         tagline = self.window.findChildren(QLabel, "Tagline")
         self.assertEqual(len(tagline), 1)
         self.assertIn("RESTORE", tagline[0].text())
-        self.assertEqual(len(self.window.nav_buttons), 7)
+        self.assertEqual(len(self.window.nav_buttons), 8)
         self.assertTrue(self.window.nav_buttons[0].isChecked())
         self.window.goto(3)
         self.assertTrue(self.window.nav_buttons[3].isChecked())
@@ -91,7 +97,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
         self.assertTrue(self.window.nav_buttons[5].isChecked())
 
     def test_real_qt_pages_and_workspace_cards_construct(self):
-        self.assertEqual(self.window.stack.count(), 7)
+        self.assertEqual(self.window.stack.count(), 8)
         self.assertEqual(len(self.window.cards), 4)
         self.assertIn("Midnight Provisioner", self.window.windowTitle())
         for index in (0, 1, 3, 4, 5):
@@ -319,7 +325,7 @@ class OffscreenMainWindowTests(unittest.TestCase):
         from midnight_provisioner.kali_templates import get_template, list_templates
         with patch.object(self.window, "work") as background:
             self.window.prepare_space("pentest")
-            self.assertEqual(self.window.stack.currentIndex(), 4)
+            self.assertEqual(self.window.stack.currentIndex(), 7)
             self.assertTrue(self.window.provision_template.isEnabled())
             self.assertEqual(self.window.provision_template.count(), len(list_templates()) + 1)
             entry = self.window.provision_template.findData("web-audit")
@@ -1124,13 +1130,101 @@ class OffscreenMainWindowTests(unittest.TestCase):
             self.assertGreater(target.stat().st_size, 2048)
             # Inspect three materially different views, without loading guest
             # images, accessing libvirt, or touching the developer's settings.
-            for page, suffix in ((3, "machine"), (5, "recovery"), (2, "diagnostics")):
+            for page, suffix in ((3, "machine"), (5, "recovery"), (2, "diagnostics"), (7, "kali-studio")):
                 with patch.object(self.window, "check_host"):
                     self.window.goto(page)
                 self.app.processEvents()
                 other = target.with_name(target.stem + "-" + suffix + ".png")
                 self.assertTrue(self.window.grab().save(str(other), "PNG"))
                 self.assertGreater(other.stat().st_size, 2048)
+
+    def test_kali_studio_cards_share_the_validated_form_without_vm_operations(self):
+        from midnight_provisioner.kali_templates import list_templates
+        studio = self.window.kali_studio
+        with patch.object(self.window, "work") as work, patch.object(self.window, "open_program") as launch:
+            self.window.prepare_space("pentest")
+            self.assertEqual(self.window.stack.currentIndex(), 7)
+            self.assertEqual(studio.tabs.count(), 6)
+            self.assertEqual(set(studio.profile_buttons), {None, *(t.identifier for t in list_templates())})
+            studio.profile_buttons["web-audit"].click()
+            self.assertEqual(self.window.provision_template.currentData(), "web-audit")
+            self.assertEqual(studio.provision_name.text(), "midnight-provisioner-kali-web-audit")
+            self.assertEqual(studio.provision_disk.text(), "48")
+            studio.provision_name.setText("independent-review")
+            self.assertEqual(self.window.provision_name.text(), "independent-review")
+            self.window.provision_sha.setText("a" * 64)
+            self.assertEqual(studio.provision_sha.text(), "a" * 64)
+            self.window.provision_result.setPlainText("Test observation, not a pass")
+            self.assertEqual(studio.result.toPlainText(), "Test observation, not a pass")
+            work.assert_not_called()
+            launch.assert_not_called()
+
+    def test_kali_studio_theme_persists_without_resetting_resource_or_update_preferences(self):
+        from midnight_provisioner.portability import MachinePreferences, save_machine_preferences, load_machine_preferences
+        prefs = MachinePreferences(preset="compact", active_vm_cap=1, automatic_update_checks=True)
+        save_machine_preferences(prefs)
+        studio = self.window.kali_studio
+        studio.theme_combo.setCurrentIndex(studio.theme_combo.findData("violet"))
+        saved = load_machine_preferences()
+        self.assertEqual(saved.kali_studio_theme, "violet")
+        self.assertEqual(saved.preset, "compact")
+        self.assertTrue(saved.automatic_update_checks)
+        self.assertIn("#b396ff", studio.styleSheet())
+        self.window.profile_combo.setCurrentIndex(self.window.profile_combo.findData("balanced"))
+        with patch.object(self.window, "inform"), patch.object(self.window, "refresh"):
+            self.window.save_machine_profile()
+        self.assertEqual(load_machine_preferences().kali_studio_theme, "violet")
+
+    def test_guest_theme_instructions_never_run_guest_or_host_commands(self):
+        studio = self.window.kali_studio
+        with patch.object(self.window, "work") as worker, patch.object(self.window, "open_program") as launch:
+            studio.guest_theme_instructions()
+            result = studio.result.toPlainText()
+            self.assertIn("INSIDE THE KALI XFCE GUEST", result)
+            self.assertIn("--theme Kali-Dark", result)
+            self.assertIn("--apply", result)
+            worker.assert_not_called()
+            launch.assert_not_called()
+
+    def test_kali_studio_saved_plan_validation_is_bound_and_cancelable(self):
+        from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
+        studio = self.window.kali_studio
+        studio.select_profile("recon")
+        plan = Path(self.temp.name) / "studio-plan.json"
+        save_setup_plan(build_setup_plan("recon"), plan)
+        with patch.object(self.ui.QFileDialog, "getOpenFileName", return_value=(str(plan), "")):
+            studio.verify_setup_plan()
+        self.assertIn("Setup plan verified", studio.result.toPlainText())
+        studio.select_profile("web-audit")
+        with patch.object(self.ui.QFileDialog, "getOpenFileName", return_value=(str(plan), "")):
+            studio.verify_setup_plan()
+        self.assertIn("different toolkit or guest", studio.result.toPlainText())
+        with patch.object(self.ui.QFileDialog, "getOpenFileName", return_value=("", "")), patch.object(self.window, "work") as worker:
+            studio.verify_setup_plan()
+            studio.save_package_snapshot()
+            worker.assert_not_called()
+
+    def test_kali_studio_version_snapshot_uses_matching_plan_and_inventory(self):
+        import json
+        from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan, INVENTORY_FORMAT
+        studio = self.window.kali_studio
+        studio.select_profile("recon")
+        plan = Path(self.temp.name) / "snapshot-plan.json"
+        data = build_setup_plan("recon")
+        save_setup_plan(data, plan)
+        inventory = Path(self.temp.name) / "inventory.json"
+        inventory.write_text(json.dumps({
+            "format": INVENTORY_FORMAT, "version": 1, "guest": data["guest"],
+            "kali_release": "kali-rolling", "dpkg_audit_clean": True,
+            "packages": [{"name": name, "installed_version": "1.0", "candidate_version": "1.0"} for name in data["packages"]],
+        }), encoding="utf-8")
+        destination = Path(self.temp.name) / "version-snapshot.json"
+        with patch.object(self.ui.QFileDialog, "getOpenFileName", side_effect=[(str(plan), ""), (str(inventory), "")]), patch.object(self.ui.QFileDialog, "getSaveFileName", return_value=(str(destination), "")), patch.object(self.window, "work") as worker:
+            studio.save_package_snapshot()
+            task, completed, _ = worker.call_args.args
+            completed(task())
+        self.assertEqual(json.loads(destination.read_text())["status"], "VERSION_SNAPSHOT_ONLY")
+        self.assertIn("guest-reported package version snapshot", studio.result.toPlainText())
 
 
 if __name__ == "__main__":

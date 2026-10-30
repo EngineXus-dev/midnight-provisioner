@@ -79,7 +79,28 @@ Fedora's installer handles operating-system installation and partitioning. You c
 
 ## Kali Linux workspaces and toolkits
 
-Kali is the guest environment for authorized security work; Fedora remains the host. **Prepare VM → Kali toolkit** provides seven curated profiles, each intended for its own VM identity and independent qcow2 disk. The catalog includes white-hat, defensive, and authorized red-team roles. Packages are selected individually rather than through an all-tools Kali metapackage.
+Kali is the guest environment for authorized security work; Fedora remains the host. **Kali Studio** in the sidebar provides a dedicated dark interface with visual toolkit cards and **Setup**, **Packages**, **Recovery**, **Runtime**, and **Appearance** tabs. Its seven curated profiles are each intended for their own VM identity and independent qcow2 disk. The catalog includes white-hat, defensive, and authorized red-team roles. Packages are selected individually rather than through an all-tools Kali metapackage. See the [studio guide](docs/KALI_STUDIO.md).
+
+Choose **Crimson eclipse**, **Ultraviolet**, or **Venom** under **Appearance** for a saved studio accent. The same tab provides optional Kali Xfce **Dark/Light** desktop-theme instructions. The [guest-side theme helper](scripts/kali/kali-desktop-theme.py) previews first and supports snapshot-based undo; applying it is a separate action inside the guest.
+
+![Kali Studio toolkit selection with Crimson eclipse accents](docs/images/kali-studio-toolkits.png)
+
+<details>
+<summary>Setup, appearance options, and compact layout</summary>
+
+**Setup**
+
+![Kali Studio ISO, guest, and resource setup](docs/images/kali-studio-setup.png)
+
+**Appearance — Ultraviolet accent and optional Kali desktop themes**
+
+![Kali Studio appearance and guest-theme options](docs/images/kali-studio-appearance.png)
+
+**Compact layout**
+
+![Kali Studio setup at a compact window size](docs/images/kali-studio-compact.png)
+
+</details>
 
 ### Included Kali profiles
 
@@ -140,7 +161,7 @@ The plan, inventory, and version snapshot are local records. Snapshot creation r
 
 ### Kali guest, backup, recovery, and runtime checks
 
-All of these actions are available under **Prepare VM**. Their CLI forms begin with `midnight-provisioner templates`; the linked guides give the required plan, disk, backup, staging, guest-name, and optional private-report arguments.
+These actions are available under **Kali Studio → Recovery / Runtime**, as well as the existing **Prepare VM** controls. Their CLI forms begin with `midnight-provisioner templates`; the linked guides give the required plan, disk, backup, staging, guest-name, and optional private-report arguments.
 
 | Action | Command | What it checks |
 | --- | --- | --- |
@@ -392,6 +413,9 @@ Official source repositories and documentation for the platforms, libraries, too
 - [Official Kali Linux downloads](https://www.kali.org/get-kali/)
 - [Kali image verification and signed checksums](https://www.kali.org/docs/introduction/download-images-securely/)
 - [Kali in QEMU/libvirt with virt-manager](https://www.kali.org/docs/virtualization/install-qemu-guest-vm/)
+- [Kali Xfce theme and appearance guidance](https://www.kali.org/docs/general-use/xfce-faq/)
+- [Kali theme package source](https://gitlab.com/kalilinux/packages/kali-themes)
+- [Xfconf query reference](https://docs.xfce.org/xfce/xfconf/xfconf-query)
 - [Kali tool catalog](https://www.kali.org/tools/)
 - [Kali metapackages](https://www.kali.org/docs/general-use/metapackages/)
 - [Updating Kali](https://www.kali.org/docs/general-use/updating-kali/)

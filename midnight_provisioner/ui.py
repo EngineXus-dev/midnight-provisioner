@@ -42,6 +42,7 @@ from .readiness import RecoveryReadiness
 from .acceptance import RegisteredGuestAuditor, save_acceptance
 from .handoff import RecoveryHandoff
 from .theme import apply_theme, COLORS
+from .kali_studio import KaliStudio
 from .resources import collect_resources
 from .host_posture import inspect_host_posture
 from .runtime_labels import RuntimeLabelInspector
@@ -222,7 +223,7 @@ class MainWindow(QMainWindow):
         rail.setFixedWidth(208)
         side = QVBoxLayout(rail)
         side.setContentsMargins(19, 26, 19, 18)
-        side.setSpacing(12)
+        side.setSpacing(8)
         logo = QLabel("MIDNIGHT\nPROVISIONER")
         logo.setAccessibleName("Midnight Provisioner")
         logo.setObjectName("Brand")
@@ -238,17 +239,17 @@ class MainWindow(QMainWindow):
         side.addWidget(accent_rail)
         side.addSpacing(16)
         self.stack = QStackedWidget()
-        nav = [("▦  Workspaces", 0), ("◇  Security model", 1), ("✦  Diagnostics", 2), ("⚙  Machine settings", 3), ("⬡  Prepare VM", 4), ("↺  Backup & verify", 5), ("⌕  System discovery", 6)]
-        self.nav_buttons = []
+        nav = [("▦  Workspaces", 0), ("◈  Kali Studio", 7), ("⬡  Prepare VM", 4), ("↺  Backup & verify", 5), ("✦  Diagnostics", 2), ("⚙  Machine settings", 3), ("⌕  System discovery", 6), ("◇  Security model", 1)]
+        self.nav_buttons = [None] * len(nav)
         for label, index in nav:
-            button = QPushButton(label)
+            button = QPushButton(label.replace("&", "&&"))
             button.setCheckable(True)
             button.setAutoExclusive(True)
             button.setChecked(index == 0)
-            button.setMinimumHeight(43)
+            button.setMinimumHeight(35)
             button.clicked.connect(partial(self.goto, index))
             side.addWidget(button)
-            self.nav_buttons.append(button)
+            self.nav_buttons[index] = button
         side.addStretch()
         side.addWidget(QLabel("LOCAL FIRST  •  v0.1.0"))
         main.addWidget(rail)
@@ -282,6 +283,8 @@ class MainWindow(QMainWindow):
         self._build_provisioning()
         self._build_recovery()
         self._build_discovery()
+        self.kali_studio = KaliStudio(self)
+        self.stack.addWidget(self.kali_studio)
 
     def _build_workspaces(self):
         viewport = QScrollArea()
@@ -532,6 +535,7 @@ class MainWindow(QMainWindow):
             active_vm_cap=int(vm_value) if vm_value else None,
             vcpu_cap=int(cpu_value) if cpu_value else None,
             automatic_update_checks=self.update_opt_in.isChecked(),
+            kali_studio_theme=load_machine_preferences().kali_studio_theme,
         )
 
     def preview_machine_profile(self, *_):
@@ -1276,7 +1280,7 @@ class MainWindow(QMainWindow):
             return
         index = self.provision_kind.findData(key)
         self.provision_kind.setCurrentIndex(index)
-        self.goto(4)
+        self.goto(7 if key == "pentest" else 4)
 
     def preview_provision(self):
         try:
@@ -1916,7 +1920,9 @@ class MainWindow(QMainWindow):
     def goto(self, index: int):
         self.stack.setCurrentIndex(index)
         self.nav_buttons[index].setChecked(True)
-        self.header_title.setText(["Security workspaces", "Trust boundaries", "System diagnostics", "Machine settings", "Offline VM preparation", "VM backups", "System discovery"][index])
+        self.header_title.setText(["Security workspaces", "Trust boundaries", "System diagnostics", "Machine settings", "Offline VM preparation", "VM backups", "System discovery", "Kali Studio"][index])
+        if index == 7:
+            self.kali_studio.enter()
         if index == 2:
             self.check_host()
             self.refresh_resources()

@@ -24,6 +24,7 @@ class MachinePreferences:
     active_vm_cap: int | None = None
     vcpu_cap: int | None = None
     automatic_update_checks: bool = False
+    kali_studio_theme: str = "crimson"
 
     def __post_init__(self):
         if self.preset not in PRESETS:
@@ -38,6 +39,8 @@ class MachinePreferences:
                 raise WorkspaceError(f"{name} must be an integer in 1–128")
         if type(self.automatic_update_checks) is not bool:
             raise WorkspaceError("automatic_update_checks must be a boolean")
+        if self.kali_studio_theme not in ("crimson", "violet", "venom"):
+            raise WorkspaceError("Unknown Kali Studio appearance")
 
 
 @dataclass(frozen=True)
@@ -124,6 +127,7 @@ def save_machine_preferences(prefs: MachinePreferences, path: Path | None = None
         "active_vm_cap": prefs.active_vm_cap,
         "vcpu_cap": prefs.vcpu_cap,
         "automatic_update_checks": prefs.automatic_update_checks,
+        "kali_studio_theme": prefs.kali_studio_theme,
     }, indent=2) + "\n"
     tmp = path.parent / f".{path.name}.{os.getpid()}.tmp"
     try:

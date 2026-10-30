@@ -4,7 +4,7 @@
   Midnight Provisioner: full Fedora/Linux synthetic, GUI and native fixture tests
   inside an isolated Docker container, on Windows 10/11.
 .DESCRIPTION
-  Fetches ONLY the integration branch, creates a NEW detached sibling git
+  Fetches ONLY the current main branch, creates a NEW detached sibling git
   worktree, builds a Fedora 43 test image without copying host files, and
   runs the full Linux test suite WITHOUT network, privileges or VM devices.
   No changes to main, .env, .venv, other files or existing worktrees.
@@ -22,7 +22,7 @@ param(
 )
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
-$branch = "chore/offline-integration-verification"
+$branch = "main"
 $success = $false
 $transcriptStarted = $false
 $buildDir = $null

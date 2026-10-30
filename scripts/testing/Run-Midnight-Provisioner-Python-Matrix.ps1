@@ -8,7 +8,7 @@
 [CmdletBinding()]
 param([string]$RepoPath = "")
 $ErrorActionPreference = "Stop"
-$branch = "verification/fedora-host-acceptance-preflight"
+$branch = "main"
 $success = $false
 $transcriptStarted = $false
 $logPath = $null
