@@ -1,6 +1,6 @@
-# Windows 11 side of the dual-boot installer
+# Windows 11 installation and customization
 
-Put the Windows 11 ISO you will install in this folder. ISO files are ignored by git and never committed.
+Use this workflow for a standalone Windows 11 installation or the Windows side of an optional Fedora dual boot. Put the Windows ISO in this folder; ISO files are ignored by Git.
 
 You have two choices:
 
@@ -11,9 +11,9 @@ You have two choices:
 
 ## Before you start
 
-- **Windows 11 Pro is required for AtlasOS.** Atlas does not support Home, and this PC has Windows 10 Home today. Choose **Windows 11 Pro** in Setup and pick *I don't have a product key* if you'll activate later; see `docs/WINDOWS11_PRO_ACTIVATE_LATER.md`.
+- **Choose the edition matching your license.** Stock Windows can use the appropriate Home or Pro edition. AtlasOS and the ApplyCore customization wrapper require Pro; see the [activation guide](../../../docs/WINDOWS11_PRO_ACTIVATE_LATER.md).
 - **AtlasOS calls ISO injection *experimental*.** Its tool, AME Wizard, runs on Windows only.
-- **AtlasOS is a third-party modification of Windows.** It permanently removes Smart App Control, uninstalls Edge and OneDrive, and turns off telemetry.
+- **AtlasOS is a third-party modification of Windows.** It applies its own app, service, privacy, and security changes. Review its configuration options before building an image; Midnight Provisioner's preference Undo does not reverse AtlasOS changes.
 
 ## 1. Get and check the official ISO
 
@@ -23,7 +23,7 @@ You have two choices:
    Get-FileHash .\scripts\iso\Windows11\Win11_*.iso -Algorithm SHA256
    ```
 
-If you're not using AtlasOS, you're done here: use that ISO as-is.
+For the stock Windows route, use the official ISO as the base image and continue to the installation and post-install customization steps below.
 
 ## 2. Inject AtlasOS (optional)
 
@@ -42,7 +42,7 @@ If you're not using AtlasOS, you're done here: use that ISO as-is.
 
 ## Optional: make the ISO smaller
 
-**Size reduction isn't built into either option.** AtlasOS trims Windows *after* it's installed (removing apps); it doesn't shrink the ISO. **You don't need to shrink it:** both ISOs already fit on a 16 GB stick.
+**Size reduction isn't built into either option.** AtlasOS trims Windows *after* it's installed (removing apps); it doesn't shrink the ISO. Check the actual ISO sizes against the usable capacity of your chosen USB drive; a single-edition export is optional.
 
 If you want a smaller ISO anyway, the safe trim is to keep only the edition you install:
 
@@ -63,20 +63,30 @@ How much smaller it gets depends on the ISO, and the script prints the before an
 
 **With AtlasOS,** inject first, then trim the injected ISO. Or trim with `-Format Wim` first, since AME Wizard may need a mountable image. Either way, test the result in a VM.
 
-## 3. Install Windows, leaving room for Fedora
+## 3. Install Windows for your chosen layout
 
-1. **Unplug every drive you're not installing to**, especially the portable Disk 1. Windows Setup lists every connected disk.
-2. Boot the ISO: the USB stick, or the VM's optical drive for a test.
-   - With Ventoy, choose the ISO, then **Boot in normal mode**. On the first Windows 11 screen, click **Next** twice, then **Previous version of setup** (bottom left), as the AtlasOS guide says.
-3. Choose **Custom: Install Windows only (advanced)**.
-4. At **Where do you want to install Windows?**
-   - **Empty disk:** select it, click **New**, give Windows the size you want (for example `200000` MB on the 465 GB disk), then **Apply** and **Next**. The rest stays *Unallocated* for Fedora.
-   - **Never** use AtlasOS's *Deleting data on all drives* option on this PC.
-   - **Reinstalling over the existing Windows** (its *Keeping data* route) keeps the old partition size. Shrink C: in *Disk Management* first if Fedora needs the space.
-5. In the AtlasOS first-run setup, connect to the internet when asked and wait for its new-user script to finish.
-6. Before installing Fedora:
-   - Save the BitLocker recovery key if device encryption is on.
-   - Turn off Fast Startup.
-   - Shut down.
+1. Back up the files you want to keep and disconnect unrelated storage, especially backup drives. Identify the installation disk by model and capacity.
+2. Boot the Windows USB's UEFI entry and select a clean installation. Setup wording depends on the Windows release. For an AtlasOS image, follow the [upstream installation instructions](https://docs.atlasos.net/getting-started/install/install-iso-injection/), including any instruction to use the previous setup interface.
+3. Select the edition matching your license. AtlasOS and Midnight Provisioner's ApplyCore wrapper require Pro. Choose **I don't have a product key** when offered to activate later; verify the actual edition before proceeding.
+4. Choose the storage layout:
+   - **Windows only:** allocate the intended Windows disk as needed; no Fedora partition or reserved Linux space is required.
+   - **Shared-disk dual boot:** allocate the Windows portion and leave the Fedora space unallocated. For an existing installation, shrink its NTFS volume using Windows Disk Management.
+   - **Separate-drive dual boot:** install Windows on drive A while drive B is disconnected where possible. Windows gets its own EFI, Windows, and recovery partitions. Later install Fedora on drive B while drive A is disconnected, giving Fedora its own EFI partition.
+5. Confirm the target and proposed changes, then complete Windows setup. Install OEM drivers and Windows updates, verify activation and recovery, and save any Device Encryption/BitLocker recovery key.
+6. For dual boot, disable Fast Startup and shut Windows down fully before installing Fedora. Follow the [shared-disk and separate-drive instructions](../../../README.md#optional-windows-11-and-fedora-dual-boot).
 
-Next: the Fedora side, in [`../Fedora`](../README.md#1-build-the-midnight-provisioner-installer-iso), and the overall order in [`../README.md`](../README.md).
+## 4. Customize the installed Windows system
+
+The Windows utilities run directly in Windows PowerShell and can be used on a Windows-only machine.
+
+```powershell
+# Read the 35-item catalog and fixed core selection.
+powershell -NoProfile -File scripts\windows\Invoke-Midnight-Provisioner-Win11ProCustom.ps1 -Mode Preview
+
+# Read the smaller per-user preference plan.
+powershell -NoProfile -File scripts\windows\Set-Midnight-Provisioner-Windows11-Preferences.ps1 -Mode Preview
+```
+
+The Pro wrapper's **ApplyCore** mode requires an elevated terminal, a reviewed local Win11Debloat release with its supporting files, the reviewed main script's SHA-256, backup confirmation, and literal consent. It executes a fixed settings allowlist and requests a restore point. It excludes app removal, decryption, OS installation, and enabling WSL/Sandbox. The per-user preference helper uses eight HKCU DWORDs, creates a snapshot before applying changes, and supports guarded Undo.
+
+See the [standalone Windows README section](../../../README.md#standalone-windows-11-installation-and-customization) for installation commands, image/customization choices, and ApplyCore usage, and the [settings catalog and technical limits](../../../docs/WINDOWS11_PRO_32_POINT_PROFILE.md) for the complete profile.

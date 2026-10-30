@@ -15,7 +15,7 @@ You end up with Windows 11 and Fedora KDE side by side, Fedora's Linux side encr
 
 **What it never decides for you:**
 - **The disk.** You choose it on the installer's *Installation Destination* screen, and you tick *Encrypt my data* there.
-- **Anything already on the disk.** Fedora's automatic layout only uses free space and shares Windows' EFI partition, so Windows keeps working.
+- **Partition and EFI changes.** The kickstart does not configure storage. Review Fedora's proposed actions and choose unallocated space on a shared disk or a dedicated Fedora disk with its own EFI partition.
 
 The Fedora install downloads packages, so the PC or VM needs internet.
 
@@ -110,6 +110,17 @@ Writing an ISO or installing Ventoy **erases the USB stick**. Double-check you p
    2. Save the BitLocker recovery key and turn off Fast Startup.
    3. Boot the Midnight Provisioner installer: *Installation Destination*, then **Encrypt my data**, then install.
 5. Keep Secure Boot on. `/boot` and the EFI partition are not encrypted by design; see `docs/DISK_ENCRYPTION.md`.
+
+### Optional dual boot on separate drives
+
+Use a dedicated Windows disk and a dedicated Fedora disk when you want each OS to keep its own boot files.
+
+1. For a new Windows installation, power off and disconnect the Fedora target where possible. Install Windows on its own disk and confirm it boots.
+2. Power off, disconnect the Windows disk, and connect the Fedora target. Boot the Fedora USB in UEFI mode and select that target only.
+3. Use Fedora's automatic layout on the isolated disk, or create its own FAT32 EFI System Partition at `/boot/efi`, unencrypted `/boot`, and the chosen encrypted Linux storage manually. Do not place Fedora's EFI files on the Windows disk.
+4. Shut down, reconnect both disks, and choose **Windows Boot Manager** or **Fedora** in the firmware boot menu. Test each OS with the other disk disconnected, powering off between changes.
+
+If disk isolation is unavailable, explicitly assign the Fedora target's own EFI partition in custom partitioning and inspect the proposed bootloader destination. A separate Linux data disk can still depend on the Windows disk if its ESP is reused. The [main README](../../README.md#two-drives-independent-windows-and-fedora-disks) explains the layout and verification steps.
 
 ## Troubleshooting common installation issues
 

@@ -4,6 +4,8 @@
 
 - [Install Midnight Provisioner on Fedora](../scripts/install/README.md)
 - [Build Fedora and Windows installer media](../scripts/iso/README.md)
+- [Standalone Windows 11 installation and customization](../README.md#standalone-windows-11-installation-and-customization)
+- [Shared-disk and separate-drive dual boot](../README.md#optional-windows-11-and-fedora-dual-boot)
 - [Script directory](../scripts/README.md)
 - [Disk encryption](DISK_ENCRYPTION.md)
 - [Fedora host preflight](FEDORA_HOST_PREFLIGHT.md)
