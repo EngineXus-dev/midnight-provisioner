@@ -1,6 +1,6 @@
 # Kali template readiness preflight (read-only, local)
 
-This Nightglass phase connects the small, **separate** white-hat and red-team
+This Midnight Provisioner phase connects the small, **separate** white-hat and red-team
 Kali VM templates to a meaningful host readiness check before any manual
 Fedora/KVM installation. It does **not** create, clone, start or define a VM.
 
@@ -11,16 +11,16 @@ workflow, independently obtain its official publisher SHA-256 and generate
 a **new private** profile-specific plan:
 
 ```bash
-nightglass templates export recon /home/user/private/NEW-recon-plan.json \
+midnight-provisioner templates export recon /home/user/private/NEW-recon-plan.json \
   --iso-sha256 OFFICIAL_KALI_ISO_SHA256
-nightglass templates verify /home/user/private/NEW-recon-plan.json
+midnight-provisioner templates verify /home/user/private/NEW-recon-plan.json
 ```
 
 Then run the combined read-only check on an **existing** host storage
 directory where a *future* independent qcow2 disk would live:
 
 ```bash
-nightglass templates preflight \
+midnight-provisioner templates preflight \
   /home/user/private/NEW-recon-plan.json \
   --iso /home/user/Downloads/kali-installer.iso \
   --storage-dir /home/user/VMs
@@ -54,7 +54,7 @@ an existing destination volume.
 - The real local `virt-install` tool is asked to render **both**
   installation and post-installation domain XML stages using
   `--dry-run --print-xml`. Each stage is checked for the expected
-  identity, absent networking and Nightglass restricted-VM policy.
+  identity, absent networking and Midnight Provisioner restricted-VM policy.
   No virt-install without `--dry-run` is invoked.
 
 Missing or unsafe requirements report **BLOCKED / UNVERIFIED** with a

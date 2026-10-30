@@ -11,7 +11,7 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "windows" / "Set-Nightglass-Windows11-Preferences.ps1"
+SCRIPT = ROOT / "scripts" / "windows" / "Set-Midnight-Provisioner-Windows11-Preferences.ps1"
 PROFILE = ROOT / "docs" / "WINDOWS11_LITE_IMAGE_PROFILE.md"
 
 
@@ -40,8 +40,8 @@ class SafeWindowsLiteProfileTests(unittest.TestCase):
         self.assertIn("[string]$Mode = 'Preview'", self.source)
         self.assertIn("if ($Mode -eq 'Preview')", self.source)
         self.assertIn("PREVIEW ONLY: no file or registry writes.", self.source)
-        self.assertIn("-cne 'APPLY NIGHTGLASS USER PREFERENCES'", self.source)
-        self.assertIn("-cne 'UNDO NIGHTGLASS USER PREFERENCES'", self.source)
+        self.assertIn("-cne 'APPLY MIDNIGHT_PROVISIONER USER PREFERENCES'", self.source)
+        self.assertIn("-cne 'UNDO MIDNIGHT_PROVISIONER USER PREFERENCES'", self.source)
         self.assertIn("Assert-Windows11", self.source)
         self.assertIn("Windows 11 not detected.", self.source)
         self.assertIn("CreateNew", self.source)
@@ -93,7 +93,7 @@ class SafeWindowsLiteProfileTests(unittest.TestCase):
             "install.esd",
             "Home digital entitlement",
             "3 GB",
-            "NOT Nightglass acceptance targets",
+            "NOT Midnight Provisioner acceptance targets",
             "does NOT authorise",
         ):
             self.assertIn(text.casefold(), self.guide.casefold())

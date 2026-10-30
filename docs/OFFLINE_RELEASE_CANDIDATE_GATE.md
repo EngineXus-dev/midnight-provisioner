@@ -1,4 +1,4 @@
-# Nightglass — offline cumulative integration release gate
+# Midnight Provisioner — offline cumulative integration release gate
 
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
@@ -8,7 +8,7 @@ Fedora, a guest VM, a modified ISO or a USB bootloader.
 
 ## Purpose
 
-Nightglass has many unmerged stacked draft PRs and no remaining
+Midnight Provisioner has many unmerged stacked draft PRs and no remaining
 hosted GitHub Actions minutes. Earlier successful Fedora 43 Docker
 and Python 3.11/3.12/3.13 tests apply to older Git commits.
 The new offline release gate checks the **entire latest cumulative**
@@ -59,16 +59,16 @@ than force-removed automatically.
 
 ## Preview the plan on Windows (no test execution)
 
-From the user's original nightglass-workspaces PowerShell directory:
+From the user's original midnight-provisioner PowerShell directory:
 
     git fetch --no-tags origin verification/phase17-qemu-subset-integrity
     if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
-    $dir = Join-Path $env:TEMP ("Nightglass-RC-Runner-" + [guid]::NewGuid().ToString("N"))
+    $dir = Join-Path $env:TEMP ("Midnight-Provisioner-RC-Runner-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $dir | Out-Null
-    $runner = Join-Path $dir "Run-Nightglass-Offline-Release-Gate.py"
+    $runner = Join-Path $dir "Run-Midnight-Provisioner-Offline-Release-Gate.py"
 
-    $scriptText = & git show origin/verification/phase17-qemu-subset-integrity:scripts/testing/Run-Nightglass-Offline-Release-Gate.py
+    $scriptText = & git show origin/verification/phase17-qemu-subset-integrity:scripts/testing/Run-Midnight-Provisioner-Offline-Release-Gate.py
     if ($LASTEXITCODE -ne 0) { throw "Runner retrieval failed" }
     $scriptText | Set-Content -LiteralPath $runner -Encoding UTF8
 
@@ -126,7 +126,7 @@ a v2 report with the exact tested commit, unchanged original main
 before/after SHA values, a completed local test-log SHA-256 and explicit
 `deployment_approved=false`, `release_attested=false`.
 A separate read-only script,
-`scripts/release/Audit-Nightglass-Release-Evidence.py`, rejects missing or
+`scripts/release/Audit-Midnight-Provisioner-Release-Evidence.py`, rejects missing or
 failed checks, stale commits and tampered logs, and never treats
 synthetic Docker verification as real hardware certification.
 
@@ -199,7 +199,7 @@ substitute for a native Windows junction acceptance.
 
 All `scripts/`-launched unittest helpers now place the exact
 checkout root at the front of sys.path before discovery. Without
-this, discovered test modules which import `nightglass` may
+this, discovered test modules which import `midnight-provisioner` may
 fail to load on an otherwise complete checkout. The new synthetic
 subprocess test `tests/test_isolated_runner_imports.py` is
 part of the Windows portable and headless Docker discovery paths.

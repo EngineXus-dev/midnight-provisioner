@@ -17,11 +17,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Compile
-        run: python -m compileall -q nightglass tests scripts/kali/kali-guest-inventory.py
+        run: python -m compileall -q midnight_provisioner tests scripts/kali/kali-guest-inventory.py
       - name: Check installer shell syntax
-        run: bash -n scripts/install/setup-nightglass.sh && bash -n scripts/backup/fedora-recovery-smoke.sh
+        run: bash -n scripts/install/setup-midnight-provisioner.sh && bash -n scripts/backup/fedora-recovery-smoke.sh
       - name: Smoke-test headless machine tuning
-        run: python -m nightglass profile show
+        run: python -m midnight_provisioner profile show
       - name: Unit tests (no VMs or root)
         run: python -m unittest discover -s tests -v
 
@@ -51,8 +51,8 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       QT_QPA_PLATFORM: offscreen
-      NIGHTGLASS_GUI_SMOKE: '1'
-      NIGHTGLASS_GUI_PREVIEW: /tmp/nightglass-gui-smoke.png
+      MIDNIGHT_PROVISIONER_GUI_SMOKE: '1'
+      MIDNIGHT_PROVISIONER_GUI_PREVIEW: /tmp/midnight-provisioner-gui-smoke.png
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -62,7 +62,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends libegl1 libgl1 libopengl0 libxkbcommon0 libxcb-cursor0
-      - name: Install Nightglass and Qt into isolated runner
+      - name: Install Midnight Provisioner and Qt into isolated runner
         run: python -m pip install --disable-pip-version-check -e .
       - name: Verify real PySide6 widgets and save mock UI screenshot
         run: python -m unittest discover -s tests -p 'test_gui_smoke.py' -v
@@ -70,7 +70,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: nightglass-offscreen-preview
-          path: /tmp/nightglass-gui-smoke*.png
+          name: midnight-provisioner-offscreen-preview
+          path: /tmp/midnight-provisioner-gui-smoke*.png
           if-no-files-found: error
           retention-days: 7

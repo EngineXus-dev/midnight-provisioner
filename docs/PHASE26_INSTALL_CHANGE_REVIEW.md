@@ -1,4 +1,4 @@
-# Nightglass Phase 26 — proposed change impact and unknowns
+# Midnight Provisioner Phase 26 — proposed change impact and unknowns
 
 **DRAFT, NO WRITES, NO OS INSTALLATION.** This stage is a review of what a future OS installer *might* change, not a partition proposal precise enough to execute.
 
@@ -6,13 +6,13 @@
 
 The prior Phase25 target preview knows only the operator's intent and a coarse host observation: an approximately sized physical drive, its temporary label, and a reported count of partitions. **It does not know the current partition table, the relevant EFI System Partition, which disk firmware boots, the proposed Linux partitions, or a full before/after write manifest.** A safe installer must never make those up.
 
-The user intends to freshly format the chosen install target, which may currently have files. The user is responsible for independently backing up anything they want to keep; Nightglass does not make or verify backups.
+The user intends to freshly format the chosen install target, which may currently have files. The user is responsible for independently backing up anything they want to keep; Midnight Provisioner does not make or verify backups.
 
 ## Built in
 
-- `nightglass/install_change_review.py` generates an immutable `nightglass.install-change-review.v1` document from Phase25's held preview.
+- `midnight_provisioner/install_change_review.py` generates an immutable `midnight-provisioner.install-change-review.v1` document from Phase25's held preview.
 - The **System discovery** page contains a new scrollable **Proposed partition / EFI / boot impact** read-only section. It refreshes whenever the user changes intent, observed disk, or backup-warning acknowledgment. It is reset when the hardware scan restarts.
-- `nightglass install-changes --intent format_target [--disk-index N] [--ack-warning] [--json]` offers the same read-only review on native Windows or Fedora. It scans no personal subfolder names. Index `N` is *zero-based within the current recognition snapshot*, not a stable device identity or executable installer selection.
+- `midnight-provisioner install-changes --intent format_target [--disk-index N] [--ack-warning] [--json]` offers the same read-only review on native Windows or Fedora. It scans no personal subfolder names. Index `N` is *zero-based within the current recognition snapshot*, not a stable device identity or executable installer selection.
 - For `format_target`: existing content loss is marked **INTENDED_EFFECT_NOT_VERIFIED** because the user wants whole-drive replacement. The existence or detailed identity of those partitions, and whether a format has actually occurred, is not certified.
 - For `coexist`: existing partition preservation, resize, delete and new partition sizes are all **UNKNOWN_REQUIRES_INSTALLER**.
 - All modes mark **EFI System Partition**, Windows boot and recovery, other physical disks, official installer media and physical boot behavior **UNKNOWN_REQUIRES_INSTALLER**, without a fake proposed partition table.

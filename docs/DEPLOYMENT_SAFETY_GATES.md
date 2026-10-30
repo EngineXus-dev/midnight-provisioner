@@ -3,7 +3,7 @@
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
 **Status: INSTALLATION HOLD — prepare and inspect, do NOT modify disks.**
-This phase is separate from Fedora VM security testing. Nightglass
+This phase is separate from Fedora VM security testing. Midnight Provisioner
 does not partition disks, manage firmware entries or install an OS.
 
 ## Read-only Windows review
@@ -23,13 +23,13 @@ installation target. **A clean readout never authorizes installation.**
 
 ### Fetch and inspect without changing the original checkout
 
-In Windows PowerShell 5.1 or newer, from the original Nightglass Git
+In Windows PowerShell 5.1 or newer, from the original Midnight Provisioner Git
 directory:
 
     git fetch --no-tags origin deployment/windows-dualboot-readiness-gates
     if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
-    $dir = Join-Path $env:TEMP ("Nightglass-Windows-Review-" + [guid]::NewGuid().ToString("N"))
+    $dir = Join-Path $env:TEMP ("Midnight-Provisioner-Windows-Review-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $dir | Out-Null
     $review = Join-Path $dir "Review-Windows-DualBoot.ps1"
 
@@ -62,7 +62,7 @@ Disk 1 is neither a Fedora installation target nor a boot-media formatting
 candidate; its existing contents remain protected.
 Neither disk is authorized for repartition. C: has measured filesystem free space free
 *inside its existing Windows volume*, not free unallocated disk space.
-On this detected RAM capacity usable-RAM laptop, Nightglass still recommends one
+On this detected RAM capacity usable-RAM laptop, Midnight Provisioner still recommends one
 small VM at a time.
 
 If Windows 11 is **clean-installed later** (the user's selected option),
@@ -103,7 +103,7 @@ and the [manual deployment decision template](DEPLOYMENT_DECISION_TEMPLATE.md).
 The reviewer does not recommend a shrink size. Prefer an independent
 second SSD where supported. Shared-disk shrink must be a separate
 human-authorized operation using Windows Disk Management only after
-verified backups. Nightglass will not automate any of it.
+verified backups. Midnight Provisioner will not automate any of it.
 
 ### UEFI / EFI-system-partition design
 
@@ -148,14 +148,14 @@ the machine can return to Windows. Stop on any unreliable behavior.
 every A/B gate is verified, independently inspect every actual Fedora
 graphical-installer disk operation, especially the ESP, target drive,
 delete/format requests, encrypted volumes and boot entries. Do not
-delegate partition creation or bootloader changes to Nightglass.
+delegate partition creation or bootloader changes to Midnight Provisioner.
 
 **D — Dual-boot acceptance.** Repeatedly boot both OSes, confirm
 Windows/Recovery/data intact, intended disk encryption protection,
 one-time boot selector function, external backup recoverability, and
 no regression after normal updates.
 
-**E — Nightglass VM acceptance.** Only then run Fedora host preflight,
+**E — Midnight Provisioner VM acceptance.** Only then run Fedora host preflight,
 followed by supervised benign KVM/libvirt/SELinux/sVirt, offline
 network and cold recovery tests. Do not use malware as a fixture.
 

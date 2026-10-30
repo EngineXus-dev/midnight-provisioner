@@ -8,8 +8,8 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from nightglass.hypervisor import Hypervisor
-from nightglass.runner import Output, ToolError
+from midnight_provisioner.hypervisor import Hypervisor
+from midnight_provisioner.runner import Output, ToolError
 
 
 def virsh(*parts):
@@ -28,8 +28,8 @@ def xml(*, name="safevm", devices="", ram=2048, uuid=None, maxram=None):
 
 
 NIC = '<interface type="network"><source network="default"/></interface>'
-LAB_NIC = '<interface type="network"><source network="nightglass-lab"/></interface>'
-LAB_NET = '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
+LAB_NIC = '<interface type="network"><source network="midnight-provisioner-lab"/></interface>'
+LAB_NET = '<network><name>midnight-provisioner-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
 
 
 class FakeRunner:
@@ -45,7 +45,7 @@ class FakeRunner:
         if saved is not None:
             self.mapping[virsh("managedsave-dumpxml", "safevm")] = saved
         if lab is not None:
-            self.mapping[virsh("net-dumpxml", "nightglass-lab")] = lab
+            self.mapping[virsh("net-dumpxml", "midnight-provisioner-lab")] = lab
 
     def run(self, argv, timeout=12):
         key = tuple(argv)
@@ -60,7 +60,7 @@ class FakeRunner:
 
 class LaunchParityTests(unittest.TestCase):
     def launch(self, runner, policy="isolated"):
-        with patch("nightglass.hypervisor.total_ram_gib", return_value=8.0):
+        with patch("midnight_provisioner.hypervisor.total_ram_gib", return_value=8.0):
             return Hypervisor(runner).start("safevm", policy)
 
     @staticmethod
@@ -134,7 +134,7 @@ class LaunchParityTests(unittest.TestCase):
         runner = FakeRunner(current=xml(), inactive=xml(devices=LAB_NIC), lab=LAB_NET)
         report = Hypervisor(runner).audit("safevm", "lab")
         self.assertTrue(report.ok)
-        self.assertIn(virsh("net-dumpxml", "nightglass-lab"), runner.calls)
+        self.assertIn(virsh("net-dumpxml", "midnight-provisioner-lab"), runner.calls)
         self.assert_no_start(runner)
 
     def test_persistent_label_opt_out_denied_before_start(self):

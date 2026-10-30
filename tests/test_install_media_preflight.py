@@ -12,8 +12,8 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "windows" / "Plan-Nightglass-InstallMedia.py"
-spec = importlib.util.spec_from_file_location("nightglass_media_preflight", SCRIPT)
+SCRIPT = ROOT / "scripts" / "windows" / "Plan-Midnight-Provisioner-InstallMedia.py"
+spec = importlib.util.spec_from_file_location("midnight_provisioner_media_preflight", SCRIPT)
 media = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(media)

@@ -14,9 +14,9 @@ import tempfile
 import unittest
 from xml.etree import ElementTree as ET
 
-from nightglass.hypervisor import assess_domain
-from nightglass.readiness import inspect_image_metadata
-from nightglass.runner import Runner, ToolError
+from midnight_provisioner.hypervisor import assess_domain
+from midnight_provisioner.readiness import inspect_image_metadata
+from midnight_provisioner.runner import Runner, ToolError
 
 HERE = Path(__file__).parent
 FIXTURE = HERE / "fixtures" / "native-offline-domain.xml"
@@ -26,7 +26,7 @@ TOOLS_AVAILABLE = all(shutil.which(tool) for tool in ("virt-xml-validate", "qemu
 @unittest.skipUnless(TOOLS_AVAILABLE, "native libvirt-clients/qemu-utils binaries unavailable")
 class NativeToolTests(unittest.TestCase):
     def setUp(self):
-        tmp = tempfile.TemporaryDirectory(prefix="nightglass-native-")
+        tmp = tempfile.TemporaryDirectory(prefix="midnight-provisioner-native-")
         self.addCleanup(tmp.cleanup)
         self.directory = Path(tmp.name)
         self.runner = Runner()
@@ -86,7 +86,7 @@ class NativeToolTests(unittest.TestCase):
         with self.assertRaisesRegex(ToolError, "Malformed"):
             class BadRunner:
                 def run(self, *args, **kwargs):
-                    from nightglass.runner import Output
+                    from midnight_provisioner.runner import Output
                     return Output("not-json")
             inspect_image_metadata(BadRunner(), self.directory / "x.qcow2", "qcow2")
 

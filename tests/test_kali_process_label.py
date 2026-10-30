@@ -10,15 +10,15 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from nightglass.cli import main
-from nightglass.kali_process_label import (
+from midnight_provisioner.cli import main
+from midnight_provisioner.kali_process_label import (
     KaliProcessLabelInspector, save_kali_process_label,
 )
-from nightglass.kali_setup import build_setup_plan, save_setup_plan
-from nightglass.runner import ToolError
+from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
+from midnight_provisioner.runner import ToolError
 
-OLD = "nightglass-kali-recon"
-RECOVERED = "nightglass-kali-recon-rehearsal"
+OLD = "midnight-provisioner-kali-recon"
+RECOVERED = "midnight-provisioner-kali-recon-rehearsal"
 UUID = "12345678-1234-5678-90ab-abcdefabcdef"
 MCS = "c101,c209"
 LABEL = f"system_u:system_r:svirt_t:s0:{MCS}"
@@ -79,7 +79,7 @@ class ProcessLabelTests(unittest.TestCase):
         if os.name == "nt":
             # Windows lacks fchmod. Mock only this POSIX operation in
             # synthetic fixture setup; production permissions remain intact.
-            with patch("nightglass.kali_setup.os.fchmod", create=True):
+            with patch("midnight_provisioner.kali_setup.os.fchmod", create=True):
                 save_setup_plan(build_setup_plan("recon"), self.plan)
         else:
             save_setup_plan(build_setup_plan("recon"), self.plan)
@@ -113,7 +113,7 @@ class ProcessLabelTests(unittest.TestCase):
         ).inspect(self.plan, RECOVERED)
 
     def test_linux_proc_stat_starttime_field_22_fixture_is_exact(self):
-        from nightglass.kali_process_label import _start_time
+        from midnight_provisioner.kali_process_label import _start_time
         self.assertEqual(_start_time(self.pid_dir), "97123")
         fields = (self.pid_dir / "stat").read_text().split(") ", 1)[1].split()
         self.assertEqual(len(fields), 20)
@@ -207,7 +207,7 @@ class ProcessLabelTests(unittest.TestCase):
         self.assertFalse(self.inspect().ok)
 
     def test_qemu_process_start_time_change_fails_closed(self):
-        from nightglass import kali_process_label as mod
+        from midnight_provisioner import kali_process_label as mod
         real_start = mod._start_time
         count = [0]
         def changing(path):
@@ -219,7 +219,7 @@ class ProcessLabelTests(unittest.TestCase):
         self.assertIn("identity or effective SELinux label changed", result.describe())
 
     def test_process_disappears_during_recheck(self):
-        from nightglass import kali_process_label as mod
+        from midnight_provisioner import kali_process_label as mod
         real_start = mod._start_time
         count = [0]
         def disappearing(path):
@@ -240,7 +240,7 @@ class ProcessLabelTests(unittest.TestCase):
         result = self.inspect()
         dest = self.root / "new-private-label.json"
         if os.name == "nt":
-            with patch("nightglass.acceptance.os.fchmod", create=True):
+            with patch("midnight_provisioner.acceptance.os.fchmod", create=True):
                 self.assertEqual(save_kali_process_label(result, dest), dest)
         else:
             self.assertEqual(save_kali_process_label(result, dest), dest)
@@ -263,7 +263,7 @@ class ProcessLabelTests(unittest.TestCase):
         ]
         report = self.inspect()
         buffer = StringIO()
-        with patch("nightglass.cli.KaliProcessLabelInspector") as checker, redirect_stdout(buffer):
+        with patch("midnight_provisioner.cli.KaliProcessLabelInspector") as checker, redirect_stdout(buffer):
             checker.return_value.inspect.return_value = report
             self.assertEqual(main(arguments), 0)
             checker.return_value.inspect.assert_called_once_with(self.plan, RECOVERED)

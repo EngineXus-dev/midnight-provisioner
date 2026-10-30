@@ -65,7 +65,7 @@ direct runs gave:
   regression cases
 
 **This is a test of the committed runner in a disposable project,
-not a run of the full Nightglass checkout, the user's native
+not a run of the full Midnight Provisioner checkout, the user's native
 Windows 10 test suite, or Fedora 43/libvirt infrastructure.**
 This evidence cannot prove physical sVirt network isolation.
 

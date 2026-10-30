@@ -1,10 +1,10 @@
 # Fedora host security posture: read-only review
 
-Nightglass provides a **read-only host security posture review** in
+Midnight Provisioner provides a **read-only host security posture review** in
 Diagnostics → Audit Fedora host security and as:
 
 ```bash
-nightglass host-security
+midnight-provisioner host-security
 ```
 
 The checker does not require sudo, does not ask for additional credentials,
@@ -42,7 +42,7 @@ running' or 'IP forwarding off' as proof that a bridged guest cannot contact
 the host or Internet.
 
 Do not disable SELinux or firewall rules to work around an error, and do
-not run Nightglass as root. Follow the official Fedora security and
+not run Midnight Provisioner as root. Follow the official Fedora security and
 virtualization guidance; use a disposable test computer for isolation
 acceptance. This review does not collect persistent telemetry, upload host
 information, alter Windows partitions/UEFI, or modify a guest.

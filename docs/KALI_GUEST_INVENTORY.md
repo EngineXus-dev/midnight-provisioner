@@ -1,6 +1,6 @@
 # Kali offline guest package inventory helper (manual use, read-only)
 
-Nightglass now includes a **standalone Python 3 helper** at
+Midnight Provisioner now includes a **standalone Python 3 helper** at
 `scripts/kali/kali-guest-inventory.py` in the source checkout. It reduces manual
 copying of package versions by using read-only, locally installed
 `dpkg-query`, `apt-cache policy`, and `dpkg --audit` commands **inside
@@ -12,13 +12,13 @@ host. It has no PySide6/third-party Python dependencies.
 
 ## 1. Make a host-side plan
 
-On the Nightglass host:
+On the Midnight Provisioner host:
 
 ```bash
-nightglass templates list
-nightglass templates export recon /path/to/NEW-recon-plan.json
-nightglass templates verify /path/to/NEW-recon-plan.json
-nightglass templates guest-help recon
+midnight-provisioner templates list
+midnight-provisioner templates export recon /path/to/NEW-recon-plan.json
+midnight-provisioner templates verify /path/to/NEW-recon-plan.json
+midnight-provisioner templates guest-help recon
 ```
 
 The last command (also shown by **Prepare VM → Guest inventory instructions**)
@@ -27,7 +27,7 @@ prints the specific offline steps. If a plan changes, the host-side
 
 ## 2. Collect inside one manually installed benign Kali VM
 
-Nightglass **does not implement a host/guest file-transfer mechanism**,
+Midnight Provisioner **does not implement a host/guest file-transfer mechanism**,
 and does **not** copy scripts or invoke commands inside Kali.
 Only after a separately reviewed, safe, user-controlled transfer of the
 verified setup plan and the standalone helper into the intended Kali VM,
@@ -48,7 +48,7 @@ The report is private `0600` JSON created with exclusive-create. Existing
 files, including symlinks, are refused. Collection stops with a nonzero
 exit if the selected package state cannot be determined reliably.
 
-**Do not circumvent** Nightglass's no-host-share, no-clipboard, no-USB,
+**Do not circumvent** Midnight Provisioner's no-host-share, no-clipboard, no-USB,
 and no-unapproved-network policies to move files. If you have not separately
 established a reviewed transfer path for a benign guest, stop after creating
 the host-side plan and defer these guest steps until a safe broker exists.
@@ -56,10 +56,10 @@ the host-side plan and defer these guest steps until a safe broker exists.
 ## 3. Compare the self-reported metadata on the host
 
 Only when the guest output has been transferred back through an approved
-manual process (outside Nightglass):
+manual process (outside Midnight Provisioner):
 
 ```bash
-nightglass templates compare \
+midnight-provisioner templates compare \
   /path/to/NEW-recon-plan.json /path/to/NEW-recon-inventory.json
 ```
 

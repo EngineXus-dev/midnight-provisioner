@@ -1,849 +1,211 @@
-# NIGHTGLASS
+# Midnight Provisioner
 
-> Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
+**Local workspace management and workstation setup for Fedora KDE.**
 
-**Integration/owner handoff:** The cumulative Nightglass development stack is staged for the repository owner's manual review and merge through [PR #66](https://github.com/EngineXus-dev/nightglass-workspaces/pull/66). See [Owner Merge & Next-AI Handoff](docs/OWNER_MERGE_HANDOFF.md) for the latest verification limitations, PR #53 fork handling, safe local update guidance, and the successor engineer's starting point. This is Fedora application source, not a completed bootable OS image.
+Midnight Provisioner brings KVM virtual machines, trusted development containers, and host diagnostics into a desktop app and command-line interface. Organize personal work, development, and authorized security research from one place, with resource limits suited to your machine.
 
+[Installation](#installation) · [Documentation](docs/README.md) · [Security model](docs/SECURITY_MODEL.md) · [Contributing](CONTRIBUTING.md)
 
-**Local-first, Qubes-inspired workspace controller for Fedora KDE.**
+## Features
 
-> Status: **v0.1 foundation / preview**. Real libvirt inspection, guarded VM start/shutdown/managed-save, trusted Distrobox creation and entry, host diagnostics, and editable VM binding. **NOT a Qubes OS equivalent, installer, penetration-testing tool, malware containment certification, backup system, or disk partitioner.**
+- **Desktop and CLI controls** for workspace status, VM launch and shutdown, console access, and binding existing libvirt guests.
+- **Workspace policies** that inspect restricted VM configurations before Midnight Provisioner starts them.
+- **Trusted development environments** using rootless Podman and Distrobox.
+- **Resource profiles** with RAM and concurrent-VM limits based on host hardware, plus memory and active-VM monitoring.
+- **Host diagnostics** for virtualization readiness, storage discovery, disk encryption, and Fedora security settings.
+- **VM preparation and recovery tools** for ISO verification, cold backups, integrity checks, and recovery into separate staging folders.
+- **Fedora installer ISO tooling** to build installation media with KDE, virtualization packages, and Midnight Provisioner included.
 
-Nightglass is **independent of all other projects**. Its restrained dark/neon presentation does not determine its security model.
+## Workspaces
 
-## What works in this release
+| Workspace | Environment | Intended use |
+| --- | --- | --- |
+| Personal Desktop | Native Fedora KDE | Everyday applications, browsing, and media |
+| Trusted Development | Distrobox / rootless Podman | Development with trusted code and host-file access |
+| Authorized Pentesting | KVM / libvirt VM | Authorized testing, offline or on the configured isolated lab network |
+| Malware Analysis | KVM / libvirt VM | Offline research with restricted guest devices and host integration |
 
-- **Four default profiles**: personal desktop (native host), trusted development (rootless Distrobox), authorized Kali VM (offline or verified no-forward lab network), malware-analysis VM (offline only).
-- **Desktop GUI** on Fedora KDE via PySide6: workspace statuses, launch/stop/saved memory state, VM console and virt-manager links, bind an existing VM by name, live security-policy summaries, host readiness checks.
-- **Real libvirt backend** (`qemu:///system`): domain inventory, status, offline XML inspection, and strictly allowlisted lifecycle commands. VM start is refused if the configured restricted profile fails its policy audit. On machines under 11 GiB RAM, a best-effort low-memory launch guard also requires no other active VM and at most 3.5 GiB guest memory.
-- **Trusted development containers**: create a named Ubuntu 24.04 Distrobox with a reviewed image alias, and open it in Konsole. Distrobox is NOT a security boundary.
-- **Read-only CLI diagnostics** and tests with mocked hypervisor calls; no virtual machines/root needed to run unit tests.
-- **Scripts** for hardware diagnostics on existing Windows 10, opt-in Fedora package installation, and opt-in isolated libvirt lab networking.
+Create VM guests with virt-manager, then use **Bind VM** in Midnight Provisioner to associate them with a workspace. The [VM preparation guide](docs/VM_PREPARATION.md) covers image checks and guest configuration.
 
-### What this release does **not** do
+## Requirements
 
-- The Nightglass app itself does not install Fedora, edit Windows, format partitions, change EFI settings, or replace a bootloader.
-- The optional **dual-boot installer ISO** ([`scripts/iso/`](scripts/iso/README.md)) is Fedora's official netinstall plus a Nightglass kickstart. Fedora's installer does the disk work, and the disk and encryption are always chosen by you on its *Installation Destination* screen.
-- It does not create Kali/analysis guest images for you. Use **virt-manager** to install guests, then click **Bind VM** in Nightglass.
-- It does not implement a trusted file transfer broker, snapshot creation/rollback, sealed VM templates, traffic filtering on the host/bridge, guest hardening, or clipboard enforcement at runtime. These are roadmap work.
-- It cannot prevent users/admins/other processes from editing libvirt outside Nightglass. A post-audit modification race is possible. The low-memory guard also applies only to Nightglass-issued launches. For malware, a **dedicated analysis host** is safer than relying on this preview.
-- It does not secure native host personal activity against the compromise of the host OS.
+- Fedora KDE for the desktop application.
+- Python 3.11 or newer; the application installer installs PySide6 into a dedicated environment.
+- KVM/QEMU and libvirt for VM workspaces, with hardware virtualization available.
+- Podman and Distrobox for the trusted development workspace.
+- Enough available RAM and storage for the guests you intend to run.
 
-## New computer recognition — no assumptions
+The Windows utilities provide installation planning and hardware checks. The Midnight Provisioner desktop app runs on Fedora.
 
-Nightglass now includes a **System discovery** page in the Fedora UI, and a read-only `nightglass discover` command for Windows/Fedora. The app initiates a bounded local hardware and disk recognition on GUI startup; source-specific folder names are **not** inspected unless the user opts in. No disk is assumed to be empty or selected automatically; uncertainties are labeled **UNKNOWN** and left to the operator.
+## Installation
 
-**The planned OS installation may format the user-selected drive or partitions, deleting everything on the formatted area.** Nightglass must warn that **you are responsible for backing up anything you want to keep before installing**; it does **not** make or verify those backups, and proceeding will assume you have already handled them. Selecting a formatting intent is not evidence that a disk is empty or permission to erase it. Existing Windows, EFI/boot and other disks still require their own safety review. All boot, firmware, USB and disk writes remain separately unauthorized. See [Phase 24 formatting disclosure](docs/PHASE24_FORMAT_WARNING.md) and [Phase 23 discovery](docs/PHASE23_FIRST_RUN_DISCOVERY.md).
+### On an existing Fedora desktop
 
-```bash
-nightglass discover                     # no changes or private folder-name scanning
-nightglass discover --folder-names      # optional local names scan only
-nightglass gui                          # Fedora desktop, seventh tab
-```
-
-On Windows with Python and the source checkout, use `python -m nightglass discover`. The desktop GUI remains Fedora-only. This is not an OS installer or backup tool.
-
-### Preview the proposed installation target — no writes
-
-The **System discovery** GUI now lets you select an observed drive for a **read-only consequence preview**, without preselecting any disk. Fresh-format intent means the user has asked to *replace an entire selected drive* in a future OS installer, **not** that the drive is already empty. Formatting destroys existing contents; users must independently back up everything they wish to retain. Nightglass does **not** create or verify those backups.
-
-```powershell
-# Windows or Fedora, from this Nightglass Python checkout:
-python -m nightglass install-preview
-# --disk-index is an ephemeral zero-based array index, NEVER a write-capable device ID:
-python -m nightglass install-preview --intent format_target --disk-index 1
-```
-
-A displayed target or acknowledged warning **never permits erasure**. Rescanning invalidates the selected target. Before future actual OS installation, the system must verify the exact physical disk, show every proposed partition/EFI modification and ask for a separate irreversible-write confirmation. The current project remains an *application installer only*, not an OS formatter. See [Phase 25 guided target preview](docs/PHASE25_TARGET_PREVIEW.md).
-
-### Installation-change impact review — partition and EFI uncertainties
-
-Phase 26 adds a **Proposed partition / EFI / boot impact** panel beneath the Phase 25 target preview. It explicitly separates the intended whole-target format from **unknown exact partition edits, EFI/boot changes, other-drive effects, firmware boot state and authenticated installer media**. The preview never invents a before/after partition table from a partition count.
-
-```powershell
-# Read-only on Windows or Fedora when running this Nightglass Python checkout:
-python -m nightglass install-changes --intent format_target
-python -m nightglass install-changes --intent format_target --disk-index 1 --json
-```
-
-Disk indices are ephemeral observations, **not target permissions**. Installation and disk-writing functions remain absent. Users are responsible for backing up any data they wish to retain; Nightglass does not create or certify those backups. See [Phase 26 impact review](docs/PHASE26_INSTALL_CHANGE_REVIEW.md).
-
-### Linux disk encryption at startup
-
-Choose Fedora disk encryption in the install preview (GUI dropdown, or `--encryption` on `install-preview` / `install-changes`): `luks2` (recommended, passphrase at every startup) or `luks2-tpm2-pin` (TPM2 + PIN, passphrase kept as fallback). Fedora's installer applies it via **Encrypt my data**; Nightglass only plans it. After installing, confirm it read-only:
+Clone the repository, then run the setup scripts as your regular desktop user:
 
 ```bash
-nightglass install-preview --intent coexist --encryption luks2
-nightglass encryption-check   # exit 0 only when / (and /home) are on LUKS
-```
+git clone https://github.com/EngineXus-dev/midnight-provisioner.git
+cd midnight-provisioner
 
-`/boot` and the EFI partition stay unencrypted by design (firmware must read them to show the passphrase prompt); keep Secure Boot enabled. See [Disk encryption](docs/DISK_ENCRYPTION.md).
-
-### Reviewing an optional installer operation proposal (Phase 27)
-
-Nightglass can inspect a user-selected **untrusted** operation-list JSON file and flag proposed changes to the target, other drives, and boot/EFI components. It does **not** prove the list is complete or from a real installer, and it never executes those operations.
-
-```powershell
-# The repository includes a safe example with fake opaque disk references:
-python -m nightglass proposal-review --file "$PWD/examples/untrusted-install-proposal.json"
-```
-
-The GUI has the same manual-review control in **System discovery**. Nothing is read automatically and no disk or boot operation is authorized. If you install to a freshly formatted target, existing contents will be removed; you are responsible for backing up anything you want to retain. See [Phase27 untrusted proposal review](docs/PHASE27_UNTRUSTED_PROPOSAL_REVIEW.md).
-
-## Windows 10 first — zero-change prep
-
-Nightglass's controller runs on **Fedora**, not Windows. On the current Windows machine, PowerShell can inspect hardware and storage **without making changes**:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\windows\check-windows-hardware.ps1
-```
-
-Prior to Linux dual boot: create a verified full-disk Windows backup, recover BitLocker keys if applicable, confirm UEFI/GPT, check free disk capacity and whether a second SSD exists, and test Fedora KDE live USB hardware compatibility (Wi-Fi, audio, AMD GPU). **Do not repartition, disable BitLocker, or change BIOS settings based only on automatic checks.** Windows 10's ordinary support has ended; use a supported/extended-security-patched Windows environment.
-
-## Fedora installation and run — one application installer
-
-**Start here:** [`scripts/install/README.md`](scripts/install/README.md) lists the installer scripts in order. Other scripts are grouped by purpose; see [`scripts/README.md`](scripts/README.md).
-
-**First install Fedora KDE alongside Windows manually, after making and testing full backups.** Nightglass's installer is an **application installer**, not an OS/partition/EFI installer.
-
-On the manually installed Fedora desktop, as your regular user:
-
-```bash
-# Optional system dependencies, reviewed and explicitly confirmed separately:
+# Review and confirm installation of system virtualization packages.
 bash scripts/install/fedora-dependencies.sh
 
-# One installer on any machine, regardless of RAM size:
-bash scripts/install/setup-nightglass.sh
-
-# Open Nightglass:
-"$HOME/.local/share/nightglass/venv/bin/nightglass" gui
+# Install Midnight Provisioner into its own user Python environment.
+bash scripts/install/setup-midnight-provisioner.sh
 ```
 
-The installer stores its **own** Python environment in `${XDG_DATA_HOME:-~/.local/share}/nightglass/venv`. It never deletes an existing environment or changes a different project's `.venv`, machine profile, Windows installation, partitions, or virtual disks. Rerunning it refreshes only Nightglass's dependencies after user confirmation.
-
-Select **Machine settings** inside Nightglass. `Automatic` detects RAM and logical CPUs each time you start a VM, clamping allocated memory and concurrent-VM limits to the actual host. `Compact`, `Balanced`, and `Performance` are preferences that **cannot override hardware limits**. Optional wheel-safe text fields let you fine-tune maximum guest RAM, active VMs, and an advisory vCPU recommendation.
-
-Equivalent terminal commands (run from within the installed Nightglass environment):
+Start the app using the launch command printed by the installer. With the default data directory:
 
 ```bash
-nightglass profile show
-nightglass profile apply auto
-nightglass profile apply compact
-nightglass profile apply balanced
-nightglass profile apply performance
+"$HOME/.local/share/midnight-provisioner/venv/bin/midnight-provisioner" gui
 ```
 
-Machine-local settings go to `${XDG_CONFIG_HOME:-~/.config}/nightglass/machine.json` (mode 0600); workspace definitions remain in the separate `workspaces.json`. **Moving to a new PC requires installing the app again and provisioning or restoring compatible VMs separately**—copying a workspace definition alone does not transfer VM disks, firmware, keys, or networks.
+Keep the source checkout in place: setup uses an editable installation. Review libvirt access and host readiness using the [installation guide](scripts/install/README.md). Run Midnight Provisioner as your regular user.
 
-### Updating the application
+### With the Midnight Provisioner Fedora installer ISO
 
-**Updates are optional and never install silently.** On an official, clean `main` source checkout, Nightglass can check for updates and request explicit approval for a fast-forward-only source update. Branches, modified files, untracked files, and unexpected Git remotes block this path. GitHub source updates are not signed-binary verification.
+The [installer media guide](scripts/iso/README.md) explains how to build an ISO from Fedora's official Everything netinstall image, test it, and prepare a USB installer. It also covers installation alongside Windows.
+
+Fedora's installer handles operating-system installation and partitioning. You choose the destination disk and encryption settings there. Back up any data you want to keep before formatting a drive or partition.
+
+## Using Midnight Provisioner
+
+Open the GUI, choose a workspace, and use its controls to enter a development container or manage a bound VM. **Machine settings** provides Automatic, Compact, Balanced, and Performance resource profiles; allocations remain limited by the detected host hardware.
+
+For a source installation, activate Midnight Provisioner's Python environment to use the CLI. ISO installations provide the `midnight-provisioner` command directly:
 
 ```bash
-nightglass update check
-nightglass update apply
+source "${XDG_DATA_HOME:-$HOME/.local/share}/midnight-provisioner/venv/bin/activate"
 ```
-
-The GUI also offers **Machine settings → Check for updates / Install available update**. Enabling check-at-start only checks for updates and never installs them. Restart the GUI after an update. If Python dependencies change, rerun `bash scripts/install/setup-nightglass.sh` manually.
-
-For libvirt access errors, use Fedora's documented polkit/virtualization configuration. Do **not** run Nightglass as root to bypass access checks.
-
-### First usable workspace
-
-1. Open `virt-manager` and create a Kali VM with a private virtual disk, ~**3 GiB RAM**, 2 vCPUs (your 8 GB system should run **only one major VM at a time**).
-2. Configure its virtual network **disconnected at first**. For isolated authorized lab traffic, review the security model, then explicitly run `./scripts/install/create-lab-network.sh` and attach the VM NIC to **nightglass-lab**. This is not suitable for live malware analysis.
-3. Configure the guest display for **loopback VNC**, not SPICE, and remove host-guest clipboard/agent channels and passthrough devices. The launch audit will report any policy violations.
-4. In Nightglass choose the **Authorized Pentesting** profile → **Bind VM** → specify the libvirt domain name. A failed audit blocks starting that VM **through Nightglass**.
-5. For malware analysis, create a **separate disposable offline VM**: no NIC, no host shares or USB devices, no SPICE channels. Consider a different physical system when handling real malware.
-6. For development, click **Start / Enter** under Trusted Development. It explicitly warns that Distrobox shares the host home and is for trusted code only.
-
-`nightglass inspect pentest` and `nightglass inspect analysis` show read-only VM-policy findings in the terminal. `nightglass doctor` does not modify system state.
-
-## Offline guest preparation
-
-Nightglass now has a **Prepare VM** wizard for Kali/pentesting and malware-analysis workspaces. It validates a **local ISO against the SHA-256 digest you obtained from its publisher**, generates an offline virt-install blueprint sized to this machine, and verifies both install and post-install libvirt XML using `--dry-run --print-xml`.
-
-**It does not yet create or start a VM.** Actual VM installation remains under your control through virt-manager; then bind the new guest in Nightglass and run its launch audit. See [VM preparation guide](docs/VM_PREPARATION.md).
-
-## Cold VM backups and validation (experimental)
-
-Nightglass can now prepare **cold backups** of fully shut-down restricted VMs
-using newly created directories only. The export checks guest power state,
-managed-save status, local disk formats and backing chains, includes UEFI NVRAM
-where applicable, then copies guest disks and XML with SHA-256 manifests.
-
-In the GUI, use **Cold backup** on a VM card, then **Backup & verify → Verify
-saved backup**. CLI options:
 
 ```bash
-nightglass backup plan pentest
-nightglass backup create pentest /path/to/a/NEW/backup-folder
-nightglass backup verify /path/to/a/backup-folder
+midnight-provisioner list
+midnight-provisioner doctor
+midnight-provisioner resources
+midnight-provisioner inspect pentest
+midnight-provisioner --help
 ```
 
-This is **not** one-click rollback or a tested restore procedure: source XML
-contains machine-specific paths, and a verified hash does not prove a guest
-can boot. See [cold backup and manual recovery](docs/COLD_BACKUP.md).
+Workspace configuration lives in `~/.config/midnight-provisioner/workspaces.json`, or under `$XDG_CONFIG_HOME` when set. Moving VM workspaces to another computer also requires transferring or recreating their guest disks and host configuration.
 
-## Recover a backup into a NEW offline staging area
+## Security model
 
-Nightglass can verify a cold backup and make a separate, **disconnected**
-recovery copy, generating a proposed VM XML with a fresh identity. Source
-disks and existing guest definitions are untouched. Use **Backup & verify →
-Recover into NEW folder** and **Verify staged recovery**, or run:
+Midnight Provisioner relies on Fedora, KVM/QEMU, libvirt, and SELinux for isolation. It checks restricted guest definitions before launches issued through the app; administrators and external virtualization tools can bypass those checks. Midnight Provisioner does not provide Qubes OS's security architecture or guarantee malware containment.
 
-```bash
-nightglass recover plan /path/to/backup /path/to/NEW-dir recovered-vm
-nightglass recover stage /path/to/backup /path/to/NEW-dir recovered-vm
-nightglass recover verify /path/to/NEW-dir
-```
+Distrobox shares the host environment and is intended for trusted code. Use dedicated analysis hardware for high-risk samples, and read the [security model](docs/SECURITY_MODEL.md) before configuring restricted guests. See [SECURITY.md](SECURITY.md) for reporting security issues.
 
-**The new VM is not defined or started.** Review firmware, SELinux labels,
-permissions and XML before a manual import on an isolated test host. This
-is not one-click rollback, a hypervisor security guarantee or a proven
-bootable restore. See [recovery staging instructions](docs/RECOVERY_STAGING.md).
+## Documentation
 
-## Fedora import-readiness check (read-only)
+- [Install and configure Midnight Provisioner](scripts/install/README.md)
+- [Build installer media and set up dual boot](scripts/iso/README.md)
+- [Disk encryption](docs/DISK_ENCRYPTION.md)
+- [Prepare VM guests](docs/VM_PREPARATION.md)
+- [Cold backups](docs/COLD_BACKUP.md) and [recovery staging](docs/RECOVERY_STAGING.md)
+- [Complete documentation index](docs/README.md)
 
-Before registering a restored VM, Nightglass can verify its staged file hashes,
-offline XML, installed libvirt schema, QEMU image headers, KVM availability,
-RAM budget and a unique guest name. This is available as **Backup & verify →
-Check Fedora import readiness**, or:
+## Contributing
 
-```bash
-nightglass recover preflight /path/to/NEW-dir
-bash scripts/backup/fedora-recovery-smoke.sh /path/to/NEW-dir
-```
-
-**Neither operation imports, boots, converts, deletes, defines or modifies a
-guest.** A passing check is not proof of boot success or runtime isolation.
-Complete the [supervised Fedora/KVM acceptance guide](docs/FEDORA_ACCEPTANCE.md)
-before introducing any automatic import or rollback behavior.
-
-## Registered guest acceptance (actual libvirt definitions)
-
-After manually importing a *new* recovery guest on Fedora, Nightglass can
-read and compare its **current, inactive, and saved-memory** libvirt XML.
-The **Backup & verify → Audit registered VM** action checks offline or lab
-device rules, local RAM limits, and the declared network inventory. You can
-save a **private local JSON report** to a new file; it is never uploaded.
-
-```bash
-nightglass accept new-guest --policy isolated
-nightglass accept new-guest --policy isolated --report ~/nightglass-audit.json
-```
-
-A report that passes XML checks is **not** evidence of actual boot success,
-packet-level network isolation, or resistance to hypervisor escape. Read the
-[registered guest audit guide](docs/REGISTERED_GUEST_AUDIT.md).
-
-## Native virtualization-tool tests (no VM creation)
-
-The GitHub CI pipeline now checks **real** libvirt XML schema validation and
-QEMU disk-header behavior on a disposable Ubuntu runner, including refusal of
-QCOW2 backing-file chains. This is stronger than mocked tool responses, but
-**still does not boot a VM or prove Fedora isolation**. See
-[Native tools testing](docs/NATIVE_TOOLS_TESTING.md) and
-[Fedora acceptance guide](docs/FEDORA_ACCEPTANCE.md).
-
-## Live resource and external VM monitoring (advisory)
-
-From **Diagnostics → Refresh resource monitor**, Nightglass shows host
-`MemAvailable`, swap usage, and active `qemu:///system` guests, including
-VMs started outside Nightglass. After explicit activation, it refreshes every
-20 seconds while Diagnostics is displayed. On the command line:
-
-```bash
-nightglass resources
-```
-
-This is **read-only, not an isolation guarantee or an enforcement service**.
-Missing RAM data or an inaccessible libvirt connection means UNKNOWN, never a
-false NORMAL status. See [resource monitoring limitations](docs/RESOURCE_MONITOR.md).
-
-## Fedora host posture review (read-only)
-
-Nightglass's Diagnostics page now offers **Audit Fedora host security**.
-It reports SELinux enforcement, the `/dev/kvm` character device and access,
-firewalld availability, and IPv4/IPv6 forwarding **without modifying the
-host**. The CLI equivalent is `nightglass host-security`.
-
-The restricted VM policy additionally rejects explicit guest/disk security
-label opt-outs. Successful local checks are **not** proof of effective sVirt,
-firewall isolation, packet-level network denial or malware containment.
-See [Fedora security posture limitations](docs/HOST_POSTURE.md).
-
-## Guarded VM launch checks across live, inactive and saved XML
-
-For restricted VM workspaces, `nightglass inspect <workspace>` and the
-normal **Start / Enter** action inspect the live/current, next-boot/inactive
-and any managed-save libvirt domain definitions. A prohibited interface,
-host-integration device, explicit SELinux label opt-out or mismatched
-identity in **any** version blocks Nightglass-issued start. The local RAM
-guard considers all of these definitions, including hotplug maxima.
-
-This does **not** prevent a privileged application from editing libvirt
-definitions after the audit, starting guests outside Nightglass or altering
-host firewall policy. No new automatic VM import/start has been enabled.
-
-## Verified staged-to-registered recovery handoff
-
-After **manual** registration of a new guest on a disposable Fedora host,
-Nightglass can check whether the registered VM really uses the previously
-verified staged disk images and matching QEMU formats:
-
-```bash
-nightglass recover handoff /path/to/staged-new-guest
-```
-
-Or select **Backup & verify → Verify registered handoff**. The check is
-read-only, requires the recovered VM to be powered off and rejects extra
-disks, changed NVRAM, managed-save state or mismatched registered UUIDs.
-It does not prove runtime confinement, guest boot or network isolation.
-See [verified recovery handoff](docs/RECOVERY_HANDOFF.md).
-
-## Running guest sVirt metadata (read-only)
-
-With a **benign VM already running**, use **Diagnostics → Observe running VM
-sVirt labels** or `nightglass runtime-label SAFE_GUEST --policy isolated`.
-The check requires SELinux Enforcing, libvirt's SELinux security model and
-matching dynamic sVirt process/image labels reported in current libvirt XML.
-Shut-off guests and unverifiable values do not pass.
-
-This **does not start a guest or inspect the actual QEMU process or image
-inode's effective labels**. It does not demonstrate network packet isolation.
-See [runtime sVirt observation](docs/RUNTIME_SVIRT_OBSERVATION.md).
-
-## Separate Kali toolkit VMs — curated white-hat and red-team profiles
-
-Nightglass offers seven lightweight Kali **planning templates** for recon,
-web assessments, defensive forensics, wireless surveys, directory review,
-controlled exploit research and web validation. Rather than installing all
-security tools into one VM, each profile recommends a **separate Kali VM**
-with a unique identity, disk, scoped tool list and laptop-aware RAM limits.
-
-Browse via **Prepare VM → Kali toolkit**, or `nightglass templates list`,
-`nightglass templates show recon`, and `nightglass provision pentest
---template recon --iso ... --sha256 ...`. All templates begin **offline**;
-Nightglass does not automatically create the VM, connect networks or install
-packages. See the [Kali VM template catalog](docs/KALI_TEMPLATES.md).
-
-## Private Kali setup plans and package-version drift checks
-
-Per-template Kali VM plans can now be written to **NEW, private JSON files**
-with fixed software lists and offline-only defaults:
-
-```bash
-nightglass templates export recon ./new-recon-plan.json
-nightglass templates verify ./new-recon-plan.json
-```
-
-After **manual** in-guest inspection and installation, compare an explicitly
-provided guest inventory or record a separate reported-version snapshot:
-
-```bash
-nightglass templates compare ./new-recon-plan.json ./guest-inventory.json
-nightglass templates lock ./new-recon-plan.json ./guest-inventory.json ./new-lock.json
-```
-
-The GUI adds **Save private Kali setup plan** and **Compare guest inventory**
-to Prepare VM. These are read-only planning/comparison operations apart from
-writing explicitly requested new JSON records. Guest inventories are
-**untrusted user-reported data**, not proof of signed repositories, completed
-dependencies or a tested baseline restore. See the
-[setup manifest workflow](docs/KALI_SETUP_MANIFESTS.md).
-
-## Kali guest inventory helper (manual, offline)
-
-The standalone **source-checkout** script `scripts/kali/kali-guest-inventory.py`
-can be run **manually as an ordinary user inside an already-installed benign
-Kali VM** to query locally cached dpkg/apt package versions and produce one
-NEW private guest inventory JSON file. Use
-`nightglass templates guest-help recon` or **Prepare VM → Guest inventory
-instructions** for the non-executable steps.
-
-**Nightglass does not transfer the plan or helper into any VM**, install
-software, run guest commands, or open networking. An independent reviewed
-transfer mechanism is required; do not enable shared folders or clipboard
-to work around its absence. The output is untrusted self-reported data.
-See [guest inventory helper workflow](docs/KALI_GUEST_INVENTORY.md).
-
-## Offline Kali template package drift checks
-
-After creating a per-VM Kali setup plan and recording a **self-reported
-version lock**, Nightglass can compare a newer inventory without running
-commands inside a guest:
-
-```bash
-nightglass templates drift ./kali-plan.json ./old-versions.json ./new-inventory.json
-```
-
-Or use **Prepare VM → Review package version drift**. It flags
-missing tools, version changes, package/release mismatches and
-unverified dpkg audit status, but does not install anything or enable
-host/guest file transfers. The input reports are **untrusted metadata**,
-not cryptographic proof of a clean VM or signed packages. See the
-[version drift review guide](docs/KALI_VERSION_DRIFT.md).
-
-## Per-template Kali VM readiness (local read-only)
-
-After saving a curated Kali setup plan with a locally obtained publisher
-ISO checksum, use `nightglass templates preflight PLAN.json --iso
-LOCAL.iso --storage-dir EXISTING_DIRECTORY` or **Prepare VM → Check Kali
-VM readiness**. The check validates the actual ISO SHA-256, both
-`virt-install --dry-run` XML phases, available host RAM, already-running
-system-libvirt guests and free storage for an independent disk.
-
-This is **not** VM creation, a reservation, package installation or isolation
-certification. Missing/unsafe readings block approval; a passing dry-run
-only permits **manual review**. See [Kali template readiness](docs/KALI_TEMPLATE_PREFLIGHT.md).
-
-## Verify each installed Kali template uses its own VM disk
-
-After **manual** installation and shutdown, review an independently registered
-Kali profile against its saved plan and actual qcow2 disk:
-
-```bash
-nightglass templates registered ./recon-plan.json \
-  --disk /absolute/path/to/independent-recon.qcow2
-```
-
-Or select **Prepare VM → Audit installed Kali template VM**. The checker
-inspects both registered XML definitions, current guest state, resource
-limits, unexpected networking, disk driver metadata and the **exact source
-paths** in other libvirt VMs. It makes no host or guest modifications.
-Registered disk checks reject hardlinked selected images, normalized
-path aliases and symlinks found within the selected disk folder. Aliases
-outside that folder, bind mounts and privileged state changes may still
-escape static review; Kali package installation and runtime isolation
-remain unverified. See [registered Kali VM audit](docs/KALI_REGISTERED_TEMPLATES.md).
-
-## Verify a separate Kali VM's cold backup baseline
-
-Nightglass can tie each curated Kali profile to an existing **checksum-verified
-cold backup**, its original disk path, guest UUID and optional UEFI/NVRAM copy:
-
-```bash
-nightglass templates baseline ./kali-plan.json \
-  --disk /absolute/path/to/kali-guest.qcow2 \
-  --backup /path/to/existing-cold-backup
-```
-
-Or use **Prepare VM → Verify Kali cold backup**. The operation is read-only
-and warns about backups on the same storage device as the live VM.
-A passing hash/definition comparison is **not proof that the backup will
-restore or boot**. See [Kali cold baseline workflow](docs/KALI_COLD_BASELINES.md).
-
-## Confirm each Kali VM recovery copy belongs to its template
-
-A read-only check now ties a curated Kali VM setup plan and original
-checksum-verified cold backup to an independently staged NEW offline
-recovery guest:
-
-```bash
-nightglass templates recovery-link ./kali-plan.json \
-  --backup /path/to/original-cold-backup \
-  --staged /path/to/new-offline-staging
-```
-
-Or use **Prepare VM → Verify Kali recovery copy**. It rechecks both
-manifests/files, source guest and policy, separate disk/NVRAM copies
-and exact safe offline XML transformation. It does not create, import,
-boot or restore a VM. See [Kali recovery copy binding](docs/KALI_RECOVERY_LINK.md).
-
-## Audit a separately registered Kali recovery guest before any boot
-
-When a benign Kali VM has been manually recovered into a **NEW guest**
-and separately registered (without booting), Nightglass can verify the
-full template → cold backup → offline staged copy → registered guest chain:
-
-```bash
-nightglass templates recovery-registered ./original-kali-plan.json \
-  --backup /path/to/verified-cold-backup \
-  --staged /path/to/new-offline-recovery
-```
-
-Or use **Prepare VM → Audit registered Kali recovery**. This additional
-read-only gate refuses a reused guest UUID, changed registered disk
-references, enabled/unknown libvirt autostart and a running recovered guest.
-It does **not** import, start or prove a guest can boot or restore. See
-[registered Kali recovery handoff](docs/KALI_REGISTERED_RECOVERY.md).
-
-## Supervised metadata observation of a running Kali recovery VM
-
-After an operator has **manually started a BENIGN recovered Kali VM**,
-Nightglass can observe libvirt running state, host SELinux/sVirt metadata,
-declared offline networking, distinct disk/UUID identity and autostart:
-
-```bash
-nightglass templates observe-running ./original-kali-plan.json \
-  --backup /path/to/existing-cold-backup \
-  --guest new-recovery-guest \
-  --disk /absolute/path/to/live-recovery.qcow2
-```
-
-The GUI offers **Prepare VM → Observe running Kali recovery**. It never
-starts a VM, executes guest commands or hashes a writable live qcow2.
-**LIBVIRT/SELINUX METADATA ONLY** is not verified Kali OS boot, restore,
-process-context confinement or packet-level isolation. See
-[supervised Kali runtime observation](docs/KALI_RUNNING_OBSERVATION.md).
-
-## Read-only effective QEMU SELinux context probe
-
-For an **already manually started benign Kali recovery guest**, the new
-`nightglass templates process-label ORIGINAL_PLAN.json --guest NEW_RECOVERY_NAME`
-command and **Prepare VM → Inspect effective QEMU sVirt label** button
-compare the current libvirt SELinux process label to a read-only,
-unprivileged `/proc/PID/attr/current` observation.
-
-The process must uniquely match the registered libvirt guest name and UUID;
-unknown or inaccessible process metadata fails closed, **without sudo**.
-Kali action buttons now use a compact grid instead of one oversized row.
-No VM, guest disk or host configuration is changed. This remains
-non-attested process metadata, not proof of guest isolation, OS boot or
-recovery. See [QEMU process label inspection](docs/KALI_QEMU_PROCESS_LABEL.md).
-
-## Useful controls
-
-| Workspace | Backend | Persistent? | Network default | Security promise |
-|---|---|---|---|---|
-| Personal | Native Fedora KDE | Yes | Host | Not separated from host |
-| Trusted Development | Distrobox/rootless Podman | Yes | Host access | **Not a sandbox** |
-| Authorized Pentesting | KVM VM | Yes | Offline or verified lab | Isolation backed by KVM, subject to config |
-| Malware Analysis | KVM VM | Can be made disposable manually | Offline | Startup guardrails, NOT certified containment |
-
-**Save VM state** uses `virsh managedsave`: a saved memory image consumed by `virsh start`; it is **not a point-in-time snapshot, backup, or clean restoration**. Snapshot management is intentionally withheld in this first version pending tests of qcow2 and guest firmware interactions.
-
-### Repo publishing (new private repo)
-
-The connected GitHub integration does not currently expose *repository creation*. To publish this standalone folder from Windows without touching existing repositories:
-
-```powershell
-# GitHub CLI and Git must be installed and you must be authenticated (gh auth login)
-.\scripts\release\Publish-PrivateRepo.ps1
-```
-
-The script creates a fresh `nightglass-workspaces` **private** repository through `gh repo create`, initializes only this project directory if needed, refuses existing `origin` remotes and dirty existing Git checkouts, and **never force-pushes or pulls existing work**. You may rename the repo using `-RepoName custom-name`.
-
-## Optional Windows 11 upgrade first (NO automatic OS changes)
-
-The host read-only review identified Windows 10 Home on a UEFI/GPT
-Windows Disk 0 (measured system-disk capacity) and a separate measured backup-disk capacity GPT Disk 1 that the
-user has confirmed is a **PORTABLE DRIVE**. Nightglass explicitly excludes
-Disk 1 from Fedora target selection and USB formatting. The Windows 10 boot, encrypted recovery, Fast Startup,
-second-disk and upgrade prerequisites require human confirmation.
-
-If the user later chooses the recorded **clean Windows 11 install**, complete
-it and revalidate Windows before Fedora, after independently verified backups.
-The read-only native Windows reviewer now includes non-secret TPM
-presence/readiness/version and additional-disk bus/partition
-observations. Microsoft PC Health Check, separate backup, Windows
-recovery, successful post-upgrade startup and a new disk/EFI inventory
-are required before *any* Fedora graphical installation is considered.
-The reported target CPU (verify compatibility) is a supported Windows 11 processor, but
-the whole device's eligibility remains unverified.
-
-See [deferred clean Windows 11 plan](docs/WINDOWS11_CLEAN_INSTALL_STAGED.md)
-and [Windows 11-first route](docs/WINDOWS11_UPGRADE_FIRST.md).
-No Windows/Fedora installer, partition tool or compatibility bypass
-is automatically run. All changes are on draft stacked branches,
-with `main` and original local files untouched.
-
-## Windows-to-Fedora dual-boot preparation (NO installation)
-
-The next draft phase adds a **read-only Windows 10 readiness reviewer** for
-UEFI/BIOS, disk layout, Fast Startup, CPU/RAM and BitLocker status.
-It does **not** edit Windows, partition drives, install Fedora, alter
-Secure Boot/TPM, request recovery keys or reboot. Do not run any
-partitioning or OS install task from Nightglass.
-
-See [Windows dual-boot safety gates](docs/DEPLOYMENT_SAFETY_GATES.md)
-and the [private manual decision template](docs/DEPLOYMENT_DECISION_TEMPLATE.md).
-The new PowerShell script is on the unmerged
-`deployment/windows-dualboot-readiness-gates` draft branch. It is
-retrieved to a **new temporary path**, leaving the original local
-`main` checkout and its untracked files untouched. Its actual
-Windows PowerShell execution has not yet been verified.
-
-No Windows/Fedora dual-boot, physical Fedora hardware acceptance,
-benign KVM VM boot or cold rollback has been performed on the user's
-machine by this project.
-
-## Threat model and roadmap
-
-See [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md), [docs/INSTALL_PLAN.md](docs/INSTALL_PLAN.md), and [docs/ROADMAP.md](docs/ROADMAP.md).
-
-## Verification while GitHub Actions minutes are exhausted
-
-The stacked Nightglass pull requests are still **draft and unmerged**.
-The integration branch makes `.github/workflows/verify.yml` manual-only
-and provides a local Python test runner that does not launch VMs, use
-sudo, download dependencies, or spend GitHub Actions minutes:
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and pull-request guidance. Run the local verifier from the repository root:
 
 ```bash
 python3 -B scripts/testing/verify_local.py
-python3 -B scripts/testing/verify_local.py --focused
-python3 -B scripts/testing/verify_local.py --gui       # only with PySide6 installed
-python3 -B scripts/testing/verify_local.py --native    # only with native tools installed
 ```
 
-**On Windows**, the default verifier now runs a clearly labeled
-**portable subset** rather than the full Fedora-only test suite.
-It never invokes the Windows WSL `bash.exe` launcher. Checks requiring
-Linux symlinks, POSIX `0600` permissions, SELinux, system libvirt and
-actual running QEMU processes remain **NOT RUN / pending Fedora**.
-Do not enable Windows Developer Mode or install WSL to make the security
-tests appear green.
+On Windows, use `python -B scripts/testing/verify_local.py`; the runner selects a portable subset. Fedora host and virtualization checks are described in the [testing guides](docs/README.md#development-and-verification).
 
-Re-run the existing `Run-Nightglass-Checks.ps1` from the original
-Nightglass checkout to fetch the updated integration branch into another
-**new independent worktree**; it does not pull or overwrite existing
-`.env`, `.venv` or untracked files.
+## License
 
-### Run complete Fedora tests inside Docker Desktop (Windows)
+Midnight Provisioner is open source under the [MIT License](LICENSE).
 
-With Docker Desktop's **Linux engine already running**, use the separate
-PowerShell launcher/runner to fetch this integration branch into another
-**new clean git worktree** and run the complete Fedora test suite without
-GitHub Actions or access to original project secrets:
+## Sources and upstream projects
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\testing\Run-Nightglass-Fedora-Checks.ps1
-```
+Official source repositories and documentation for the platforms, libraries, tools, and optional guides referenced by Midnight Provisioner. Each upstream project retains its own license.
 
-This script lives on the integration branch (not the older `main`
-checkout). A standalone launcher can retrieve it from the connected
-private repository without checking out or overwriting any original
-files. The test image may download official Fedora packages **during
-the initial build**; the actual tests run with **no network**, a
-**read-only checkout**, nonroot UID, no KVM devices and no VM lifecycle
-operations. It saves a new result transcript. See
-[Docker test instructions](docs/FEDORA_DOCKER_VERIFICATION.md).
+### Platform and application
 
-**Fedora container green ≠ Fedora host/KVM certified.** Real host
-SELinux/sVirt process, guest network and restore verification remains
-pending.
+- [Fedora KDE](https://fedoraproject.org/kde/download/)
+- [KDE Plasma](https://kde.org/plasma-desktop/)
+- [Python documentation](https://docs.python.org/3/)
+- [Qt for Python / PySide6](https://doc.qt.io/qtforpython-6/)
+- [Qubes OS documentation (design inspiration)](https://doc.qubes-os.org/en/latest/)
+- [Setuptools](https://setuptools.pypa.io/en/latest/)
+- [Wheel packaging](https://wheel.readthedocs.io/en/stable/)
+- [Git](https://git-scm.com/docs)
+- [Fedora SELinux guidance](https://docs.fedoraproject.org/en-US/quick-docs/selinux-getting-started/)
 
-This workflow change does **not** globally disable existing automatic
-workflows in other PR branches. A repository owner can disable the
-**Verify source** workflow in GitHub's Actions UI while minutes are
-exhausted. No merges or changes to `main` have been performed.
+### Virtualization and containers
 
-See [offline verification and stacked-PR integration](docs/INTEGRATION_CHECKLIST.md).
-A local test result is not recorded as a GitHub check and cannot replace
-real Fedora/KVM hardware safety acceptance.
+- [Linux KVM](https://docs.kernel.org/virt/kvm/index.html)
+- [QEMU](https://www.qemu.org/docs/master/)
+- [qemu-img](https://www.qemu.org/docs/master/tools/qemu-img.html)
+- [libvirt documentation](https://libvirt.org/docs.html)
+- [virsh](https://libvirt.org/manpages/virsh.html)
+- [virt-xml-validate](https://libvirt.org/manpages/virt-xml-validate.html)
+- [virt-manager and virt-install](https://virt-manager.org/)
+- [virt-install reference](https://github.com/virt-manager/virt-manager/blob/main/man/virt-install.rst)
+- [Podman](https://docs.podman.io/en/latest/)
+- [Distrobox](https://distrobox.it/)
+- [Docker Desktop on Windows](https://docs.docker.com/desktop/setup/install/windows-install/)
+- [Official Ubuntu container images](https://hub.docker.com/_/ubuntu)
 
-## Development / verification
+### Guest environments
 
-```bash
-python -m unittest discover -s tests -v
-python -m compileall -q nightglass tests
-```
+- [Kali tool catalog](https://www.kali.org/tools/)
+- [Kali metapackages](https://www.kali.org/docs/general-use/metapackages/)
+- [Updating Kali](https://www.kali.org/docs/general-use/updating-kali/)
 
-No root access, VM images, lab connectivity, or malware samples are needed for these tests. They test policy logic and process argument construction, not the security of a hypervisor itself. SPDX license: MIT.
+### Installer, encryption, and boot media
 
-See [Nightglass one-USB multiboot plan](docs/ONE_USB_MULTIBOOT_PLAN.md): a
-separate 16 GB USB may contain official Windows 11 and Fedora KDE ISO files
-if they fit. The user chose a **future CLEAN Windows 11 installation**,
-not an in-place upgrade; portable-drive backup verification and explicit
-later approval are required before any Windows/Fedora changes.
+- [Fedora Everything installer](https://fedoraproject.org/misc/#everything)
+- [Fedora signing keys and verification](https://fedoraproject.org/security/)
+- [Fedora UEFI guidance](https://fedoraproject.org/wiki/Unified_Extensible_Firmware_Interface)
+- [Lorax / mkksiso](https://weldr.io/lorax/mkksiso.html)
+- [Pykickstart](https://pykickstart.readthedocs.io/en/latest/)
+- [GNU xorriso](https://www.gnu.org/software/xorriso/)
+- [isomd5sum source](https://github.com/rhinstaller/isomd5sum)
+- [cryptsetup / LUKS](https://gitlab.com/cryptsetup/cryptsetup)
+- [GnuPG documentation](https://gnupg.org/documentation/)
+- [Linux kernel boot parameters](https://docs.kernel.org/admin-guide/kernel-parameters.html)
+- [Fedora installer option changes](https://docs.fedoraproject.org/en-US/fedora/f38/release-notes/sysadmin/Installation/)
+- [Rufus](https://rufus.ie/en/)
+- [Fedora Media Writer source](https://github.com/FedoraQt/MediaWriter)
+- [Ventoy source](https://github.com/ventoy/Ventoy)
+- [Ventoy Secure Boot guidance](https://www.ventoy.net/en/doc_secure.html)
+- [GNU Mtools](https://www.gnu.org/software/mtools/)
 
-**Current deployment decision:** preparation only. The user is continuing
-other work before any USB formatting or clean Windows/Fedora install.
+<details>
+<summary>Windows preparation references</summary>
 
-### Planned optional Windows 11 Lite variant (not built or deployed)
+- [Official Windows 11 download](https://www.microsoft.com/en-us/software-download/windows11)
+- [Windows 11 requirements](https://www.microsoft.com/en-us/windows/windows-11-specifications?r=1)
+- [Windows activation](https://support.microsoft.com/en-us/windows/activation/activate-windows)
+- [BitLocker key management](https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/faq)
+- [Windows device encryption](https://support.microsoft.com/en-us/windows/security/encryption/device-encryption-in-windows)
+- [TPM inspection](https://learn.microsoft.com/en-us/powershell/module/trustedplatformmodule/get-tpm?view=windowsserver2025-ps)
+- [Secure Boot inspection](https://learn.microsoft.com/en-us/powershell/module/secureboot/confirm-securebootuefi?view=windowsserver2025-ps)
+- [REAgentC and Windows recovery](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/reagentc-command-line-options?view=windows-11)
+- [powercfg](https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/powercfg-command-line-options)
+- [Fast Startup behavior](https://learn.microsoft.com/en-us/troubleshoot/windows-client/setup-upgrade-and-drivers/fast-startup-causes-system-hibernation-shutdown-fail)
+- [Windows diagnostic data controls](https://learn.microsoft.com/en-us/windows/privacy/configure-windows-diagnostic-data-in-your-organization)
+- [Supported AMD processors](https://learn.microsoft.com/en-us/windows-hardware/design/minimum/supported/windows-11-supported-amd-processors)
+- [Windows Sandbox](https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-install)
+- [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install)
 
-For the future user-selected **clean** Windows 11 installation, the
-[NTLite Free conservative image profile](docs/WINDOWS11_LITE_IMAGE_PROFILE.md)
-preserves Windows security/servicing and developer features, chooses
-an edition matching an actual Home/Pro licence, and treats a custom
-ISO as optional rather than required to fit the separate 16 GB USB.
-An optional **preview-first, reversible, HKCU-only** post-install
-PowerShell preferences helper is committed to
-`scripts/windows/Set-Nightglass-Windows11-Preferences.ps1`. Its native
-Windows 11 Apply/Undo functionality has NOT been executed or verified.
-Do not run it against current Windows 10 or before deciding to install.
-No remote debloat script downloads or Windows component removal are
-authorized as part of Nightglass.
+</details>
 
-### User-selected Windows 11 Pro privacy/debloat profile — staged
+<details>
+<summary>Optional Windows customization references</summary>
 
-The [35-item detailed catalog](config/windows11-pro-custom.json) and
-[Windows 11 Pro configuration runbook](docs/WINDOWS11_PRO_32_POINT_PROFILE.md)
-cover the user's 32 numbered requests plus OneDrive, promotion/Widgets
-and AI-app changes. The planner at
-`scripts/windows/Invoke-Nightglass-Win11ProCustom.ps1` is **preview-only by
-default**. Do not run ApplyCore until a licensed Windows 11 Pro clean
-install, independent backups, an approved SHA256-pinned local
-Win11Debloat.ps1, real Windows parser/integration tests, and separate
-explicit authorization. No Windows settings have yet changed.
+- [AtlasOS](https://atlasos.net/)
+- [AtlasOS ISO injection guide](https://docs.atlasos.net/getting-started/install/install-iso-injection/)
+- [AME Wizard / AME Labs](https://amelabs.net/)
+- [NTLite](https://ntlite.com/)
+- [NTLite image export guide](https://ntlite.com/docs/guides/export/)
+- [NTLite Windows Lite guide](https://ntlite.com/docs/guides/windows-lite/)
+- [Win11Debloat source](https://github.com/Raphire/Win11Debloat)
+- [Win11Debloat wiki](https://github.com/Raphire/Win11Debloat/wiki/)
+- [Win11Debloat reversal guidance](https://github.com/Raphire/Win11Debloat/wiki/Reverting-Changes)
+- [Chris Titus Tech Windows Utility source](https://github.com/ChrisTitusTech/winutil)
+- [RemoveWindowsAI source](https://github.com/zoicware/RemoveWindowsAI)
 
-### Windows 11 Pro activate-later option and safe media sizing
-
-The future clean Windows 11 Pro installation defaults to **activate
-later** while also permitting **activation during official setup**.
-No product key is requested or embedded. The
-[activation choice and read-only ISO media plan](docs/WINDOWS11_PRO_ACTIVATE_LATER.md)
-explain how to select Pro without accidentally accepting an OEM Home
-edition, then activate later in Windows Settings. The companion
-`scripts/windows/Plan-Nightglass-InstallMedia.py` only estimates ISO capacity
-of a separately measured, disposable 16 GB USB; it **cannot write
-or select a USB target, start installation, change partitions or
-activate Windows**. The portable example backup-drive capacity backup drive remains off limits.
-
-### Offline latest-branch release verification (not a deployment)
-
-[Release-candidate integration gate](docs/OFFLINE_RELEASE_CANDIDATE_GATE.md)
-provides a preview-first, opt-in Windows Docker validation of the
-latest stacked code: PowerShell and Python syntax are parsed without
-executing branch code on Windows; Python 3.11–3.13 synthetic suites
-and Fedora 43 actual offscreen Qt/native fixture suites execute in
-isolated nonroot containers without network or host VM devices.
-An explicit run only creates a NEW detached sibling Git worktree and
-new local report; it does not merge PRs or overwrite .env/.venv.
-**New gate results have not yet been collected.** Passing would not
-replace physical Fedora sVirt/KVM/packet/restore evidence or approve
-a Windows 11 Pro clean install, USB formatter or third-party debloater.
-
-### Latest-code release evidence and independent audit
-
-Phase 5 introduces a [read-only local evidence auditor](docs/RELEASE_EVIDENCE_AUDIT.md).
-The [offline runner](scripts/testing/Run-Nightglass-Offline-Release-Gate.py)
-now records v2 checks, the exact tested Git SHA, before/after original
-`main` refs and a finished local log digest. The
-[auditor](scripts/release/Audit-Nightglass-Release-Evidence.py) refuses stale,
-tampered or incomplete evidence but cannot authenticate an adversarial
-report/log pair and cannot certify real Fedora KVM/sVirt security.
-This latest branch is a **draft / untested integration candidate**:
-no Windows or Fedora deployment or PR merge is implied.
-
-### Stacked PR integration guard (Phase 6, no merges)
-
-[PR stack integration readiness](docs/PR_STACK_INTEGRATION_READINESS.md)
-records 39 current draft/unmerged Nightglass PRs (#1–29, #31–40;
-#30 is absent). A preview-first local source auditor at
-`scripts/release/Audit-Nightglass-PR-Stack.py` checks local Git
-branch ancestry and path-level sensitive changes without
-checkout, merge, rebase, reset, clean or source writes. It can never
-authorize an actual merge or OS installation. GitHub PR metadata
-may have changed since the snapshot and the **new tests are pending**.
-A future cumulative integration review must include independent
-workflow inspection, current GitHub status and exact-commit offline
-test evidence before a separate user-approved merge decision.
-
-### Safe integration audit from the original Windows `main` checkout
-
-[Phase 7 pinned-source stack audit](docs/REMOTE_REF_STACK_AUDIT.md)
-fixes the earlier local-checkout mismatch: the 40-PR snapshot was
-not present in `main`, so the auditor now reads that JSON from
-the exact SHA of the fetched candidate in the local Git object
-database. No branch checkout, forced reset, merge or overwrite of
-untracked files is needed. A strict workflow policy review permits
-only manually dispatched CI with read-only token scope and flags
-mutable action version tags for human review. **Tests for the
-newest cumulative branch are still pending** and the audit cannot
-authorize integration or Windows/Fedora deployment.
-
-### Phase 8: Windows one-command offline checks (opt-in)
-
-See [Windows verification launcher](docs/WINDOWS_ONE_COMMAND_OFFLINE_CHECKS.md)
-for the preview-first script `scripts/testing/Invoke-Nightglass-OfflineChecks.ps1`.
-It is safe to retrieve into a new temp folder without switching off
-`main`. It offers explicit `-FetchRefs`, `-AuditStack` and
-`-RunDockerGate` switches, with separate consent for Docker testing
-and image downloads/builds. The gate checks the exact reviewed Git
-SHA before creating a test worktree. **The latest integration tests
-remain pending**; any synthetic PASS is not approval to merge or
-install Windows 11 Pro/Fedora.
-
-### Phase 9: strict offline integration coverage
-
-[Offline test completeness](docs/OFFLINE_TEST_COMPLETENESS.md)
-adds fail-closed minimum executed-test thresholds for Python 3.11–3.13,
-real Fedora GUI/libvirt fixtures and Bash syntax, and fixes an obsolete
-Git command-order assertion after SHA verification was introduced.
-These are source updates on a draft branch, not verified runtime PASS.
-
-### Phase 10: verify a future portable backup without writing to it
-
-[Backup integrity preflight](docs/BACKUP_INTEGRITY_PREFLIGHT.md)
-introduces `scripts/backup/Inspect-Nightglass-Backup.py`: Preview-only
-by default, with user-requested metadata comparison or streaming
-SHA-256 checks of an original directory and an already copied
-portable backup. The inspection includes hidden .git/.env/.venv
-content and never formats a disk, copies data, alters the registry,
-executes Windows Setup or stores a product key. It does **not**
-prove external-device separation or successful restoration.
-The current draft's native Windows/Docker tests remain pending;
-Windows 11 Pro installation and Fedora deployment remain deferred.
-
-### Phase 11: multi-folder backup coverage without copying
-
-The [multi-source backup set](docs/MULTI_SOURCE_BACKUP_READINESS.md)
-supports a private manifest of multiple original/copied directories.
-`scripts/backup/Verify-Nightglass-BackupSet.py` defaults to zero-access
-Preview, and separately offers read-only metadata or SHA-256
-comparison across all selected locations. It includes hidden
-.git/.env/.venv entries and prevents hardlinked pseudo-copies or
-one empty source from producing a false full PASS. No user's actual
-paths, files, portable disk, ISO or OS have been modified, and
-the newest Windows/Docker synthetic test results remain pending.
-
-### Phase 12: backup path boundary hardening
-
-The [linked-parent security review and fix](docs/BACKUP_PATH_BOUNDARY_HARDENING.md)
-prevents ordinary-looking directories under symlinks or Windows
-junctions from silently passing the read-only backup inspector.
-Source, copied-backup, manifest and report ancestors are checked,
-and `..` bypass spelling is refused. The fix is committed on a
-reversible draft branch; native Windows junction and latest
-cumulative Docker tests remain pending. No OS installation,
-personal-file copying, drive formatting or PR merge occurred.
-
-### Phase 13: backup hardlink identity across file names and directory groups
-
-[Cross-root identity review](docs/BACKUP_CROSS_ROOT_IDENTITY.md) documents the new checks for backups hardlinked to differently named original files or to originals in another selected directory group. Runtime tests on native Windows are still pending; no deployment is approved.
-
-### Phase 14: release-gate and PR-stack consistency
-
-The newest [offline test gate](docs/OFFLINE_RELEASE_CANDIDATE_GATE.md)
-uses `verification/phase14-release-gate-repair`. The
-`tests/test_candidate_branch_contract.py` portable regression suite
-fails when the Git branch tracked in the manifest disagrees with
-the cumulative Python runner, report auditor, PowerShell launcher
-or current operator guides. This prevents a stale-branch test
-result from being mistaken for latest-candidate evidence.
-The updated suite still needs native Windows/Docker execution.
-All Nightglass PRs remain draft and unmerged; Windows/Fedora
-installation and media writes remain deferred.
-
-The [Phase 14 verification record](docs/PHASE14_RELEASE_GATE_REPAIR.md) separates the locally executed 8-test positive/negative synthetic fixture from the still-pending complete Windows/Docker release gate.
-
-### Phase 15: Windows-portable test execution guard
-
-[Windows test completeness](docs/PHASE15_PORTABLE_TEST_COMPLETENESS.md)
-corrects a false-pass gap: per-file unittest discovery can exit
-successfully with zero executed tests. The Windows-portable
-verification loop now requires actual executed passing tests
-for every allowlisted suite, and explicitly reports skipped
-platform-only cases. Seven synthetic local regression tests passed;
-the actual Windows and cumulative Fedora/Docker suite remain pending.
-
-### Phase 16: fixing imports in script-launched tests
-
-The [test import path repair](docs/PHASE16_IMPORT_PATH_VERIFICATION.md)
-addresses a reproduced Python failure: `python scripts/runner.py`
-does not automatically add the Nightglass package root to imports.
-Three test runners now prioritize the candidate root before
-unittest discovery. A disposable subprocess fixture regression
-was added to the portable test suite. The full native Windows and
-Fedora/Docker tests still need to run against the pinned draft SHA.
-
-### Phase 17 — complete Windows QEMU synthetic test selection
-
-[Exact QEMU method verification](docs/PHASE17_QEMU_TEST_COVERAGE.md)
-prevents silently passing the Windows synthetic SELinux/QEMU test
-subset if an expected method is absent, duplicated or skipped.
-Seven tests of the exact committed runner passed on disposable
-local fixtures; the complete Windows/Fedora release gate remains
-pending and no installation/merge is approved.
+</details>

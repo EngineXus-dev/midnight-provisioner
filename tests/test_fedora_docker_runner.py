@@ -10,8 +10,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTAINERFILE = ROOT / "docker" / "Containerfile.fedora-verification"
-RUNNER = ROOT / "scripts" / "testing" / "Run-Nightglass-Fedora-Checks.ps1"
-BOOTSTRAP = ROOT / "scripts" / "testing" / "Start-Nightglass-Fedora-Checks.ps1"
+RUNNER = ROOT / "scripts" / "testing" / "Run-Midnight-Provisioner-Fedora-Checks.ps1"
+BOOTSTRAP = ROOT / "scripts" / "testing" / "Start-Midnight-Provisioner-Fedora-Checks.ps1"
 
 
 class FedoraDockerRunnerContractTests(unittest.TestCase):
@@ -24,12 +24,12 @@ class FedoraDockerRunnerContractTests(unittest.TestCase):
         self.assertIn("QT_QPA_PLATFORM=offscreen", text)
         self.assertIn('ENTRYPOINT ["python3", "-B", "scripts/testing/verify_local.py"]', text)
         self.assertNotRegex(text, r"(?mi)^\s*(?:COPY|ADD)\s")
-        self.assertIn("NIGHTGLASS_GUI_SMOKE=0", text)
+        self.assertIn("MIDNIGHT_PROVISIONER_GUI_SMOKE=0", text)
 
     def test_bash_sources_keep_lf_line_endings_in_windows_worktrees(self):
         attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")
         self.assertIn("*.sh text eol=lf", attributes)
-        for path in ("install/setup-nightglass.sh", "backup/fedora-recovery-smoke.sh"):
+        for path in ("install/setup-midnight-provisioner.sh", "backup/fedora-recovery-smoke.sh"):
             with self.subTest(script=path):
                 source = (ROOT / "scripts" / path).read_bytes()
                 self.assertNotIn(b"\r\n", source)
@@ -68,7 +68,7 @@ class FedoraDockerRunnerContractTests(unittest.TestCase):
             ))
         self.assertIn("worktree add --detach", runner)
         self.assertIn("Start-Transcript -LiteralPath $logPath -NoClobber", runner)
-        self.assertIn("Nightglass-Fedora-Check-", runner)
+        self.assertIn("Midnight-Provisioner-Fedora-Check-", runner)
         self.assertIn("Set-Content -LiteralPath $runner -Encoding UTF8", bootstrap)
         self.assertNotIn("docker run --privileged", runner)
 
@@ -88,7 +88,7 @@ class FedoraDockerRunnerContractTests(unittest.TestCase):
         # builder while registering an undecorated Python bound method directly.
         # Keep real GUI offscreen smoke enabled; this is an extra regression
         # guard, not a substitute for running that integration suite.
-        source = (ROOT / "nightglass" / "ui.py").read_text(encoding="utf-8")
+        source = (ROOT / "midnight_provisioner" / "ui.py").read_text(encoding="utf-8")
         self.assertNotRegex(
             source, r"\.connect\(self\.[A-Za-z_][A-Za-z_0-9]*\)"
         )

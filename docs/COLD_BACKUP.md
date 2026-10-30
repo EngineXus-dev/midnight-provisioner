@@ -1,6 +1,6 @@
 # Cold VM backups, integrity checks and recovery
 
-Nightglass supports **cold, offline backup copies** of the existing Kali/lab
+Midnight Provisioner supports **cold, offline backup copies** of the existing Kali/lab
 and offline analysis VMs. It does **not** provide virtual machine snapshots,
 one-click rollback, or a proven automated restoration system.
 
@@ -10,10 +10,10 @@ the guest is fully **shut off** and no managed-save memory session exists.
 
 ## Create a backup (GUI)
 
-1. In Nightglass, find the Kali or analysis VM and choose **Cold backup**.
+1. In Midnight Provisioner, find the Kali or analysis VM and choose **Cold backup**.
 2. Select a directory on independent, preferably encrypted external storage.
-3. Enter a **new folder name**; Nightglass refuses any existing destination.
-4. Nightglass checks the guest's power state, managed-save status, current
+3. Enter a **new folder name**; Midnight Provisioner refuses any existing destination.
+4. Midnight Provisioner checks the guest's power state, managed-save status, current
    and inactive libvirt XML, security policy, ISO/CD-ROM detach state,
    backing chains, source files and declared disk format.
 5. Inspect the previewed file paths and byte count. Confirm explicitly.
@@ -34,22 +34,22 @@ A new directory contains:
 ## CLI
 
 \`\`\`bash
-nightglass backup plan pentest
-nightglass backup create pentest /media/secure-drive/nightglass-pentest-001
-nightglass backup verify /media/secure-drive/nightglass-pentest-001
+midnight-provisioner backup plan pentest
+midnight-provisioner backup create pentest /media/secure-drive/midnight-provisioner-pentest-001
+midnight-provisioner backup verify /media/secure-drive/midnight-provisioner-pentest-001
 \`\`\`
 
 \`backup create\` requires typing **BACKUP** interactively (or passing the
 explicit \`--yes\` flag in a pre-approved automation). **Nothing is ever
 overwritten or deleted automatically.** Backups require non-root access to
 disk-image files and sufficient free space. If libvirt VM storage is owned by
-root or QEMU, Nightglass refuses and suggests a separate permission-reviewed
+root or QEMU, Midnight Provisioner refuses and suggests a separate permission-reviewed
 procedure; do **not** run the GUI as root or loosen storage permissions blindly.
 
 ## New: verified offline recovery staging
 
 Use **Backup & verify → Recover into NEW folder**, or
-`nightglass recover plan|stage|verify`, to prepare a **separate offline copy**
+`midnight-provisioner recover plan|stage|verify`, to prepare a **separate offline copy**
 with a fresh guest identity and rewritten disk/NVRAM paths. Nothing is
 automatically defined in libvirt and no guest is started. Follow the
 [recovery staging guide](RECOVERY_STAGING.md) before a manual import.
@@ -76,7 +76,7 @@ tested should you rely on this backup.
   storage, active installation ISO attachments and QCOW2 backing chains.
 - Rejects symlinks for source images and backup files.
 - An external administrator or automation could start a guest or mutate a disk
-  during copying. Nightglass rechecks VM power state during chunks, but cannot
+  during copying. Midnight Provisioner rechecks VM power state during chunks, but cannot
   atomically lock out other privileged libvirt clients. For strong consistency,
   use an independent cold clone and hardware-tested backup workflow.
 - Your backup may contain personal information, credentials or malware samples.
@@ -85,7 +85,7 @@ tested should you rely on this backup.
 - The manifest contains hashes, **not a cryptographic signature**. A malicious
   actor who can modify all backup files and the manifest can forge matching
   checksums.
-- \`INCOMPLETE\` folders are kept for inspection; Nightglass will not delete
+- \`INCOMPLETE\` folders are kept for inspection; Midnight Provisioner will not delete
   them for you. Do not restore their contents.
 - The current implementation is **experimental pending live Fedora/libvirt
   integration tests**. A successful unit test or SHA-256 check does not prove

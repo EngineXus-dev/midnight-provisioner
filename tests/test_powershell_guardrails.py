@@ -13,10 +13,10 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
 SCANNER = SCRIPTS / "testing" / "check_powershell_guardrails.py"
-CHECKED = SCRIPTS / "testing" / "Run-Nightglass-GUI-Smoke.ps1"
-ARCHIVER = SCRIPTS / "testing" / "Archive-Nightglass-TestResults.ps1"
+CHECKED = SCRIPTS / "testing" / "Run-Midnight-Provisioner-GUI-Smoke.ps1"
+ARCHIVER = SCRIPTS / "testing" / "Archive-Midnight-Provisioner-TestResults.ps1"
 
-spec = importlib.util.spec_from_file_location("nightglass_ps_guardrails", SCANNER)
+spec = importlib.util.spec_from_file_location("midnight_provisioner_ps_guardrails", SCANNER)
 scanner = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(scanner)
@@ -56,9 +56,9 @@ class PowerShellGuardrailTests(unittest.TestCase):
 
     def test_gui_runner_never_silently_skips_or_installs(self):
         source = CHECKED.read_text(encoding="utf-8")
-        for token in ("QT_QPA_PLATFORM", "offscreen", "NIGHTGLASS_GUI_SMOKE",
+        for token in ("QT_QPA_PLATFORM", "offscreen", "MIDNIGHT_PROVISIONER_GUI_SMOKE",
                       "ExpectedSha", "TimeoutSeconds", "FAILED_NO_EXECUTED_GUI_TESTS",
-                      "Archive-Nightglass-TestResults.ps1", "worktree add --detach",
+                      "Archive-Midnight-Provisioner-TestResults.ps1", "worktree add --detach",
                       "throw 'GUI smoke failed or produced no executed tests'"):
             self.assertIn(token, source)
         for forbidden in ("docker run", "virsh start", "virt-install",

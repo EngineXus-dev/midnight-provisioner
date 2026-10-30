@@ -1,6 +1,6 @@
 # Registered Kali recovery handoff (read-only)
 
-The final **pre-boot** Nightglass audit for an independently recovered
+The final **pre-boot** Midnight Provisioner audit for an independently recovered
 Kali template checks that a **manually registered, still shut-off** guest
 matches its source template, verified cold backup and independent offline
 recovery copy.
@@ -15,7 +15,7 @@ After deliberately preparing a benign Kali VM and shutting it down,
 make a cold backup on independent, preferably encrypted storage:
 
 ```bash
-nightglass templates baseline /path/to/original-kali-plan.json \
+midnight-provisioner templates baseline /path/to/original-kali-plan.json \
   --disk /absolute/original-guest.qcow2 \
   --backup /path/to/cold-backup
 ```
@@ -25,7 +25,7 @@ a **new guest name** and **new empty destination folder**. Verify that
 copy is independently linked to the source:
 
 ```bash
-nightglass templates recovery-link /path/to/original-kali-plan.json \
+midnight-provisioner templates recovery-link /path/to/original-kali-plan.json \
   --backup /path/to/cold-backup \
   --staged /path/to/new-offline-recovery-stage
 ```
@@ -35,7 +35,7 @@ and manually registering this **new**, **powered-off** guest with
 virt-manager/libvirt, run:
 
 ```bash
-nightglass templates recovery-registered /path/to/original-kali-plan.json \
+midnight-provisioner templates recovery-registered /path/to/original-kali-plan.json \
   --backup /path/to/cold-backup \
   --staged /path/to/new-offline-recovery-stage
 ```
@@ -48,7 +48,7 @@ perform libvirt registration.
 Optionally write a **NEW**, private local report (never overwrite):
 
 ```bash
-nightglass templates recovery-registered /path/to/original-kali-plan.json \
+midnight-provisioner templates recovery-registered /path/to/original-kali-plan.json \
   --backup /path/to/cold-backup \
   --staged /path/to/new-offline-recovery-stage \
   --report /path/to/NEW-registration-audit.json
@@ -69,7 +69,7 @@ nightglass templates recovery-registered /path/to/original-kali-plan.json \
   `virsh dominfo`; autostart must be explicitly **disabled**. Enabled,
   missing, unknown or inconsistently reported status blocks the audit.
   This matters because an external libvirt client/host reboot can start
-  a guest **without** using Nightglass's guarded Start command.
+  a guest **without** using Midnight Provisioner's guarded Start command.
 - **Disk independence:** read current/next-boot/managed-save XML of every
   other registered system-libvirt guest. Refuse exact or lexically aliased
   recovery image paths and same-directory symlink sources without opening
@@ -84,7 +84,7 @@ to privileged changes and are not a security attestation.
 ## After the operator manually starts a benign recovery VM
 
 For a separately authorized, **already running benign** Kali guest,
-`nightglass templates observe-running PLAN.json --backup EXISTING_BACKUP
+`midnight-provisioner templates observe-running PLAN.json --backup EXISTING_BACKUP
 --guest NEW_RECOVERY_NAME --disk /absolute/live-recovery.qcow2` performs
 a non-invasive live libvirt and sVirt **metadata-only** check. The GUI
 offers **Observe running Kali recovery**. It never hashes a live writable

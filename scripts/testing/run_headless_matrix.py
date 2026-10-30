@@ -20,11 +20,11 @@ def run_matrix() -> int:
     source = ROOT / "tests"
     if (Path.cwd().resolve() != ROOT or source.is_symlink()
             or not source.is_dir()):
-        print("[BLOCKED] Must run in isolated Nightglass source tree", file=sys.stderr)
+        print("[BLOCKED] Must run in isolated Midnight Provisioner source tree", file=sys.stderr)
         return 2
     # Python invoked via 'scripts/testing/run_headless_matrix.py' otherwise
     # has scripts/ and tests/ but NOT the checkout root on sys.path.
-    # The synthetic modules legitimately import nightglass.
+    # The synthetic modules legitimately import midnight_provisioner.
     # Place the pinned checkout first, even when an inherited PYTHONPATH
     # already lists it after another potentially conflicting package root.
     if str(ROOT) in sys.path:

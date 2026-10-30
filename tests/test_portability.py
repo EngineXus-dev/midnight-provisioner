@@ -5,12 +5,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from nightglass.portability import (
+from midnight_provisioner.portability import (
     MachinePreferences, budget_for, load_machine_preferences, save_machine_preferences,
 )
-from nightglass.models import WorkspaceError
-from nightglass.runner import ToolError
-from nightglass.updates import SourceUpdater
+from midnight_provisioner.models import WorkspaceError
+from midnight_provisioner.runner import ToolError
+from midnight_provisioner.updates import SourceUpdater
 
 
 class MachineBudgetTests(unittest.TestCase):
@@ -66,7 +66,7 @@ class MachineBudgetTests(unittest.TestCase):
             if os.name == "nt":
                 # Native Windows has no fchmod; test serialization while
                 # retaining the POSIX permissions call in production.
-                with patch("nightglass.portability.os.fchmod", create=True):
+                with patch("midnight_provisioner.portability.os.fchmod", create=True):
                     save_machine_preferences(original, filename)
             else:
                 save_machine_preferences(original, filename)
@@ -91,7 +91,7 @@ class MachineBudgetTests(unittest.TestCase):
 
     def test_single_setup_script_replaces_ram_specific_installs(self):
         scripts = Path(__file__).resolve().parents[1] / "scripts"
-        self.assertTrue((scripts / "install" / "setup-nightglass.sh").exists())
+        self.assertTrue((scripts / "install" / "setup-midnight-provisioner.sh").exists())
         self.assertFalse((scripts / "Setup-8GB.sh").exists())
         self.assertFalse((scripts / "Setup-32GB.sh").exists())
 
@@ -102,7 +102,7 @@ class FakeSourceUpdater(SourceUpdater):
         self.calls = []
         self.responses = {
             ("rev-parse", "--show-toplevel"): str(root),
-            ("remote", "get-url", "origin"): "https://github.com/EngineXus-dev/nightglass-workspaces.git",
+            ("remote", "get-url", "origin"): "https://github.com/EngineXus-dev/midnight-provisioner.git",
             ("symbolic-ref", "--quiet", "--short", "HEAD"): "main",
             ("status", "--porcelain", "--untracked-files=normal"): "",
             ("fetch", "--no-tags", "origin", "main"): "",
@@ -124,7 +124,7 @@ class SafeUpdateTests(unittest.TestCase):
         self.tempdir = tempfile.TemporaryDirectory()
         self.addCleanup(self.tempdir.cleanup)
         self.root = Path(self.tempdir.name)
-        (self.root / "pyproject.toml").write_text("[project]\nname='nightglass-workspaces'\n")
+        (self.root / "pyproject.toml").write_text("[project]\nname='midnight-provisioner'\n")
         self.updater = FakeSourceUpdater(self.root)
 
     def test_update_needs_explicit_consent(self):

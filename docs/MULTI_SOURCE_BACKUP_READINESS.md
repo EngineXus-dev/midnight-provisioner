@@ -2,7 +2,7 @@
 
 **Status: IMPLEMENTED IN A DRAFT BRANCH, NOT YET RUN ON USER DATA.**
 
-Nightglass is an independent Fedora KDE / Windows dual-boot project.
+Midnight Provisioner is an independent Fedora KDE / Windows dual-boot project.
 The existing Phase 10 read-only inspector could verify **one**
 original folder against **one** backup folder. That is useful but
 insufficient before a future Windows clean install: files may live
@@ -14,7 +14,7 @@ pairs**. It still does not perform backups or restore files.
 
 ## Safety and access
 
-`scripts/backup/Verify-Nightglass-BackupSet.py` defaults to **Preview**,
+`scripts/backup/Verify-Midnight-Provisioner-BackupSet.py` defaults to **Preview**,
 which reads **no manifest, directories or files**. There are three
 modes:
 
@@ -25,7 +25,7 @@ modes:
 | Verify | The above plus streaming SHA-256 of every regular file in each pair | Each specifically selected directory's files matched their copy **at the time of reading** |
 
 The program calls only the repository's own fixed
-`Inspect-Nightglass-Backup.py` checker. It never runs a downloaded
+`Inspect-Midnight-Provisioner-Backup.py` checker. It never runs a downloaded
 script, invokes a shell command, probes all Windows drives,
 selects a USB, accesses GitHub or alters the source/backup files.
 By default it outputs counts and short, user-chosen *IDs*,
@@ -55,7 +55,7 @@ See `examples/backup-set.EXAMPLE.json` for a deliberately
 nonfunctional **example**, with explicit REPLACE placeholders.
 
 Create a NEW local JSON file such as
-`my-backups.nightglass-backup-set.local.json`, stored outside the
+`my-backups.midnight-provisioner-backup-set.local.json`, stored outside the
 GitHub repository when possible. Use this shape:
 
 ```json
@@ -85,8 +85,8 @@ The manifest is inherently sensitive because it names your private
 folders. Never add a real manifest to GitHub, Discord, chat logs,
 a publicly accessible ZIP or your installer image. This repository's
 `.gitignore` ignores
-`*.nightglass-backup-set.local.json` and
-`*.nightglass-backup-report.local.json`, but a file already
+`*.midnight-provisioner-backup-set.local.json` and
+`*.midnight-provisioner-backup-report.local.json`, but a file already
 tracked by Git or saved under an unrelated filename is NOT protected
 by those patterns. **Keeping the file outside Git entirely is safer.**
 
@@ -95,7 +95,7 @@ by those patterns. **Keeping the file outside Git entirely is safer.**
 From a checkout that contains the new script:
 
 ```powershell
-python scripts/backup/Verify-Nightglass-BackupSet.py
+python scripts/backup/Verify-Midnight-Provisioner-BackupSet.py
 ```
 
 No file access, hashing, manifest parsing, backup copying,
@@ -104,8 +104,8 @@ restore, registry change, Git operation, USB write or Windows Setup.
 ## Step 3 — inspect only when copies exist
 
 ```powershell
-python scripts/backup/Verify-Nightglass-BackupSet.py --mode Inspect `
-  --manifest "C:\\REPLACE\\my-backups.nightglass-backup-set.local.json"
+python scripts/backup/Verify-Midnight-Provisioner-BackupSet.py --mode Inspect `
+  --manifest "C:\\REPLACE\\my-backups.midnight-provisioner-backup-set.local.json"
 ```
 
 Inspect compares file/folder inventory and sizes across all selected
@@ -118,8 +118,8 @@ After copies are complete and source applications have stopped
 writing to those files:
 
 ```powershell
-python scripts/backup/Verify-Nightglass-BackupSet.py --mode Verify `
-  --manifest "C:\\REPLACE\\my-backups.nightglass-backup-set.local.json"
+python scripts/backup/Verify-Midnight-Provisioner-BackupSet.py --mode Verify `
+  --manifest "C:\\REPLACE\\my-backups.midnight-provisioner-backup-set.local.json"
 ```
 
 `Verify` reads and hashes each file on both sides, including
@@ -156,9 +156,9 @@ usb_format_authorized = false
 Add a new path outside ALL inspected source/backup roots:
 
 ```powershell
-python scripts/backup/Verify-Nightglass-BackupSet.py --mode Verify `
-  --manifest "C:\\REPLACE\\my-backups.nightglass-backup-set.local.json" `
-  --report "C:\\REPLACE\\my-check.nightglass-backup-report.local.json"
+python scripts/backup/Verify-Midnight-Provisioner-BackupSet.py --mode Verify `
+  --manifest "C:\\REPLACE\\my-backups.midnight-provisioner-backup-set.local.json" `
+  --report "C:\\REPLACE\\my-check.midnight-provisioner-backup-report.local.json"
 ```
 
 Reports use exclusive-create: they cannot overwrite an existing

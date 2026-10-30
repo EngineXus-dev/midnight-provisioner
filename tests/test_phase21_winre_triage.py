@@ -7,7 +7,7 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "windows" / "Read-Nightglass-WinRE-Triage.ps1"
+SCRIPT = ROOT / "scripts" / "windows" / "Read-Midnight-Provisioner-WinRE-Triage.ps1"
 
 class WinREContract(unittest.TestCase):
     @classmethod
@@ -71,7 +71,7 @@ class WinREContract(unittest.TestCase):
         for name in flags:
             with self.subTest(name=name):
                 self.assertIn(name + " = $false", self.source)
-        self.assertIn("schema = 'nightglass.winre-triage.v1'", self.source)
+        self.assertIn("schema = 'midnight-provisioner.winre-triage.v1'", self.source)
 
     def test_status_parser_fails_closed_and_rejects_ambiguity(self):
         for fragment in ("$enabled -eq 1 -and $disabled -eq 0",

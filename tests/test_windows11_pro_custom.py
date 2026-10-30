@@ -15,7 +15,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "config" / "windows11-pro-custom.json"
-SCRIPT = ROOT / "scripts" / "windows" / "Invoke-Nightglass-Win11ProCustom.ps1"
+SCRIPT = ROOT / "scripts" / "windows" / "Invoke-Midnight-Provisioner-Win11ProCustom.ps1"
 
 
 class Windows11ProCustomContract(unittest.TestCase):
@@ -26,7 +26,7 @@ class Windows11ProCustomContract(unittest.TestCase):
         cls.items = cls.catalog["items"]
 
     def test_user_all_32_choices_and_three_app_groups_are_present(self):
-        self.assertEqual(self.catalog["schema"], "nightglass.windows11.pro.custom.v1")
+        self.assertEqual(self.catalog["schema"], "midnight-provisioner.windows11.pro.custom.v1")
         self.assertEqual(self.catalog["target"]["edition"], "Windows 11 Pro")
         self.assertEqual(len(self.items), 35)
         self.assertEqual([x["id"] for x in self.items], list(range(1, 36)))
@@ -71,7 +71,7 @@ class Windows11ProCustomContract(unittest.TestCase):
         source = self.script
         self.assertIn("[string]$Mode = 'Preview'", source)
         self.assertIn("ExportPlan", source)
-        self.assertIn("APPLY NIGHTGLASS WINDOWS11 PRO CORE", source)
+        self.assertIn("APPLY MIDNIGHT_PROVISIONER WINDOWS11 PRO CORE", source)
         self.assertIn("if (-not $BackupVerified)", source)
         self.assertIn("Windows 11 Pro", source)
         self.assertIn("Administrator", source)

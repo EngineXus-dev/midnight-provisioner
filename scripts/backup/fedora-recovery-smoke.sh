@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Nightglass Fedora recovery smoke checks: READ-ONLY; no guest defined or booted.
+# Midnight Provisioner Fedora recovery smoke checks: READ-ONLY; no guest defined or booted.
 set -euo pipefail
 if [[ $# -ne 1 ]]; then
   echo "Usage: bash scripts/backup/fedora-recovery-smoke.sh /path/to/staged-recovery" >&2
@@ -19,12 +19,12 @@ if ! command -v python3 >/dev/null 2>&1; then
   echo "Missing Python 3 interpreter." >&2
   exit 2
 fi
-printf '\n[1/3] Nightglass host diagnostics (read-only)\n'
-python3 -m nightglass doctor
+printf '\n[1/3] Midnight Provisioner host diagnostics (read-only)\n'
+python3 -m midnight_provisioner doctor
 printf '\n[2/3] Staged recovery integrity (read-only)\n'
-python3 -m nightglass recover verify "$1"
+python3 -m midnight_provisioner recover verify "$1"
 printf '\n[3/3] Fedora host import-readiness audit (read-only)\n'
-python3 -m nightglass recover preflight "$1"
+python3 -m midnight_provisioner recover preflight "$1"
 cat <<'NOTICE'
 
 PASS: the read-only recovery checks completed.

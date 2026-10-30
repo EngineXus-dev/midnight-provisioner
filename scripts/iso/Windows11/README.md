@@ -6,7 +6,7 @@ You have two choices:
 
 | Choice | What you get |
 |---|---|
-| **Official ISO** (simplest) | Stock Windows 11. Optionally apply Nightglass's reviewed privacy tweaks later with `scripts\windows\Invoke-Nightglass-Win11ProCustom.ps1`. |
+| **Official ISO** (simplest) | Stock Windows 11. Optionally apply Midnight Provisioner's reviewed privacy tweaks later with `scripts\windows\Invoke-Midnight-Provisioner-Win11ProCustom.ps1`. |
 | **AtlasOS-injected ISO** | Windows installs already set up as AtlasOS ([AtlasOS ISO injection guide](https://docs.atlasos.net/getting-started/install/install-iso-injection/)). |
 
 ## Before you start
@@ -31,7 +31,7 @@ If you're not using AtlasOS, you're done here: use that ISO as-is.
 2. Open `AME Wizard Beta.exe` and click **Updates** to make sure it's current.
 3. Drag the ISO from this folder into AME Wizard, then drag in `Atlas Playbook.apbx`.
 4. Select the ISO on the left, then **Select a playbook to modify**, then **AtlasOS**, then **OK**, then **Next**.
-5. In the playbook options, **keep these security features on.** Nightglass is a security tool, and these protect Windows and the shared PC:
+5. In the playbook options, **keep these security features on.** Midnight Provisioner is a security tool, and these protect Windows and the shared PC:
    - **Windows Defender:** don't disable it.
    - **CPU security mitigations:** keep the Windows default.
    - **Core isolation (VBS / memory integrity):** don't disable it, even though Atlas suggests it for speed.
@@ -59,7 +59,7 @@ powershell -NoProfile -File scripts\iso\Windows11\Optimize-Windows11Iso.ps1 -For
 
 How much smaller it gets depends on the ISO, and the script prints the before and after sizes.
 
-**What it deliberately does not do:** strip Windows components ("tiny11"-style). That breaks Windows Update, Defender, WinRE or BitLocker, which a Nightglass PC relies on. `docs/WINDOWS11_LITE_IMAGE_PROFILE.md` has the longer-term, still-conservative NTLite plan.
+**What it deliberately does not do:** strip Windows components ("tiny11"-style). That breaks Windows Update, Defender, WinRE or BitLocker, which a Midnight Provisioner PC relies on. `docs/WINDOWS11_LITE_IMAGE_PROFILE.md` has the longer-term, still-conservative NTLite plan.
 
 **With AtlasOS,** inject first, then trim the injected ISO. Or trim with `-Format Wim` first, since AME Wizard may need a mountable image. Either way, test the result in a VM.
 
@@ -79,4 +79,4 @@ How much smaller it gets depends on the ISO, and the script prints the before an
    - Turn off Fast Startup.
    - Shut down.
 
-Next: the Fedora side, in [`../Fedora`](../README.md#1-build-the-nightglass-installer-iso), and the overall order in [`../README.md`](../README.md).
+Next: the Fedora side, in [`../Fedora`](../README.md#1-build-the-midnight-provisioner-installer-iso), and the overall order in [`../README.md`](../README.md).

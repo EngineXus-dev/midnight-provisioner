@@ -1,11 +1,11 @@
 # Kali independent VM cold baseline audit (read-only)
 
-Nightglass supports purpose-built, independently installed Kali VM templates
+Midnight Provisioner supports purpose-built, independently installed Kali VM templates
 for authorized testing. Before installing or updating a tool bundle, an
 operator should maintain a cold, checksum-verified backup of **that specific
 VM**, not a shared image used by many profiles.
 
-This phase adds an audit of an **existing Nightglass cold backup**, not a
+This phase adds an audit of an **existing Midnight Provisioner cold backup**, not a
 new backup method and not a restore operation.
 
 ## Workflow
@@ -17,14 +17,14 @@ confirmation** and never changes the original guest. Verify the exported
 folder first:
 
 ```bash
-nightglass backup verify /path/to/existing-cold-backup
+midnight-provisioner backup verify /path/to/existing-cold-backup
 ```
 
 Then inspect the current template, expected live disk and that existing
 backup directory:
 
 ```bash
-nightglass templates baseline /path/to/recon-plan.json \
+midnight-provisioner templates baseline /path/to/recon-plan.json \
   --disk /absolute/path/to/recon.qcow2 \
   --backup /path/to/existing-cold-backup
 ```
@@ -32,7 +32,7 @@ nightglass templates baseline /path/to/recon-plan.json \
 Optional non-sensitive, private evidence **in a NEW file**:
 
 ```bash
-nightglass templates baseline /path/to/recon-plan.json \
+midnight-provisioner templates baseline /path/to/recon-plan.json \
   --disk /absolute/path/to/recon.qcow2 \
   --backup /path/to/existing-cold-backup \
   --report /path/to/NEW-cold-baseline-evidence.json
@@ -73,7 +73,7 @@ contents, and never copies or restores any source.
 ## Check a separately staged recovery copy
 
 With an **independently created**, NEW offline staging folder, run
-`nightglass templates recovery-link PLAN.json --backup EXISTING_BACKUP
+`midnight-provisioner templates recovery-link PLAN.json --backup EXISTING_BACKUP
 --staged EXISTING_STAGING` or **Prepare VM → Verify Kali recovery copy**.
 It rehashes source and copied disk/NVRAM and verifies the expected exact
 offline XML transformation. No actual VM restore or boot occurs. See

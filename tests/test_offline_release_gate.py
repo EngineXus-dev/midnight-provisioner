@@ -19,8 +19,8 @@ from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNNER = ROOT / "scripts" / "testing" / "Run-Nightglass-Offline-Release-Gate.py"
-spec = importlib.util.spec_from_file_location("nightglass_offline_gate_for_tests", RUNNER)
+RUNNER = ROOT / "scripts" / "testing" / "Run-Midnight-Provisioner-Offline-Release-Gate.py"
+spec = importlib.util.spec_from_file_location("midnight_provisioner_offline_gate_for_tests", RUNNER)
 gate = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(gate)
@@ -38,17 +38,17 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
     def test_authorized_branch_and_origin_only(self):
         self.assertEqual(gate.BRANCH, "verification/phase17-qemu-subset-integrity")
         self.assertTrue(gate.ORIGIN.fullmatch(
-            "https://github.com/EngineXus-dev/nightglass-workspaces.git"))
+            "https://github.com/EngineXus-dev/midnight-provisioner.git"))
         self.assertTrue(gate.ORIGIN.fullmatch(
-            "git@github.com:EngineXus-dev/nightglass-workspaces.git"))
+            "git@github.com:EngineXus-dev/midnight-provisioner.git"))
         for bad in ("https://github.com/EngineXus-dev/unrelated.git",
-                    "https://github.com/attacker/nightglass-workspaces.git",
-                    "https://example.com/EngineXus-dev/nightglass-workspaces.git"):
+                    "https://github.com/attacker/midnight-provisioner.git",
+                    "https://example.com/EngineXus-dev/midnight-provisioner.git"):
             self.assertIsNone(gate.ORIGIN.fullmatch(bad))
 
     def test_isolated_docker_runtime_is_rootless_nonprivileged_readonly(self):
         opts = gate.docker_base(
-            Path("/tmp/mock-detached"), label="nightglass-unit-test",
+            Path("/tmp/mock-detached"), label="midnight-provisioner-unit-test",
             memory="1024m", tmpfs="512m")
         text = " ".join(opts)
         for flag in ("--network none", "--read-only", "--cap-drop ALL",
@@ -73,7 +73,7 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
             cf.write_text("FROM fedora:43\n", encoding="utf-8")
             sha = hashlib.sha256(cf.read_bytes()).hexdigest()[:12]
             self.assertEqual(gate.fedora_tag(worktree),
-                             "nightglass-fedora-verifier:43-" + sha)
+                             "midnight-provisioner-fedora-verifier:43-" + sha)
 
     def test_powershell_source_is_parsed_not_executed(self):
         argv = gate.power_shell_ast(Path("C:/new-detached"))
@@ -91,10 +91,10 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
     def test_python_ast_does_not_import_or_execute_fetched_code(self):
         with tempfile.TemporaryDirectory() as home:
             root = Path(home)
-            for folder in ("nightglass", "tests", "scripts"):
+            for folder in ("midnight_provisioner", "tests", "scripts"):
                 (root / folder).mkdir()
             for index in range(21):
-                folder = ("nightglass", "tests", "scripts")[index % 3]
+                folder = ("midnight_provisioner", "tests", "scripts")[index % 3]
                 (root / folder / f"fixture_{index}.py").write_text(
                     "assert False, 'Would execute if imported'\n", encoding="utf-8")
             self.assertEqual(gate.source_ast(root), 21)
@@ -131,7 +131,7 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
 
     def test_detached_worktree_is_unique_and_never_mutates_main(self):
         with tempfile.TemporaryDirectory() as home:
-            repo = Path(home) / "nightglass-workspaces"
+            repo = Path(home) / "midnight-provisioner"
             repo.mkdir()
             calls = []
 
@@ -146,7 +146,7 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
                 checkout, sha, log, report = gate.branch_checkout(repo)
             self.assertEqual(sha, "a" * 40)
             self.assertEqual(checkout.parent, repo.parent)
-            self.assertTrue(checkout.name.startswith("Nightglass-RC-"))
+            self.assertTrue(checkout.name.startswith("Midnight-Provisioner-RC-"))
             self.assertNotEqual(checkout, repo)
             self.assertTrue(log.parent == report.parent == repo.parent)
             # Branch checkout now does fetch -> pinned ref verification ->
@@ -170,7 +170,7 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
 
     def test_pinned_candidate_sha_mismatch_stops_before_worktree_creation(self):
         with tempfile.TemporaryDirectory() as home:
-            repo = Path(home) / "nightglass-workspaces"
+            repo = Path(home) / "midnight-provisioner"
             repo.mkdir()
             commands = []
 
@@ -187,7 +187,7 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
                     gate.branch_checkout(repo, expected_sha="b" * 40)
             self.assertEqual(sum(1 for x in commands if "fetch" in x), 1)
             self.assertFalse(any("worktree" in x for x in commands))
-            self.assertEqual(list(repo.parent.glob("Nightglass-RC-*")), [])
+            self.assertEqual(list(repo.parent.glob("Midnight-Provisioner-RC-*")), [])
 
     def test_invalid_expected_sha_prevents_even_fetch(self):
         with tempfile.TemporaryDirectory() as home:
@@ -216,7 +216,7 @@ class OfflineReleaseGateContractTests(unittest.TestCase):
         self.assertIn('"physical_fedora_kvm_svirt_network_restore": "NOT_TESTED"', source)
         self.assertIn('passed = all(results[k] == "PASS" for k in CHECKS)', source)
         self.assertIn("summary_file(report_path, report)", source)
-        self.assertIn('"nightglass-offline-rc-gate-v2"', source)
+        self.assertIn('"midnight-provisioner-offline-rc-gate-v2"', source)
         self.assertIn('"original_main_before": main_before', source)
         self.assertIn('"original_main_after": main_after', source)
         self.assertIn('"local_log_sha256": log_digest', source)

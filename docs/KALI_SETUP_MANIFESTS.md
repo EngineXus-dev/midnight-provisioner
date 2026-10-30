@@ -11,18 +11,18 @@ connect to Kali mirrors, change SELinux, or overwrite local files**.
 ## 1. Generate a per-guest setup record
 
 ```bash
-nightglass templates list
-nightglass templates show recon
+midnight-provisioner templates list
+midnight-provisioner templates show recon
 
-nightglass templates export recon /your/NEW/recon-plan.json
-nightglass templates verify /your/NEW/recon-plan.json
+midnight-provisioner templates export recon /your/NEW/recon-plan.json
+midnight-provisioner templates verify /your/NEW/recon-plan.json
 ```
 
-Optionally use `--guest nightglass-kali-recon-b` to plan another independent
+Optionally use `--guest midnight-provisioner-kali-recon-b` to plan another independent
 guest and `--iso-sha256 HASH` to record an externally obtained ISO digest.
 An exported digest is **claimed**, not rehashed in this command. To
 actually verify a local installer and inspect both virt-install dry-run XML
-stages, use the separate `nightglass provision pentest --template recon
+stages, use the separate `midnight-provisioner provision pentest --template recon
 --iso ... --sha256 ...` workflow.
 
 A setup plan is private `0600` JSON, exclusively created in an existing
@@ -42,9 +42,9 @@ virtual environments, VM disks or workspace files are touched.
 
 A read-only Python 3 helper can query only the curated package set
 **from inside a separately installed, benign Kali VM**, reducing hand-written
-JSON. Use `nightglass templates guest-help PROFILE` or the GUI's
+JSON. Use `midnight-provisioner templates guest-help PROFILE` or the GUI's
 **Guest inventory instructions** button for guidance. The helper does not
-run from Nightglass's host UI or cross any VM boundary; there is currently
+run from Midnight Provisioner's host UI or cross any VM boundary; there is currently
 **no integrated host/guest file-transfer channel**. Do not enable host
 sharing, clipboard or USB passthrough to bypass that limitation. See
 [manual offline guest collection](KALI_GUEST_INVENTORY.md).
@@ -63,15 +63,15 @@ dpkg-query -W nmap dnsrecon whois traceroute curl jq
 dpkg --audit
 ```
 
-These are read-only queries and are **not run by Nightglass**. Copy only
+These are read-only queries and are **not run by Midnight Provisioner**. Copy only
 the package version metadata you wish to record into a small JSON document
 on the host. For the Recon profile, the expected inventory schema is:
 
 ```json
 {
-  "format": "nightglass-kali-guest-inventory",
+  "format": "midnight-provisioner-kali-guest-inventory",
   "version": 1,
-  "guest": "nightglass-kali-recon",
+  "guest": "midnight-provisioner-kali-recon",
   "kali_release": "kali-rolling",
   "packages": [
     {"name": "nmap", "installed_version": "1.0", "candidate_version": "1.0"},
@@ -100,8 +100,8 @@ does not authenticate the guest, repositories or package publisher.
 ## 3. Compare and record versions, without installing
 
 ```bash
-nightglass templates compare /your/NEW/recon-plan.json /your/inventory.json
-nightglass templates lock /your/NEW/recon-plan.json /your/inventory.json /your/NEW/versions.json
+midnight-provisioner templates compare /your/NEW/recon-plan.json /your/inventory.json
+midnight-provisioner templates lock /your/NEW/recon-plan.json /your/inventory.json /your/NEW/versions.json
 ```
 
 The GUI's **Compare guest inventory** action performs the same read-only
@@ -124,7 +124,7 @@ The next phase can review a newer guest-reported package inventory against
 an earlier `VERSION_SNAPSHOT_ONLY` record:
 
 ```bash
-nightglass templates drift plan.json previous-lock.json new-inventory.json
+midnight-provisioner templates drift plan.json previous-lock.json new-inventory.json
 ```
 
 The corresponding GUI action is **Review package version drift**. It

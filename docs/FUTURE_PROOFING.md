@@ -1,6 +1,6 @@
-# Nightglass — future-proofing and release verification
+# Midnight Provisioner — future-proofing and release verification
 
-**Status:** Engineering safeguards and planned gates, not release approval. Nightglass remains independent of EngineXus/YenEngine.
+**Status:** Engineering safeguards and planned gates, not release approval. Midnight Provisioner remains independent of EngineXus/YenEngine.
 
 ## Runtime and platform compatibility
 
@@ -23,7 +23,7 @@
 
 - Run the portable suite at one exact pinned commit in detached worktrees, recording test counts and skips separately.
 - Test Qt offscreen and native Fedora tooling independently; real packet filtering, SELinux and cold restore require explicit authorization.
-- Persist final evidence under Documents/Nightglass-Verification-Results in unique session folders with source ZIP, extracted logs, Git commit, summary, and SHA-256 inventory. Preserve failures; never overwrite sessions.
+- Persist final evidence under Documents/Midnight-Provisioner-Verification-Results in unique session folders with source ZIP, extracted logs, Git commit, summary, and SHA-256 inventory. Preserve failures; never overwrite sessions.
 - Hash inventories are not signed attestations. Validate the archive script on Windows before relying on it for compliance or release verification.
 - Treat evidence archive failures as failures and keep the untouched ZIP for recovery.
 - On every Windows/Fedora/Python/Qt/QEMU/libvirt upgrade, record version differences, review security advisories, run syntax/automatic-variable guards, repeat synthetic tests and native integration gates.

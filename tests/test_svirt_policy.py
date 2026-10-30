@@ -1,9 +1,9 @@
 """Explicit sVirt/SELinux bypasses must not pass restricted-domain audits."""
 import unittest
-from nightglass.hypervisor import assess_domain
+from midnight_provisioner.hypervisor import assess_domain
 
 BASE = (
-    '<domain type="kvm"><name>nightglass-test</name>'
+    '<domain type="kvm"><name>midnight-provisioner-test</name>'
     '<memory unit="MiB">2048</memory><devices>'
     '<graphics type="vnc" listen="127.0.0.1"/>'
     '<disk type="file" device="disk"><driver name="qemu" type="qcow2"/>'

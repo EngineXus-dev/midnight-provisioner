@@ -1,12 +1,12 @@
 # Live host resource pressure and external VM awareness
 
-The Nightglass **Diagnostics → Refresh resource monitor** control enables
+The Midnight Provisioner **Diagnostics → Refresh resource monitor** control enables
 read-only monitoring of current host memory and system libvirt VM activity.
 While Diagnostics is visible, the application refreshes approximately every
 20 seconds. The command-line equivalent is:
 
 ```bash
-nightglass resources
+midnight-provisioner resources
 ```
 
 The CLI returns a nonzero status for CAUTION, CRITICAL or UNKNOWN so a script
@@ -23,7 +23,7 @@ guest, change swap, edit libvirt configuration or invoke privilege elevation.
 - **Guest concurrency**: every guest that `qemu:///system` lists as
   running, paused, idle, suspended or shutting down, including VMs launched
   through virt-manager or other libvirt clients.
-- **Unbound active guests** not present in Nightglass's VM workspace bindings.
+- **Unbound active guests** not present in Midnight Provisioner's VM workspace bindings.
   They may be benign; they simply operate outside the app's launch guardrails.
 - **Machine profile**: active VM count compared with the user preference,
   always capped by physical RAM and CPU resources.

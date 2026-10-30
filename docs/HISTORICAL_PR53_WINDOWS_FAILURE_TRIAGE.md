@@ -41,7 +41,7 @@ included**, so they are unresolved pending an earlier/full excerpt.
    The Windows-only fabricated-fixture setup now scopes a mock
    `os.fchmod` to the current unittest case and registers its cleanup.
    This also covers generated fake report cases. The **production**
-   `nightglass/kali_setup.py` and `nightglass/acceptance.py` remain
+   `midnight_provisioner/kali_setup.py` and `midnight_provisioner/acceptance.py` remain
    unchanged, as do Fedora/Linux permission checks.
 
 2. **Windows OS-disk exclusion test asserted nonexistent text.**
@@ -84,7 +84,7 @@ Locate the private prior Windows verification session's
 and incidental environment data:
 
 ```powershell
-$session = 'REPLACE_WITH_PRIOR_NIGHTGLASS_TEMP_SESSION_PATH'
+$session = 'REPLACE_WITH_PRIOR_MIDNIGHT_PROVISIONER_TEMP_SESSION_PATH'
 $log = Join-Path $session 'windows-portable-tests.stderr.txt'
 Get-Content -LiteralPath $log |
     Select-String '^(FAIL|ERROR):|^(AssertionError|AttributeError|TypeError|ValueError|OSError|KeyError|ImportError|BackupError|StackError):|^Ran [0-9]+ tests|^FAILED \(' |

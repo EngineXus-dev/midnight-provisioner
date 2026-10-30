@@ -1,21 +1,21 @@
 # Verified offline recovery staging
 
-Nightglass can now **copy an existing validated cold backup into a NEW folder**,
+Midnight Provisioner can now **copy an existing validated cold backup into a NEW folder**,
 generate a new VM identity and update disk/NVRAM paths in a reviewable
 \`domain.xml\`. **All virtual network interfaces are removed.** The original
 backup, running VMs and Windows installation are left untouched.
 
-**This is a staging workflow, not one-click VM restore.** Nightglass does NOT
+**This is a staging workflow, not one-click VM restore.** Midnight Provisioner does NOT
 call \`virsh define\`, import or start a virtual machine at this stage. The
 generated XML is only for careful manual review on a Fedora/KVM host.
 
 ## User workflow
 
-1. Use Nightglass **Cold backup** to export a fully shut-down dedicated VM.
+1. Use Midnight Provisioner **Cold backup** to export a fully shut-down dedicated VM.
 2. Choose **Backup & verify → Verify saved backup** and check all hashes.
 3. Choose **Recover into NEW folder**. Pick the original backup folder and a
    new destination *parent* directory, then enter a new, unique VM name.
-4. Nightglass verifies every backup asset, validates its original XML, checks
+4. Midnight Provisioner verifies every backup asset, validates its original XML, checks
    the intended destination is unused and has enough space, and shows a plan.
 5. Approve the plan to create a *new* staging directory with:
    - Freshly copied QCOW2/RAW disk files;
@@ -28,15 +28,15 @@ generated XML is only for careful manual review on a Fedora/KVM host.
    and the offline device policy again.
 7. On an isolated Fedora/KVM test system, manually review the staged VM XML,
    UEFI firmware paths, disk permissions and SELinux contexts. Only then
-   consider defining a *separate* test guest in libvirt. Nightglass currently
+   consider defining a *separate* test guest in libvirt. Midnight Provisioner currently
    provides **no automated VM import**.
 
 ## CLI
 
 \`\`\`bash
-nightglass recover plan /path/to/backup /path/to/NEW-folder recovered-vm-01
-nightglass recover stage /path/to/backup /path/to/NEW-folder recovered-vm-01
-nightglass recover verify /path/to/NEW-folder
+midnight-provisioner recover plan /path/to/backup /path/to/NEW-folder recovered-vm-01
+midnight-provisioner recover stage /path/to/backup /path/to/NEW-folder recovered-vm-01
+midnight-provisioner recover verify /path/to/NEW-folder
 \`\`\`
 
 Staging is confirmation-gated. It refuses an existing target directory,
@@ -51,7 +51,7 @@ is overwritten. Staged assets are created with private file permissions.
 ## Fedora import-readiness check (read-only)
 
 After staging and hash-verifying a recovery on the destination Fedora host,
-run `nightglass recover preflight /path/to/NEW-folder`, or use the GUI
+run `midnight-provisioner recover preflight /path/to/NEW-folder`, or use the GUI
 **Backup & verify → Check Fedora import readiness**. It uses
 `virt-xml-validate` and `qemu-img info` without changing the guest,
 and checks host KVM permissions, capacity and new-name availability.

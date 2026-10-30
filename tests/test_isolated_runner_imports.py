@@ -24,13 +24,13 @@ RUNNERS = (
 
 class IsolatedRunnerImportTests(unittest.TestCase):
     def fixture(self):
-        tmp = tempfile.TemporaryDirectory(prefix="nightglass-runner-import-")
+        tmp = tempfile.TemporaryDirectory(prefix="midnight-provisioner-runner-import-")
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
-        for name in ("scripts", "tests", "nightglass"):
+        for name in ("scripts", "tests", "midnight_provisioner"):
             (root / name).mkdir()
         (root / "scripts" / "testing").mkdir()
-        (root / "nightglass" / "__init__.py").write_text(
+        (root / "midnight_provisioner" / "__init__.py").write_text(
             "SYNTHETIC_SENTINEL = 31415\n", encoding="utf-8")
         for name in RUNNERS:
             shutil.copyfile(ROOT / "scripts" / "testing" / name, root / "scripts" / "testing" / name)
@@ -44,8 +44,8 @@ class IsolatedRunnerImportTests(unittest.TestCase):
         ):
             code = [
                 "import unittest",
-                "from nightglass import SYNTHETIC_SENTINEL",
-                "class SyntheticNightglassFixture(unittest.TestCase):",
+                "from midnight_provisioner import SYNTHETIC_SENTINEL",
+                "class SyntheticMidnightProvisionerFixture(unittest.TestCase):",
             ]
             for i in range(n):
                 code.append(
@@ -58,7 +58,7 @@ class IsolatedRunnerImportTests(unittest.TestCase):
     def run_cli(self, root: Path, *args: str):
         env = os.environ.copy()
         # A developer's PYTHONPATH must not accidentally hide the broken
-        # source-root import by making 'nightglass' globally importable.
+        # source-root import by making 'midnight-provisioner' globally importable.
         env.pop("PYTHONPATH", None)
         env["PYTHONNOUSERSITE"] = "1"
         env["PYTHONDONTWRITEBYTECODE"] = "1"
@@ -98,7 +98,7 @@ class IsolatedRunnerImportTests(unittest.TestCase):
 
     def test_missing_project_package_fails_closed(self):
         root = self.fixture()
-        (root / "nightglass" / "__init__.py").unlink()
+        (root / "midnight_provisioner" / "__init__.py").unlink()
         for command in (
             ("scripts/testing/run_portable_suite.py", "--pattern", "test_synthetic_fixture.py"),
             ("scripts/testing/run_headless_matrix.py",),

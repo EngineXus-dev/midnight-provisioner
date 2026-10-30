@@ -11,15 +11,15 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from nightglass.kali_registration import (
+from midnight_provisioner.kali_registration import (
     KaliRegistrationInspector, save_registration_report,
 )
-from nightglass.kali_setup import build_setup_plan, save_setup_plan
-from nightglass.portability import budget_for
-from nightglass.runner import Output, ToolError
+from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
+from midnight_provisioner.portability import budget_for
+from midnight_provisioner.runner import Output, ToolError
 
 GIB = 1024 ** 3
-GUEST = "nightglass-kali-recon"
+GUEST = "midnight-provisioner-kali-recon"
 UUID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 
 
@@ -44,12 +44,12 @@ _fixture_path_patch = None
 def setUpModule():
     global _fixture_mode_patch, _fixture_path_patch
     if os.name == "nt":
-        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch = patch("midnight_provisioner.kali_setup.os.fchmod", create=True)
         _fixture_mode_patch.start()
         # Windows synthetic XML uses native C:\\... paths. Swap ONLY the
         # path parser dependency in the test module's registration inspector,
         # never the actual fail-closed production implementation.
-        _fixture_path_patch = patch("nightglass.kali_registration.posixpath", ntpath)
+        _fixture_path_patch = patch("midnight_provisioner.kali_registration.posixpath", ntpath)
         _fixture_path_patch.start()
 
 
@@ -95,8 +95,8 @@ class FakeHV:
                 return self.docs[argv[2]]["inactive"]
             if len(argv) == 2:
                 return self.docs[argv[1]]["current"]
-        if argv[:2] == ("net-dumpxml", "nightglass-lab"):
-            return '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
+        if argv[:2] == ("net-dumpxml", "midnight-provisioner-lab"):
+            return '<network><name>midnight-provisioner-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
         raise AssertionError(f"Unexpected libvirt action: {argv}")
 
 
@@ -130,7 +130,7 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
         self.budget = budget_for(8.0, 6)
 
     def check(self, disk=None):
-        with patch("nightglass.acceptance.current_budget", return_value=self.budget):
+        with patch("midnight_provisioner.acceptance.current_budget", return_value=self.budget):
             return KaliRegistrationInspector(
                 self.hv, self.runner, self.budget
             ).inspect(self.plan_path, disk or self.disk)
@@ -263,7 +263,7 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
 
     def test_hardlink_added_during_qemu_inspection_rejects_stale_clearance(self):
         link = self.root / "created-later.qcow2"
-        from nightglass import kali_registration
+        from midnight_provisioner import kali_registration
         original_inspect = kali_registration.inspect_image_metadata
         def add_link_on_metadata(runner, path, expected_format):
             data = original_inspect(runner, path, expected_format)
@@ -316,7 +316,7 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
 
     def test_network_and_mounted_installer_are_disallowed(self):
         for xml_extra in (
-            '<interface type="network"><source network="nightglass-lab"/></interface>',
+            '<interface type="network"><source network="midnight-provisioner-lab"/></interface>',
             '<disk type="file" device="cdrom"><source file="/tmp/installer.iso"/></disk>',
         ):
             with self.subTest(extra=xml_extra):
@@ -372,11 +372,11 @@ class RegisteredKaliTemplateTests(unittest.TestCase):
             save_registration_report(report, destination)
 
     def test_cli_registered_action_returns_failure_for_blocked_report(self):
-        from nightglass.cli import main
+        from midnight_provisioner.cli import main
         argv = ["templates", "registered", str(self.plan_path), "--disk", str(self.disk)]
         for flag in (True, False):
             with self.subTest(ok=flag), patch(
-                "nightglass.cli.KaliRegistrationInspector"
+                "midnight_provisioner.cli.KaliRegistrationInspector"
             ) as inspector, redirect_stdout(StringIO()) as out:
                 result = type("Result", (), {
                     "ok": flag,

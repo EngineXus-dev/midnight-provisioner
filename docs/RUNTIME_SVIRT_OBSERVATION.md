@@ -1,12 +1,12 @@
 # Read-only runtime sVirt metadata observation
 
-Nightglass can collect SELinux/sVirt **metadata** for an already-running
+Midnight Provisioner can collect SELinux/sVirt **metadata** for an already-running
 **benign, restricted guest** without starting it or interacting with its
 operating system:
 
 ```bash
-nightglass runtime-label SAFE_GUEST --policy isolated
-nightglass runtime-label SAFE_GUEST --policy lab \
+midnight-provisioner runtime-label SAFE_GUEST --policy isolated
+midnight-provisioner runtime-label SAFE_GUEST --policy lab \
   --report /path/to/NEW-private-report.json
 ```
 

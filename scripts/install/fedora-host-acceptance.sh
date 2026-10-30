@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Nightglass Fedora host prerequisite gate. Read-only, no VM creation/start.
+# Midnight Provisioner Fedora host prerequisite gate. Read-only, no VM creation/start.
 set -euo pipefail
 
 if [[ "$(uname -s)" != "Linux" ]]; then
@@ -17,4 +17,4 @@ fi
 
 PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 export PYTHONPATH="$PROJECT_ROOT"
-exec python3 -B -m nightglass.host_acceptance "$@"
+exec python3 -B -m midnight_provisioner.host_acceptance "$@"

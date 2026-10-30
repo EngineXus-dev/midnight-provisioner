@@ -6,23 +6,23 @@ Tested source commit: `4864998afa84e88963718a4bb417ea420d21f611`.
 the separate Fedora 43/Python 3.14.7 run covered them. Physical Fedora
 host security acceptance remains unverified.
 
-The already tested Fedora 43 container used Python 3.14.7. Nightglass
+The already tested Fedora 43 container used Python 3.14.7. Midnight Provisioner
 declares Python >=3.11, so this opt-in script checks headless Linux
 synthetic tests on independent 3.11, 3.12 and 3.13 images. These are
 official Debian-based Python slim images, **not Fedora host tests**.
 
 ## Start from the existing Windows repository without checking out files
 
-In PowerShell, from the original Nightglass checkout:
+In PowerShell, from the original Midnight Provisioner checkout:
 
     git fetch --no-tags origin verification/fedora-host-acceptance-preflight
     if ($LASTEXITCODE -ne 0) { throw "Git fetch failed" }
 
-    $dir = Join-Path $env:TEMP ("Nightglass-Matrix-" + [guid]::NewGuid().ToString("N"))
+    $dir = Join-Path $env:TEMP ("Midnight-Provisioner-Matrix-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $dir | Out-Null
-    $runner = Join-Path $dir "Run-Nightglass-Python-Matrix.ps1"
+    $runner = Join-Path $dir "Run-Midnight-Provisioner-Python-Matrix.ps1"
 
-    git show origin/verification/fedora-host-acceptance-preflight:scripts/testing/Run-Nightglass-Python-Matrix.ps1 |
+    git show origin/verification/fedora-host-acceptance-preflight:scripts/testing/Run-Midnight-Provisioner-Python-Matrix.ps1 |
         Set-Content -LiteralPath $runner -Encoding UTF8
     if ($LASTEXITCODE -ne 0) { throw "Runner retrieval failed" }
 
@@ -67,7 +67,7 @@ and stopped before trying Python 3.12 or 3.13.
 
 All 18 observed failures/errors were the same test-container resource
 problem: the original runner mounted `/tmp` on a **256 MiB tmpfs**,
-while Nightglass's backup and recovery planning policy correctly
+while Midnight Provisioner's backup and recovery planning policy correctly
 requires **256 MiB *free reserve* plus the copied data**. The
 protection fired before the intended synthetic backup/recovery
 behavior could be exercised. It should not be weakened.

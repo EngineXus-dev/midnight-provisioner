@@ -12,8 +12,8 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "windows" / "Build-Nightglass-Phase19-Preflight.py"
-spec = importlib.util.spec_from_file_location("nightglass_phase19_preflight", SCRIPT)
+SCRIPT = ROOT / "scripts" / "windows" / "Build-Midnight-Provisioner-Phase19-Preflight.py"
+spec = importlib.util.spec_from_file_location("midnight_provisioner_phase19_preflight", SCRIPT)
 tool = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(tool)
@@ -97,7 +97,7 @@ class Phase19PreinstallTests(unittest.TestCase):
     def test_inconsistent_count_and_schema_fail_closed(self):
         for key, value in (
             ("hold_checks", 0), ("unknown_checks", 9),
-            ("schema", "nightglass.fake.v1"),
+            ("schema", "midnight-provisioner.fake.v1"),
             ("mode", "WRITE_DISKS"),
             ("status", "INSTALL_APPROVED"),
             ("observed_os_family", "WINDOWS_13"),

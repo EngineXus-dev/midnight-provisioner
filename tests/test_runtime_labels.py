@@ -8,10 +8,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from nightglass.host_posture import HostPosture, PostureCheck
-from nightglass.portability import budget_for
-from nightglass.runtime_labels import RuntimeLabelInspector, save_runtime_observation
-from nightglass.runner import ToolError
+from midnight_provisioner.host_posture import HostPosture, PostureCheck
+from midnight_provisioner.portability import budget_for
+from midnight_provisioner.runtime_labels import RuntimeLabelInspector, save_runtime_observation
+from midnight_provisioner.runner import ToolError
 
 # Windows synthetic runtime-evidence tests do not provide POSIX fchmod.
 _fixture_mode_patch = None
@@ -20,7 +20,7 @@ _fixture_mode_patch = None
 def setUpModule():
     global _fixture_mode_patch
     if os.name == "nt":
-        _fixture_mode_patch = patch("nightglass.acceptance.os.fchmod", create=True)
+        _fixture_mode_patch = patch("midnight_provisioner.acceptance.os.fchmod", create=True)
         _fixture_mode_patch.start()
 
 
@@ -34,8 +34,8 @@ def tearDownModule():
 UUID = "01234567-89ab-cdef-0123-456789abcdef"
 MCS = "c101,c209"
 VNC = '<graphics type="vnc" listen="127.0.0.1"/>'
-LAB_NIC = '<interface type="network"><source network="nightglass-lab"/></interface>'
-LAB_NET = '<network><name>nightglass-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
+LAB_NIC = '<interface type="network"><source network="midnight-provisioner-lab"/></interface>'
+LAB_NET = '<network><name>midnight-provisioner-lab</name><bridge name="virbr-nglab"/><dns enable="no"/></network>'
 
 LABEL = (
     '<seclabel type="dynamic" model="selinux" relabel="yes">'
@@ -91,7 +91,7 @@ class FakeHV:
             return self.inactive
         if args == ("capabilities",):
             return self.capabilities
-        if args == ("net-dumpxml", "nightglass-lab"):
+        if args == ("net-dumpxml", "midnight-provisioner-lab"):
             return self.lab
         raise AssertionError(f"Unexpected libvirt call: {args}")
 
@@ -121,7 +121,7 @@ class RuntimeLabelTests(unittest.TestCase):
         self.runner = FakeRunner()
 
     def inspect(self, policy="isolated"):
-        with patch("nightglass.acceptance.current_budget", return_value=budget_for(8.0, 6)):
+        with patch("midnight_provisioner.acceptance.current_budget", return_value=budget_for(8.0, 6)):
             return RuntimeLabelInspector(
                 self.hv, self.runner, self.probe
             ).inspect("safevm", policy)

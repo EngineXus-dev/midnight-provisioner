@@ -9,9 +9,9 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from nightglass.handoff import RecoveryHandoff, save_handoff
-from nightglass.portability import budget_for
-from nightglass.runner import Output, ToolError
+from midnight_provisioner.handoff import RecoveryHandoff, save_handoff
+from midnight_provisioner.portability import budget_for
+from midnight_provisioner.runner import Output, ToolError
 
 # Mock POSIX-only file-mode operation in Windows synthetic fixtures only.
 _fixture_mode_patch = None
@@ -20,7 +20,7 @@ _fixture_mode_patch = None
 def setUpModule():
     global _fixture_mode_patch
     if os.name == "nt":
-        _fixture_mode_patch = patch("nightglass.acceptance.os.fchmod", create=True)
+        _fixture_mode_patch = patch("midnight_provisioner.acceptance.os.fchmod", create=True)
         _fixture_mode_patch.start()
 
 
@@ -98,7 +98,7 @@ class HandoffTests(unittest.TestCase):
         self.staged = self.root / "staged"
         self.staged.mkdir(mode=0o700)
         (self.staged / "disks").mkdir()
-        self.guest = "nightglass-new-guest"
+        self.guest = "midnight-provisioner-new-guest"
         self.disk = self.staged / "disks/disk-01.qcow2"
         self.disk.write_bytes(b"synthetic-not-actually-qcow2" * 150)
         self.xmlfile = self.staged / "domain.xml"
@@ -123,13 +123,13 @@ class HandoffTests(unittest.TestCase):
             asset(self.xmlfile, "domain.xml", "xml"),
         ]
         self.manifest.write_text(json.dumps({
-            "format": "nightglass-recovery-staging", "version": 1,
+            "format": "midnight-provisioner-recovery-staging", "version": 1,
             "guest": self.guest, "original_guest": "original-guest",
             "original_policy": "isolated", "network": "offline", "files": items,
         }), encoding="utf-8")
 
     def audit(self):
-        with patch("nightglass.acceptance.current_budget", return_value=budget_for(8.0, 6)):
+        with patch("midnight_provisioner.acceptance.current_budget", return_value=budget_for(8.0, 6)):
             return RecoveryHandoff(self.hv, self.runner).inspect(self.staged)
 
     def test_exact_offline_handoff_passes_without_mutating_guest(self):

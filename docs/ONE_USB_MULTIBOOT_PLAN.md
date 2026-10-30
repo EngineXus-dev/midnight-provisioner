@@ -1,10 +1,10 @@
-# Nightglass Deployment USB — one stick, two official installers
+# Midnight Provisioner Deployment USB — one stick, two official installers
 
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
 **STATUS: DRAFT PLAN ONLY. NOTHING HAS BEEN WRITTEN TO ANY USB OR OS DISK.**
 
-**Update:** the Fedora entry on this stick can now be the Nightglass installer ISO (official Fedora netinstall plus a Nightglass kickstart; disk and encryption still chosen by you). See [`scripts/iso/README.md`](../scripts/iso/README.md) for building it, testing in a VM, and the install order. Unplug Disk 1 before running either installer.
+**Update:** the Fedora entry on this stick can now be the Midnight Provisioner installer ISO (official Fedora netinstall plus a Midnight Provisioner kickstart; disk and encryption still chosen by you). See [`scripts/iso/README.md`](../scripts/iso/README.md) for building it, testing in a VM, and the install order. Unplug Disk 1 before running either installer.
 
 Example physical drive roles; discover actual devices independently:
 - **Disk 0:** measured system-disk capacity internal Windows GPT disk (Windows 10 Home currently).
@@ -27,7 +27,7 @@ Use an established multiboot boot manager such as the upstream [Ventoy project]
 (https://github.com/ventoy/Ventoy) to hold the **unchanged official ISO files**.
 Installing Ventoy to an *explicitly selected empty USB* creates/rewrites that USB's
 partitions and **erases its prior contents**. This MUST remain a separately
-reviewed manual action, not an auto-run Nightglass PowerShell command.
+reviewed manual action, not an auto-run Midnight Provisioner PowerShell command.
 Never pass a disk number discovered in our Windows review script into Ventoy.
 
 The menu should contain approximately these independent entries:
@@ -60,7 +60,7 @@ checks corruption but does not authenticate the publisher.
 Ventoy can present extra UEFI shim/MOK enrollment requirements; a working
 multi-ISO menu is NOT guaranteed on every firmware. Upstream Ventoy describes
 a default Secure Boot policy that may **bypass signature verification**. For
-a security-focused Nightglass project, do not silently accept such a bypass
+a security-focused Midnight Provisioner project, do not silently accept such a bypass
 or weaken firmware security just to boot the stick. Explicitly inspect and
 test the applicable Ventoy Secure Boot policy on this hardware. If it cannot
 boot under the desired policy, prefer **two separate, official installer
@@ -108,17 +108,17 @@ for a non-executing backup and later recovery checklist.
 
 ### Key entry is optional at installation time
 
-The Nightglass installer-media planning options include **Activate
+The Midnight Provisioner installer-media planning options include **Activate
 later (default)** and **During setup** for Windows 11 Pro. If
 Microsoft Setup shows **I don't have a product key**, choose it
 when deferring activation; confirm the chosen edition is **Windows
 11 Pro**, especially on a laptop with a possible OEM Home firmware
 key. Later activate using genuine Windows **Settings > System >
 Activation > Change product key**. No product key is bundled in the
-ISO, USB, Nightglass scripts or build settings.
+ISO, USB, Midnight Provisioner scripts or build settings.
 
 An offline, non-mutating ISO-capacity planner is staged at
-`scripts/windows/Plan-Nightglass-InstallMedia.py`; it can estimate whether
+`scripts/windows/Plan-Midnight-Provisioner-InstallMedia.py`; it can estimate whether
 the real file sizes plus 1 GiB headroom fit a *declared measured
 usable USB byte capacity*. It cannot verify media bootability,
 publisher authenticity or device selection and never formats USB.

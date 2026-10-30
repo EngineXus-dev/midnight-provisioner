@@ -6,7 +6,7 @@
 
 PR #55 has cross-platform **synthetic** Windows/Fedora container tests at exact SHA `af220ecd382ad59ce4f18694bbc2ae349be14589`. A container cannot prove physical Fedora/KVM/sVirt network isolation or backup recovery. First, collect a minimal, bounded read-only Windows posture report **on the machine that would eventually dual boot**.
 
-The existing `scripts/windows/Review-Windows-DualBoot.ps1` remains an interactive console inventory. This phase adds `scripts/windows/Read-Nightglass-Windows-HostGate.ps1`, a **sanitized JSON-only observer** suitable for archiving and reviewing without accidentally disclosing full disk identifiers, serials, hostnames, personal file paths, machine GUIDs, TPM owner data or BitLocker recovery keys. It uses only native read queries and does not require elevation.
+The existing `scripts/windows/Review-Windows-DualBoot.ps1` remains an interactive console inventory. This phase adds `scripts/windows/Read-Midnight-Provisioner-Windows-HostGate.ps1`, a **sanitized JSON-only observer** suitable for archiving and reviewing without accidentally disclosing full disk identifiers, serials, hostnames, personal file paths, machine GUIDs, TPM owner data or BitLocker recovery keys. It uses only native read queries and does not require elevation.
 
 ## Information observed (NOT certified)
 
@@ -19,7 +19,7 @@ The existing `scripts/windows/Review-Windows-DualBoot.ps1` remains an interactiv
 
 If a Windows API cannot answer, output `UNKNOWN`. If a reported state may be unsafe, output `HOLD`. `OBSERVED` never means the environment is approved for modification.
 
-The JSON schema is `nightglass.windows-host-observation.v1`. The status is **always** `HOLD_MANUAL_DEPLOYMENT_APPROVAL`, and every install/disk/backup/restore permission flag is **false**. The collector prints to stdout only, writing no file by itself. The opt-in operator runner archives this sanitized report and individual test evidence under `Documents/Nightglass-Verification-Results`.
+The JSON schema is `midnight-provisioner.windows-host-observation.v1`. The status is **always** `HOLD_MANUAL_DEPLOYMENT_APPROVAL`, and every install/disk/backup/restore permission flag is **false**. The collector prints to stdout only, writing no file by itself. The opt-in operator runner archives this sanitized report and individual test evidence under `Documents/Midnight-Provisioner-Verification-Results`.
 
 ## Required independent manual checks — all outstanding
 

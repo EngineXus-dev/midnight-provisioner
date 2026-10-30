@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the Nightglass installer kickstart with an embedded, checksummed source payload.
+"""Render the Midnight Provisioner installer kickstart with an embedded, checksummed source payload.
 
 The payload is `git archive` of a commit: committed, tracked files only, so a
 local .env, .venv or uncommitted change can never end up on the ISO.
@@ -17,7 +17,7 @@ import sys
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-TEMPLATE = HERE / "nightglass.ks.in"
+TEMPLATE = HERE / "midnight-provisioner.ks.in"
 MAX_PAYLOAD_BYTES = 16 * 1024 * 1024
 # Kickstart commands that would select, wipe or lay out disks. The template must
 # leave storage to the person installing.
@@ -38,6 +38,9 @@ def build_payload(ref: str = "HEAD") -> tuple[bytes, str]:
     commit = _git("rev-parse", "--verify", ref + "^{commit}").decode("ascii").strip()
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ValueError("Unexpected commit id")
+    tracked = _git("ls-tree", "-r", "--name-only", commit).decode("utf-8").splitlines()
+    if "midnight_provisioner/cli.py" not in tracked:
+        raise ValueError("Selected commit has no Midnight Provisioner package. Commit the project rename before building the ISO.")
     return _git("archive", "--format=tar.gz", commit), commit
 
 
@@ -90,7 +93,7 @@ def main(argv: list[str] | None = None) -> int:
         print("NOTE: uncommitted changes are NOT included; only commit " + commit[:12] + " is.", file=sys.stderr)
     with args.output.open("x", encoding="utf-8") as stream:
         stream.write(text)
-    print(f"Kickstart {args.output} embeds Nightglass {commit[:12]} ({len(payload):,} bytes compressed)")
+    print(f"Kickstart {args.output} embeds Midnight Provisioner {commit[:12]} ({len(payload):,} bytes compressed)")
     return 0
 
 

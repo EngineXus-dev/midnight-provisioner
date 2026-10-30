@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed Nightglass opt-in GUI/native fixture test runner.
+"""Fail-closed Midnight Provisioner opt-in GUI/native fixture test runner.
 
 Only two curated suites are allowed. Unlike plain unittest discovery,
 a missing, skipped or zero-test GUI/native suite is a FAILURE, never PASS.
@@ -33,7 +33,7 @@ def run_required(check: str) -> int:
         print("[BLOCKED] Must run from the isolated project root", file=sys.stderr)
         return 2
     # Direct execution from scripts/ does not implicitly add the
-    # repository root needed for 'import nightglass' in GUI/native tests.
+    # repository root needed for 'import midnight_provisioner' in GUI/native tests.
     # Place the pinned checkout first, even when an inherited PYTHONPATH
     # already lists it after another potentially conflicting package root.
     if str(ROOT) in sys.path:
@@ -61,7 +61,7 @@ def run_required(check: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Require actual Nightglass Qt/native tests")
+    parser = argparse.ArgumentParser(description="Require actual Midnight Provisioner Qt/native tests")
     parser.add_argument("--check", choices=sorted(REQUIRED_SUITES), required=True)
     args = parser.parse_args(argv)
     return run_required(args.check)

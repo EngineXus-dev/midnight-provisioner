@@ -1,4 +1,4 @@
-# Nightglass integration and no-Actions verification
+# Midnight Provisioner integration and no-Actions verification
 
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
@@ -7,7 +7,7 @@
 
 **Status: FEDORA CONTAINER VERIFICATION PASSED / HOST ACCEPTANCE HOLD — no merges until real Fedora/KVM gates and explicit reviewer/owner approval.**
 
-Nightglass is developed as a cumulative chain of **29 open draft pull
+Midnight Provisioner is developed as a cumulative chain of **29 open draft pull
 requests** as of October 9, 2026. No PR has been merged. PR #1 targets
 \`main\` and each following PR targets the preceding phase branch.
 Draft PR #31 in this workstream adds a manual test entry point and
@@ -45,17 +45,17 @@ that writes into an existing workstation environment.** The original
 checkout can contain private \`.env\`, \`.venv\`, generated data, and
 guest image files not tracked by Git. Keep those untouched.
 
-In an existing Nightglass Git checkout, an **isolated sibling worktree**
+In an existing Midnight Provisioner Git checkout, an **isolated sibling worktree**
 lets you test the integration branch without overwriting the original
 working folder:
 
 \`\`\`bash
 git fetch origin chore/offline-integration-verification
-git worktree add ../nightglass-integration-check origin/chore/offline-integration-verification
-cd ../nightglass-integration-check
+git worktree add ../midnight-provisioner-integration-check origin/chore/offline-integration-verification
+cd ../midnight-provisioner-integration-check
 \`\`\`
 
-The destination \`../nightglass-integration-check\` must be a **NEW,
+The destination \`../midnight-provisioner-integration-check\` must be a **NEW,
 nonexistent** directory. Git refuses to use an existing worktree
 destination. Use a different new name if you have one already.
 Do not delete the original checkout or copy its secrets to the test
@@ -121,8 +121,8 @@ prove malicious guest isolation.
 
 For fuller **Linux test semantics** without hosted Actions minutes, an
 additional PowerShell runner is now available:
-`scripts/testing/Run-Nightglass-Fedora-Checks.ps1` and its standalone
-`scripts/testing/Start-Nightglass-Fedora-Checks.ps1` bootstrap.
+`scripts/testing/Run-Midnight-Provisioner-Fedora-Checks.ps1` and its standalone
+`scripts/testing/Start-Midnight-Provisioner-Fedora-Checks.ps1` bootstrap.
 It fetches a clean **new git worktree**, builds Fedora 43 test tools
 using an empty-source Docker build context and runs
 `python3 -B scripts/testing/verify_local.py --all` in a **nonroot, read-only,
@@ -138,7 +138,7 @@ a successful, offline Fedora 43 container log for integration commit
 tests completed with 23 GUI-only tests skipped in unit discovery;
 the same 23 GUI tests all passed in the explicit PySide6 offscreen
 suite; and 6 native QEMU/libvirt fixture tests passed. All requested
-container stages returned zero. No Nightglass VMs, host disk alterations,
+container stages returned zero. No Midnight Provisioner VMs, host disk alterations,
 GitHub Actions or PR merges were involved. This is container evidence,
 **not real host security acceptance**.
 
@@ -285,7 +285,7 @@ automated Windows+Fedora install, approval to erase USB media, or a
 change to real disks. User has subsequently chosen a **future CLEAN Windows 11 installation**,
 not an in-place upgrade; portable backup and recovery must be verified,
 then Fedora remains a later manual installation.
-See [Nightglass one-USB plan](ONE_USB_MULTIBOOT_PLAN.md).
+See [Midnight Provisioner one-USB plan](ONE_USB_MULTIBOOT_PLAN.md).
 
 ## Deferred clean Windows 11 selection and 16 GB media (2026-10-09)
 
@@ -339,7 +339,7 @@ location, AI and virtualization settings. The plan has been encoded in
 `config/windows11-pro-custom.json` (35 grouped requests) and documented
 in [Windows 11 Pro profile](WINDOWS11_PRO_32_POINT_PROFILE.md).
 
-`Invoke-Nightglass-Win11ProCustom.ps1` is read-only Preview by default;
+`Invoke-Midnight-Provisioner-Win11ProCustom.ps1` is read-only Preview by default;
 optional future ApplyCore requires Windows 11 Pro, explicit consent,
 backup flag and locally reviewed, SHA256-pinned actual Win11Debloat.ps1.
 The uploaded **Get.ps1** is a remote downloader/elevated launcher;
@@ -359,7 +359,7 @@ installation** instead of typing the key into Setup immediately. Both
 modes are modeled; activate_later is the default. Genuine Setup's
 'I don't have a product key' choice may be used if available; OEM
 Home key auto-detection requires verifying Pro edition selection.
-Nightglass never accepts, stores or applies the actual key.
+Midnight Provisioner never accepts, stores or applies the actual key.
 
 A new pure-Python plan-only script can *read* two separately downloaded
 official ISOs, compute their sizes and optional SHA256, and estimate
@@ -433,8 +433,8 @@ Prior final PR #40 branch comparison against main: **454 ahead,
 item. This is historical evidence, not a persistent real-time check.
 
 The new branch `verification/stack-integration-readiness` adds
-`config/nightglass-pr-stack-snapshot.json`, a no-write-by-default
-`scripts/release/Audit-Nightglass-PR-Stack.py`, and synthetic
+`config/midnight-provisioner-pr-stack-snapshot.json`, a no-write-by-default
+`scripts/release/Audit-Midnight-Provisioner-PR-Stack.py`, and synthetic
 `tests/test_pr_stack_audit.py`, now in the Windows-portable
 offline suite. The auditor reads only existing Git refs and path names;
 it never fetches/merges, modifies source or invokes Windows/Fedora
@@ -451,12 +451,12 @@ Read [PR stack review](PR_STACK_INTEGRATION_READINESS.md).
 
 ## Phase 7 — main-checkout compatible pinned-source stack audit (UNTESTED)
 
-The preceding `Audit-Nightglass-PR-Stack.py` was not executable
+The preceding `Audit-Midnight-Provisioner-PR-Stack.py` was not executable
 as documented from the user's original `main` checkout: the draft-only
 stack manifest wasn't present there. The new branch
 `verification/remote-ref-stack-audit` fixes this without checking
 out any PR or modifying local files: `--verify` reads the manifest
-via `git show <candidate-SHA>:config/nightglass-pr-stack-snapshot.json`
+via `git show <candidate-SHA>:config/midnight-provisioner-pr-stack-snapshot.json`
 after remote-tracking refs have been fetched explicitly.
 
 The observed ancestor snapshot now lists **40 PRs through #41**
@@ -477,7 +477,7 @@ Windows/USB/portable backup drive changed. See
 ## Phase 8 — optional Windows one-command offline verification
 
 The repository now includes
-`scripts/testing/Invoke-Nightglass-OfflineChecks.ps1`, a Windows PowerShell
+`scripts/testing/Invoke-Midnight-Provisioner-OfflineChecks.ps1`, a Windows PowerShell
 5.1 launcher designed to be fetched into a **new temporary folder**
 while the user's actual Windows checkout remains on `main`.
 Default execution only previews options; `-FetchRefs` updates Git
@@ -523,7 +523,7 @@ sync/update scripts accidentally overwrote local `.env`,
 `.venv` and ignored/user-created files, so remote Git commits are
 not sufficient data-preservation evidence.
 
-`scripts/backup/Inspect-Nightglass-Backup.py` now supports Preview
+`scripts/backup/Inspect-Midnight-Provisioner-Backup.py` now supports Preview
 (default, **no filesystem access**), Inspect (metadata only), and
 Verify (read-only SHA-256 of all regular files in two separately
 selected folder trees). It includes hidden .git/.env/.venv,
@@ -544,7 +544,7 @@ See [backup verification guide](BACKUP_INTEGRITY_PREFLIGHT.md).
 Phase 10 verified one source/copied directory pair. A Windows 11
 clean install could still destroy local-only files from *other*
 repositories, Desktop, Documents, app-specific folders or datasets.
-Phase 11 therefore adds `scripts/backup/Verify-Nightglass-BackupSet.py`:
+Phase 11 therefore adds `scripts/backup/Verify-Midnight-Provisioner-BackupSet.py`:
 a pure Python, Preview-only-by-default tool that accepts a separate
 PRIVATE local JSON catalog of source/backup directory pairs.
 
@@ -627,7 +627,7 @@ platform-specific skips are allowed only when other tests actually
 executed, and are disclosed as unverified.
 
 The new `tests/test_portable_suite_coverage.py` was executed on an
-isolated synthetic fixture (**7/7 PASS**); the actual Nightglass
+isolated synthetic fixture (**7/7 PASS**); the actual Midnight Provisioner
 Windows/Fedora test suites have **not** yet been run for the newest
 GitHub commit. The branch also updates the 48-PR predecessor
 snapshot and exact candidate references. See
@@ -639,15 +639,15 @@ No PRs merged; Windows/Fedora/USB/portable backup media unchanged.
 
 Actual isolated Python 3.13 reproduction showed that unittest
 discovery launched via `python scripts/runner.py` adds `scripts/`
-and `tests/` but not necessarily the Nightglass package root.
+and `tests/` but not necessarily the Midnight Provisioner package root.
 This results in `ModuleNotFoundError` for legitimate
-`from nightglass import ...` tests. The Windows portable,
+`from midnight_provisioner import ...` tests. The Windows portable,
 Python Docker matrix and required Fedora GUI/native runners now
 prioritize the exact current source root in `sys.path`.
 
 New `tests/test_isolated_runner_imports.py` copies these
 runner scripts into a disposable project with fake
-`nightglass` test inputs and launches separate processes with
+`midnight-provisioner` test inputs and launches separate processes with
 PYTHONPATH cleared; it detects successes and intentionally
 missing packages. Local representative post-fix fixture tests
 executed 65 / 75 / 5 cases without imports failing.

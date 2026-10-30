@@ -1,6 +1,6 @@
 # Kali template version drift review (offline)
 
-Nightglass can compare a previous **self-reported Kali package version lock**
+Midnight Provisioner can compare a previous **self-reported Kali package version lock**
 to a newer **self-reported guest package inventory** for **the same, separately
 installed Kali VM**. This makes it easier to spot accidental changes without
 building one enormous security-tools guest or installing packages on the host.
@@ -14,8 +14,8 @@ connection, or any Kali guest process.
 First generate and verify a separate setup plan for each Kali VM:
 
 ```bash
-nightglass templates export recon /safe/private/recon-plan.json
-nightglass templates verify /safe/private/recon-plan.json
+midnight-provisioner templates export recon /safe/private/recon-plan.json
+midnight-provisioner templates verify /safe/private/recon-plan.json
 ```
 
 After independently installing a **benign** Kali guest and obtaining
@@ -23,8 +23,8 @@ package metadata through an independently reviewed process (there is still
 no built-in host/guest file transfer), save the first full inventory:
 
 ```bash
-nightglass templates compare /safe/private/recon-plan.json /safe/private/first-inventory.json
-nightglass templates lock /safe/private/recon-plan.json /safe/private/first-inventory.json /safe/private/first-lock.json
+midnight-provisioner templates compare /safe/private/recon-plan.json /safe/private/first-inventory.json
+midnight-provisioner templates lock /safe/private/recon-plan.json /safe/private/first-inventory.json /safe/private/first-lock.json
 ```
 
 Only a **complete self-reported package set with a clean reported dpkg audit**
@@ -33,7 +33,7 @@ using the optional manual `scripts/kali/kali-guest-inventory.py` helper on the
 guest and a separately approved transfer, then run:
 
 ```bash
-nightglass templates drift /safe/private/recon-plan.json /safe/private/first-lock.json /safe/private/new-inventory.json
+midnight-provisioner templates drift /safe/private/recon-plan.json /safe/private/first-lock.json /safe/private/new-inventory.json
 ```
 
 The optional `--report /safe/private/NEW-review.json` writes one new

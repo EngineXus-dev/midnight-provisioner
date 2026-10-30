@@ -1,6 +1,6 @@
 # QEMU process SELinux labels for an already-running benign Kali VM
 
-Nightglass previously inspected libvirt's **reported** dynamic sVirt labels.
+Midnight Provisioner previously inspected libvirt's **reported** dynamic sVirt labels.
 This opt-in step tries to observe the actual **QEMU process security context**
 through Fedora's read-only Linux `/proc` filesystem. It is an additional
 host-side observation, **not a certificate of isolation**.
@@ -9,15 +9,15 @@ host-side observation, **not a certificate of isolation**.
 
 The operator must have **already manually started an authorized, benign,
 separate Kali recovery guest** and reviewed the offline recovery handoff.
-Nightglass never boots that guest, initiates shell commands inside it, or
+Midnight Provisioner never boots that guest, initiates shell commands inside it, or
 touches its qcow2 while running.
 
 Use the original Kali template setup plan and exact **different** recovery
 guest name:
 
 ```bash
-nightglass templates process-label /path/to/original-recon-plan.json \
-  --guest nightglass-kali-recon-rehearsal
+midnight-provisioner templates process-label /path/to/original-recon-plan.json \
+  --guest midnight-provisioner-kali-recon-rehearsal
 ```
 
 Or choose **Prepare VM → Inspect effective QEMU sVirt label** in the GUI.
@@ -27,8 +27,8 @@ than one overly wide row.
 For local private, metadata-only evidence, choose a **NEW** file:
 
 ```bash
-nightglass templates process-label /path/to/original-recon-plan.json \
-  --guest nightglass-kali-recon-rehearsal \
+midnight-provisioner templates process-label /path/to/original-recon-plan.json \
+  --guest midnight-provisioner-kali-recon-rehearsal \
   --report /path/to/NEW-private-label-observation.json
 ```
 
@@ -38,7 +38,7 @@ The report uses exclusive-create `0600` permissions. Existing files,
 ## Actual read-only host observations
 
 1. Validate the curated Kali setup plan and the **new** recovery guest name.
-2. Reuse Nightglass's registered live/inactive/saved XML and host SELinux
+2. Reuse Midnight Provisioner's registered live/inactive/saved XML and host SELinux
    enforcing + libvirt dynamic sVirt metadata audit. If any part fails, do
    **not** inspect host processes or return a match.
 3. Read the current system-libvirt guest XML and derive its current
@@ -61,7 +61,7 @@ subprocess, root or privileged host operation is invoked.
 If your Fedora system uses `hidepid`, Linux process access controls or
 SELinux rules that prevent an ordinary user reading these attributes,
 **BLOCKED / UNVERIFIED** is the expected result. Do not grant broad
-`/proc` access, disable SELinux, setuid the Nightglass process, or use
+`/proc` access, disable SELinux, setuid the Midnight Provisioner process, or use
 sudo just to make this check green.
 
 ## Critical limits

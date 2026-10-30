@@ -1,4 +1,4 @@
-# Nightglass Windows 11 Lite — safe NTLite Free build profile
+# Midnight Provisioner Windows 11 Lite — safe NTLite Free build profile
 
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
@@ -55,7 +55,7 @@ that silently fails in Free.
 3. Record (locally) original ISO SHA-256, Windows release, language,
    architecture, available editions and NTLite version. A SHA-256
    digest alone does not authenticate an untrusted source.
-4. Do NOT store copied ISO payloads in the Nightglass Git repository
+4. Do NOT store copied ISO payloads in the Midnight Provisioner Git repository
    or on the sole portable backup disk.
 
 ### Stage 1: single valid edition
@@ -136,7 +136,7 @@ Always retain both the original ISO and the build manifest/preset.
   removing modules just to hit a specific ISO size.
 
 **The post's "~3 GB ISO, ~2 GB RAM, ~9 GB installed" are anecdotal,
-NOT Nightglass acceptance targets or guaranteed Windows 11 resource
+NOT Midnight Provisioner acceptance targets or guaranteed Windows 11 resource
 measurements.** Current stable compatibility and reliable security
 updates matter more than minimizing a screenshot of idle memory.
 
@@ -184,16 +184,16 @@ https://github.com/zoicware/RemoveWindowsAI
 The upstream tool advertises force removal of hidden/locked component
 store packages, tasks and files; prevention of AI-package reinstalls;
 and even a **Defender AI** feature toggle. Such actions risk Windows
-servicing/security behavior and are outside Nightglass's
+servicing/security behavior and are outside Midnight Provisioner's
 default security baseline. Avoid until its exact current code,
 undo/repair path and effect on the targeted 26H2 build have been
 evaluated separately. Prefer regular Windows settings/app policies
 for unwanted Copilot/Recall options.
 
-### Nightglass's own conservative "one shot" alternative
+### Midnight Provisioner's own conservative "one shot" alternative
 
 The project provides an **optional**, locally inspectable script:
-`scripts/windows/Set-Nightglass-Windows11-Preferences.ps1`
+`scripts/windows/Set-Midnight-Provisioner-Windows11-Preferences.ps1`
 
 It defaults to **preview only**, uses HKCU preferences, does not
 download/execute any external tool, never touches core Windows
@@ -211,17 +211,17 @@ a disposable Windows 11 VM Apply/Undo test before being trusted.
 
 Example after those gates pass, in a local checkout:
 
-    powershell.exe -NoProfile -File scripts/windows/Set-Nightglass-Windows11-Preferences.ps1 -Mode Preview
+    powershell.exe -NoProfile -File scripts/windows/Set-Midnight-Provisioner-Windows11-Preferences.ps1 -Mode Preview
 
 To apply **only** the eight user preference DWORDs, the owner may
 later explicitly approve:
 
-    powershell.exe -NoProfile -File scripts/windows/Set-Nightglass-Windows11-Preferences.ps1 -Mode Apply -Consent "APPLY NIGHTGLASS USER PREFERENCES"
+    powershell.exe -NoProfile -File scripts/windows/Set-Midnight-Provisioner-Windows11-Preferences.ps1 -Mode Apply -Consent "APPLY MIDNIGHT_PROVISIONER USER PREFERENCES"
 
 A new snapshot path is displayed before changes. Keep that private
 file, which is necessary for Undo:
 
-    powershell.exe -NoProfile -File scripts/windows/Set-Nightglass-Windows11-Preferences.ps1 -Mode Undo -SnapshotPath "C:\path\to\prior-snapshot.json" -Consent "UNDO NIGHTGLASS USER PREFERENCES"
+    powershell.exe -NoProfile -File scripts/windows/Set-Midnight-Provisioner-Windows11-Preferences.ps1 -Mode Undo -SnapshotPath "C:\path\to\prior-snapshot.json" -Consent "UNDO MIDNIGHT_PROVISIONER USER PREFERENCES"
 
 Undo checks that the preferences still equal the values the helper
 applied and **skips** any settings subsequently changed by the user.
@@ -268,7 +268,7 @@ A new [35-item execution-plan catalog](../config/windows11-pro-custom.json)
 with reviewed/core versus separate-consent phases is documented in
 [Windows 11 Pro 32-point profile](WINDOWS11_PRO_32_POINT_PROFILE.md).
 
-The script `scripts/windows/Invoke-Nightglass-Win11ProCustom.ps1` defaults to a
+The script `scripts/windows/Invoke-Midnight-Provisioner-Win11ProCustom.ps1` defaults to a
 read-only preview. Optional future `ApplyCore` is strictly gated on
 an actually installed Windows 11 Pro system, backup confirmation,
 explicit consent, an administrator terminal and an independently

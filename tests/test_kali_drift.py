@@ -10,15 +10,15 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from nightglass.cli import main
-from nightglass.kali_drift import (
+from midnight_provisioner.cli import main
+from midnight_provisioner.kali_drift import (
     LOCK_KEYS, compare_version_lock, compare_version_lock_files,
     save_drift_review, verify_version_lock,
 )
-from nightglass.kali_setup import (
+from midnight_provisioner.kali_setup import (
     INVENTORY_FORMAT, build_setup_plan, save_setup_plan, save_version_lock,
 )
-from nightglass.runner import ToolError
+from midnight_provisioner.runner import ToolError
 
 
 # Native Windows cannot perform POSIX fchmod. Isolate this capability only
@@ -29,7 +29,7 @@ _fixture_mode_patch = None
 def setUpModule():
     global _fixture_mode_patch
     if os.name == "nt":
-        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch = patch("midnight_provisioner.kali_setup.os.fchmod", create=True)
         _fixture_mode_patch.start()
 
 
@@ -148,7 +148,7 @@ class KaliVersionDriftTests(unittest.TestCase):
 
     def test_wrong_guest_and_wrong_package_schema_fail_before_drift_report(self):
         inventory = self.mutated()
-        inventory["guest"] = "nightglass-kali-different"
+        inventory["guest"] = "midnight-provisioner-kali-different"
         with self.assertRaisesRegex(ToolError, "another VM"):
             self.review(inventory)
         inventory = self.mutated()
@@ -222,9 +222,9 @@ class KaliVersionDriftTests(unittest.TestCase):
     def test_cli_never_calls_libvirt_apt_or_guest_helper(self):
         output = StringIO()
         self.current_path.write_text(json.dumps(self.inventory), encoding="utf-8")
-        with patch("nightglass.cli.OfflineProvisioner") as installer, \
-             patch("nightglass.cli.Hypervisor") as hypervisor, \
-             patch("nightglass.cli.os.geteuid", return_value=1000, create=True), \
+        with patch("midnight_provisioner.cli.OfflineProvisioner") as installer, \
+             patch("midnight_provisioner.cli.Hypervisor") as hypervisor, \
+             patch("midnight_provisioner.cli.os.geteuid", return_value=1000, create=True), \
              redirect_stdout(output):
             self.assertEqual(main([
                 "templates", "drift", str(self.plan_path),

@@ -12,14 +12,14 @@ import unittest
 from unittest.mock import patch
 from xml.etree import ElementTree as ET
 
-from nightglass.cli import main
-from nightglass.kali_recovery_link import KaliRecoveryLink, save_kali_recovery_link
-from nightglass.kali_setup import build_setup_plan, save_setup_plan
-from nightglass.recovery import _recovery_xml
-from nightglass.runner import ToolError
+from midnight_provisioner.cli import main
+from midnight_provisioner.kali_recovery_link import KaliRecoveryLink, save_kali_recovery_link
+from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
+from midnight_provisioner.recovery import _recovery_xml
+from midnight_provisioner.runner import ToolError
 
-OLD = "nightglass-kali-recon"
-NEW = "nightglass-kali-recon-restore-test"
+OLD = "midnight-provisioner-kali-recon"
+NEW = "midnight-provisioner-kali-recon-restore-test"
 UUID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 
 
@@ -43,7 +43,7 @@ _fixture_mode_patch = None
 def setUpModule():
     global _fixture_mode_patch
     if os.name == "nt":
-        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch = patch("midnight_provisioner.kali_setup.os.fchmod", create=True)
         _fixture_mode_patch.start()
 
 
@@ -102,7 +102,7 @@ class KaliRecoveryLinkTests(unittest.TestCase):
             rows.append(self.record(nvram, "nvram", "firmware/nvram.bin",
                                     source=str(self.original_nvram)))
         (self.backup / "manifest.json").write_text(json.dumps({
-            "format": "nightglass-cold-backup", "version": 1,
+            "format": "midnight-provisioner-cold-backup", "version": 1,
             "domain": domain_name, "policy": policy, "files": rows,
         }))
         return rows
@@ -122,7 +122,7 @@ class KaliRecoveryLinkTests(unittest.TestCase):
         if nvram.exists():
             items.append(self.record(nvram, "nvram", "firmware/nvram.bin"))
         (self.staged / "recovery-manifest.json").write_text(json.dumps({
-            "format": "nightglass-recovery-staging", "version": 1,
+            "format": "midnight-provisioner-recovery-staging", "version": 1,
             "guest": guest, "original_guest": original,
             "original_policy": original_policy,
             "network": "offline", "files": items,
@@ -139,8 +139,8 @@ class KaliRecoveryLinkTests(unittest.TestCase):
                 self.staged_disk, self.archive_xml, self.staged_xml,
             )
         }
-        with patch("nightglass.kali_recovery_link.save_acceptance") as save, \
-             patch("nightglass.kali_recovery_link._recovery_xml", wraps=_recovery_xml) as transformer:
+        with patch("midnight_provisioner.kali_recovery_link.save_acceptance") as save, \
+             patch("midnight_provisioner.kali_recovery_link._recovery_xml", wraps=_recovery_xml) as transformer:
             report = self.check()
             save.assert_not_called()
             transformer.assert_called_once()
@@ -169,7 +169,7 @@ class KaliRecoveryLinkTests(unittest.TestCase):
 
     def test_tampered_staged_disk_fails_before_source_xml_reconstruction(self):
         self.staged_disk.write_bytes(b"modified-but-not-in-manifest")
-        with patch("nightglass.kali_recovery_link._recovery_xml") as transformer:
+        with patch("midnight_provisioner.kali_recovery_link._recovery_xml") as transformer:
             with self.assertRaisesRegex(ToolError, "Staging integrity failure"):
                 self.check()
             transformer.assert_not_called()

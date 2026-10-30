@@ -2,7 +2,7 @@
 
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
-**Status: DRAFT / NO RELEASE.** All previous Nightglass PRs remain
+**Status: DRAFT / NO RELEASE.** All previous Midnight Provisioner PRs remain
 unmerged. The user has explicitly deferred the Windows 11 Pro clean
 installation, 16 GB USB writing and Fedora dual boot. The user's
 separate example backup-drive capacity portable drive is backup-only, never a target disk.
@@ -23,7 +23,7 @@ against an adversary who can modify the entire report and log together.
 
 ## Cumulative gate
 
-`scripts/testing/Run-Nightglass-Offline-Release-Gate.py` defaults to PLAN
+`scripts/testing/Run-Midnight-Provisioner-Offline-Release-Gate.py` defaults to PLAN
 ONLY and has no host/system effects. An explicitly authorized
 `--run` creates a new sibling detached Git worktree from the single
 `verification/phase17-qemu-subset-integrity` branch and writes new,
@@ -55,7 +55,7 @@ automatically merge, reset, clean, tag, release or deploy anything.
 
 ## Independent consistency review
 
-`scripts/release/Audit-Nightglass-Release-Evidence.py` is read-only and
+`scripts/release/Audit-Midnight-Provisioner-Release-Evidence.py` is read-only and
 requires three inputs from a completed `--run`:
 
 - `--report`: the *new* status-only JSON (not an older v1 report).
@@ -75,24 +75,24 @@ unauthenticated and the runner and its host can be compromised.
 
 ### Example on the Windows workstation (no data loss)
 
-From the existing Nightglass Git checkout in Windows PowerShell,
+From the existing Midnight Provisioner Git checkout in Windows PowerShell,
 the commands below fetch just this feature branch and create two
 **new temp files** outside the original checkout:
 
     git fetch --no-tags origin verification/phase17-qemu-subset-integrity
     if ($LASTEXITCODE -ne 0) { throw "Fetch failed" }
 
-    $tmp = Join-Path $env:TEMP ("Nightglass-RC-Audit-" + [guid]::NewGuid().ToString("N"))
+    $tmp = Join-Path $env:TEMP ("Midnight-Provisioner-RC-Audit-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $tmp | Out-Null
 
-    $runner = Join-Path $tmp "Run-Nightglass-Offline-Release-Gate.py"
-    $audit = Join-Path $tmp "Audit-Nightglass-Release-Evidence.py"
+    $runner = Join-Path $tmp "Run-Midnight-Provisioner-Offline-Release-Gate.py"
+    $audit = Join-Path $tmp "Audit-Midnight-Provisioner-Release-Evidence.py"
 
-    git show origin/verification/phase17-qemu-subset-integrity:scripts/testing/Run-Nightglass-Offline-Release-Gate.py |
+    git show origin/verification/phase17-qemu-subset-integrity:scripts/testing/Run-Midnight-Provisioner-Offline-Release-Gate.py |
         Set-Content -LiteralPath $runner -Encoding UTF8
     if ($LASTEXITCODE -ne 0) { throw "Failed to retrieve runner" }
 
-    git show origin/verification/phase17-qemu-subset-integrity:scripts/release/Audit-Nightglass-Release-Evidence.py |
+    git show origin/verification/phase17-qemu-subset-integrity:scripts/release/Audit-Midnight-Provisioner-Release-Evidence.py |
         Set-Content -LiteralPath $audit -Encoding UTF8
     if ($LASTEXITCODE -ne 0) { throw "Failed to retrieve auditor" }
 

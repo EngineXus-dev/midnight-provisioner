@@ -12,12 +12,12 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from nightglass.cli import main
-from nightglass.kali_recovery_registration import (
+from midnight_provisioner.cli import main
+from midnight_provisioner.kali_recovery_registration import (
     KaliRecoveryRegistrationInspector, save_registered_recovery,
 )
-from nightglass.kali_setup import build_setup_plan, save_setup_plan
-from nightglass.runner import ToolError
+from midnight_provisioner.kali_setup import build_setup_plan, save_setup_plan
+from midnight_provisioner.runner import ToolError
 
 # Windows fixtures contain native C:\\... paths and lack POSIX fchmod.
 # The Linux production implementation remains unchanged and fail-closed.
@@ -28,9 +28,9 @@ _fixture_path_patch = None
 def setUpModule():
     global _fixture_mode_patch, _fixture_path_patch
     if os.name == "nt":
-        _fixture_mode_patch = patch("nightglass.kali_setup.os.fchmod", create=True)
+        _fixture_mode_patch = patch("midnight_provisioner.kali_setup.os.fchmod", create=True)
         _fixture_mode_patch.start()
-        _fixture_path_patch = patch("nightglass.kali_registration.posixpath", ntpath)
+        _fixture_path_patch = patch("midnight_provisioner.kali_registration.posixpath", ntpath)
         _fixture_path_patch.start()
 
 
@@ -44,8 +44,8 @@ def tearDownModule():
         _fixture_mode_patch = None
 
 
-OLD = "nightglass-kali-recon"
-RESTORED = "nightglass-kali-recon-restore-test"
+OLD = "midnight-provisioner-kali-recon"
+RESTORED = "midnight-provisioner-kali-recon-restore-test"
 OLD_UUID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 NEW_UUID = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff"
 
@@ -135,7 +135,7 @@ class Tests(unittest.TestCase):
         checker = KaliRecoveryRegistrationInspector(
             hypervisor=self.hv, linker=self.linker, handoff=self.handoff,
         )
-        with patch("nightglass.kali_recovery_registration.verify_staging") as verify:
+        with patch("midnight_provisioner.kali_recovery_registration.verify_staging") as verify:
             report = checker.inspect(self.plan, self.backup, self.stage)
             if self.link.ok:
                 verify.assert_called_once_with(self.stage)
@@ -300,7 +300,7 @@ class Tests(unittest.TestCase):
         ]
         result = self.audit()
         out = StringIO()
-        with patch("nightglass.cli.KaliRecoveryRegistrationInspector") as inspect, redirect_stdout(out):
+        with patch("midnight_provisioner.cli.KaliRecoveryRegistrationInspector") as inspect, redirect_stdout(out):
             inspect.return_value.inspect.return_value = result
             self.assertEqual(main(args), 0)
             inspect.return_value.inspect.assert_called_once_with(self.plan, self.backup, self.stage)

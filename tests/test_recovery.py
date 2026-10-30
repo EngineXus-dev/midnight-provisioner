@@ -13,8 +13,8 @@ import unittest
 from unittest.mock import patch
 from xml.etree import ElementTree as ET
 
-from nightglass.recovery import RecoveryStager, verify_staging
-from nightglass.runner import ToolError
+from midnight_provisioner.recovery import RecoveryStager, verify_staging
+from midnight_provisioner.runner import ToolError
 
 
 class FakeHV:
@@ -40,13 +40,13 @@ class RestoreTests(unittest.TestCase):
         self.service = RecoveryStager(FakeHV())
         if os.name == "nt":
             # Only synthetic fixture writes: production POSIX permissions stay enforced.
-            mode_patch = patch("nightglass.recovery.os.fchmod", create=True)
+            mode_patch = patch("midnight_provisioner.recovery.os.fchmod", create=True)
             mode_patch.start()
             self.addCleanup(mode_patch.stop)
 
     def _xml(self, extra="", policy="isolated"):
         link = (
-            '<interface type="network"><source network="nightglass-lab"/></interface>'
+            '<interface type="network"><source network="midnight-provisioner-lab"/></interface>'
             if policy == "lab" else ""
         )
         return (
@@ -82,7 +82,7 @@ class RestoreTests(unittest.TestCase):
         (self.source / "domain.xml").write_text(self.xml, encoding="utf-8")
         rows.append(self._row(self.source / "domain.xml", "domain.xml", "xml"))
         (self.source / "manifest.json").write_text(json.dumps({
-            "format": "nightglass-cold-backup",
+            "format": "midnight-provisioner-cold-backup",
             "version": 1,
             "domain": "original-guest",
             "policy": policy,
@@ -102,7 +102,7 @@ class RestoreTests(unittest.TestCase):
 
     def _stage(self, filename="new-guest", kind="analysis"):
         return self.service.stage(
-            self.source, self.root / filename, f"nightglass-{kind}-restored",
+            self.source, self.root / filename, f"midnight-provisioner-{kind}-restored",
             confirmed=True,
         )
 
@@ -128,7 +128,7 @@ class RestoreTests(unittest.TestCase):
         report = verify_staging(new_dir)
         self.assertEqual(len(report), 2)
         xml = ET.fromstring((new_dir / "domain.xml").read_text())
-        self.assertEqual(xml.findtext("name"), "nightglass-analysis-restored")
+        self.assertEqual(xml.findtext("name"), "midnight-provisioner-analysis-restored")
         self.assertIsNone(xml.find("./devices/interface"))
         self.assertIsNone(xml.find("uuid"))
         self.assertEqual(
@@ -158,13 +158,13 @@ class RestoreTests(unittest.TestCase):
         self._backup()
         dest = self.root / "bad-driver-copy"
         with self.assertRaisesRegex(ToolError, "INCOMPLETE"):
-            self.service.stage(self.source, dest, "nightglass-wrong-driver", confirmed=True)
+            self.service.stage(self.source, dest, "midnight-provisioner-wrong-driver", confirmed=True)
         self.assertTrue((dest / "INCOMPLETE").exists())
 
     def test_inherited_host_channels_are_blocked(self):
         self.xml = self._xml(extra='<channel type="unix"/>')
         self._backup()
-        with self.assertRaisesRegex(ToolError, "fails Nightglass policy"):
+        with self.assertRaisesRegex(ToolError, "fails Midnight Provisioner policy"):
             self.service.plan(self.source, self.root / "x", "restored")
 
     def test_manifest_and_domain_disk_source_must_match(self):
@@ -279,7 +279,7 @@ class RestoreTests(unittest.TestCase):
     def test_incomplete_on_copied_file_corruption(self):
         # Source XML and source manifest are valid when staging starts, but
         # a competing edit can invalidate final validation.
-        with patch("nightglass.recovery.verify_staging", side_effect=ToolError("post-copy audit failed")):
+        with patch("midnight_provisioner.recovery.verify_staging", side_effect=ToolError("post-copy audit failed")):
             with self.assertRaisesRegex(ToolError, "INCOMPLETE"):
                 self.service.stage(self.source, self.root / "incomplete", "restored", confirmed=True)
         self.assertTrue((self.root / "incomplete/INCOMPLETE").exists())

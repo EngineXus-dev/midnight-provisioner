@@ -19,7 +19,7 @@
 - [ ] Fedora/KVM end-to-end tests for resumed Kali sessions and manual out-of-band changes
 
 ## v0.1.3 — one install, portable machine tuning (draft)
-- [x] One non-root Nightglass app setup script; remove separate 8/32 GB setup entrypoints
+- [x] One non-root Midnight Provisioner app setup script; remove separate 8/32 GB setup entrypoints
 - [x] Detect RAM and CPU at every VM launch; clamp custom preferences to conservative budgets
 - [x] Machine settings GUI with Automatic, Compact, Balanced, Performance and advanced controls
 - [x] Machine-local settings isolated from portable workspace definitions and VM images
@@ -490,8 +490,8 @@
 - [ ] Run full pinned commit Python/Fedora offline gate, evidence audit and physical Fedora acceptance separately
 - [ ] No system installation, GitHub Actions, merges or backup-drive operations until explicitly authorized
 
-## Phase 16 — make script-launched synthetic tests actually import Nightglass
-- [x] Reproduce `ModuleNotFoundError` when invoking a unittest loader under `scripts/` with `nightglass/` at repository root
+## Phase 16 — make script-launched synthetic tests actually import Midnight Provisioner
+- [x] Reproduce `ModuleNotFoundError` when invoking a unittest loader under `scripts/` with `midnight_provisioner/` at repository root
 - [x] Prioritize trusted source root on `sys.path` in portable, headless Python matrix and Fedora GUI/native fixture runners
 - [x] Add isolated real-subprocess fixture regression for each runner; fail if the project package is missing
 - [x] Retain minimum executed-test counts, allowlists, resource guards and platform-specific caveats

@@ -1,4 +1,4 @@
-# Phase 10 — Verify your Nightglass backup before a future Windows 11 clean install
+# Phase 10 — Verify your Midnight Provisioner backup before a future Windows 11 clean install
 
 > Privacy note: hardware and installation scenarios are illustrative. Discover actual device details independently; historical scenarios are not current authorization.
 
@@ -18,7 +18,7 @@ personal data backup.**
 
 ## New read-only tool
 
-`scripts/backup/Inspect-Nightglass-Backup.py` uses only the Python standard
+`scripts/backup/Inspect-Midnight-Provisioner-Backup.py` uses only the Python standard
 library, runs on Windows 10/11 or Linux, and supports the following
 separate modes:
 
@@ -30,7 +30,7 @@ separate modes:
 
 Both Inspect and Verify require two **explicitly selected** directories:
 the original project folder and the corresponding folder the user has
-**already copied** to the portable drive. Nightglass never identifies,
+**already copied** to the portable drive. Midnight Provisioner never identifies,
 selects, formats, writes to or mounts a drive on the user's behalf.
 Neither source nor destination must be inferred from Windows disk
 number (which can change after reboot).
@@ -40,7 +40,7 @@ number (which can change after reboot).
 From a checkout containing the new tool:
 
 ```powershell
-python scripts/backup/Inspect-Nightglass-Backup.py
+python scripts/backup/Inspect-Midnight-Provisioner-Backup.py
 ```
 
 This has **no file reads, no GitHub/network requests, no hash work,
@@ -56,14 +56,14 @@ copy. Do not interpret the sample `E:` letter as a known drive.
 
 ```powershell
 # Metadata / relative-path inventory only. Does NOT prove byte equality.
-python scripts/backup/Inspect-Nightglass-Backup.py --mode Inspect `
-  --source "C:\Users\YOURNAME\Documents\nightglass-workspaces" `
-  --backup "E:\MY-BACKUP\nightglass-workspaces"
+python scripts/backup/Inspect-Midnight-Provisioner-Backup.py --mode Inspect `
+  --source "C:\Users\YOURNAME\Documents\midnight-provisioner" `
+  --backup "E:\MY-BACKUP\midnight-provisioner"
 
 # Stronger read-only matching after copying is finished and files are idle.
-python scripts/backup/Inspect-Nightglass-Backup.py --mode Verify `
-  --source "C:\Users\YOURNAME\Documents\nightglass-workspaces" `
-  --backup "E:\MY-BACKUP\nightglass-workspaces"
+python scripts/backup/Inspect-Midnight-Provisioner-Backup.py --mode Verify `
+  --source "C:\Users\YOURNAME\Documents\midnight-provisioner" `
+  --backup "E:\MY-BACKUP\midnight-provisioner"
 ```
 
 Verify streams one MiB at a time rather than loading large virtual

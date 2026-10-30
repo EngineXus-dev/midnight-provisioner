@@ -1,4 +1,4 @@
-"""Nightglass integrated system discovery: pure synthetic safety tests."""
+"""Midnight Provisioner integrated system discovery: pure synthetic safety tests."""
 from __future__ import annotations
 
 import io
@@ -7,10 +7,10 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from nightglass.install_target_preview import build_target_preview
+from midnight_provisioner.install_target_preview import build_target_preview
 from unittest.mock import patch
 
-from nightglass import system_discovery as discovery
+from midnight_provisioner import system_discovery as discovery
 
 
 def _disk(name="nvme0n1", children=None):
@@ -67,7 +67,7 @@ class FirstRunRecognitionTests(unittest.TestCase):
                 scan = discovery.windows_storage({"disks": [disk], "partitions": []})
                 self.assertEqual(scan[0]["target_classification"], "UNKNOWN")
                 preview = build_target_preview(
-                    {"schema": "nightglass.system-discovery.v1", "read_only": True,
+                    {"schema": "midnight-provisioner.system-discovery.v1", "read_only": True,
                      "status": "HOLD_USER_REVIEW_ALL_UNKNOWN_DETAILS",
                      "installation_authorized": False, "partition_write_authorized": False,
                      "install_target_confirmed": False, "storage_query": "OBSERVED",
@@ -167,12 +167,12 @@ class FirstRunRecognitionTests(unittest.TestCase):
                 self.assertIs(result[key], False)
 
     def test_cli_command_only_reports_safe_local_observations(self):
-        from nightglass.cli import main
+        from midnight_provisioner.cli import main
         with tempfile.TemporaryDirectory() as temp:
             sample = discovery.collect_system(system="Linux", run_live=False,
                                               storage_data={"blockdevices": []},
                                               home=Path(temp))
-        with patch("nightglass.system_discovery.collect_system", return_value=sample), \
+        with patch("midnight_provisioner.system_discovery.collect_system", return_value=sample), \
              patch("sys.stdout", new_callable=io.StringIO) as output:
             result = main(["discover", "--json"])
         self.assertEqual(result, 0)
