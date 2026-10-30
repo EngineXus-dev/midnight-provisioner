@@ -89,10 +89,12 @@ Hyper-V's Secure Boot templates are set per VM ("Microsoft Windows" vs "Microsof
 
 ## 3. Make the USB installer
 
+**Fedora Media Writer is the recommended tool for the Midnight Provisioner Fedora ISO.** Use the local/custom-image option to select the `Midnight-Provisioner-Installer-*.iso` you built; the writer's stock Fedora download does not include Midnight Provisioner. Choose the intended USB stick, finish writing and verification, then safely eject it. Get the writer from its [official releases](https://github.com/FedoraQt/MediaWriter/releases/latest).
+
 | Option | How | Notes |
 |---|---|---|
-| **A. Rufus (Recommended for Windows)** | Select the `Midnight-Provisioner-Installer-*.iso`, click **START**, and select **Write in DD Image mode** when prompted. | Most popular Windows flasher. Preserves EFI boot signatures for Secure Boot. |
-| **B. Fedora Media Writer** | Click *Select .iso file*, select the `Midnight-Provisioner-Installer-*.iso`, and pick your USB drive. | Official Fedora GUI utility. |
+| **A. Fedora Media Writer (Recommended)** | Choose a local/custom image, select the `Midnight-Provisioner-Installer-*.iso`, and pick your USB stick. | Official Fedora GUI utility; let writing and verification finish. |
+| **B. Rufus (Alternative on Windows)** | Select the `Midnight-Provisioner-Installer-*.iso`, click **START**, and select **Write in DD Image mode** when prompted. | Alternative raw-image writer; use DD mode for this Fedora image. |
 | **C. Ventoy (Multiboot USB)** | Install **Ventoy** on the USB drive, then copy the ISO files directly onto it (see `docs/ONE_USB_MULTIBOOT_PLAN.md`). | Enroll Ventoy's key once at first boot if Secure Boot is enabled. |
 | **D. Linux / macOS Command Line (`dd`)** | `sudo dd if=Midnight-Provisioner-Installer-Fedora-*.iso of=/dev/sdX bs=4M status=progress conv=fsync` | Native raw block copy (`of` must be the drive node `/dev/sdX` or `/dev/rdiskN`, NOT a partition like `/dev/sdX1`). |
 

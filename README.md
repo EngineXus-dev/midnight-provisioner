@@ -75,6 +75,8 @@ Keep the source checkout in place: setup uses an editable installation. Review l
 
 The [installer media guide](scripts/iso/README.md) explains how to build an ISO from Fedora's official Everything netinstall image, test it, and prepare a USB installer. It also covers installation alongside Windows.
 
+**Recommended USB writer: [Fedora Media Writer](https://github.com/FedoraQt/MediaWriter/releases/latest).** Choose its local/custom-image option, select the built `Midnight-Provisioner-Installer-*.iso`, and select the intended USB stick. Writing erases that stick. Wait for writing and verification to finish successfully before ejecting it. Select the custom Midnight Provisioner ISO rather than downloading a stock Fedora image in the writer.
+
 Fedora's installer handles operating-system installation and partitioning. You choose the destination disk and encryption settings there. Back up any data you want to keep before formatting a drive or partition.
 
 ## Kali Linux workspaces and toolkits
@@ -437,6 +439,7 @@ Official source repositories and documentation for the platforms, libraries, too
 - [Fedora installer option changes](https://docs.fedoraproject.org/en-US/fedora/f38/release-notes/sysadmin/Installation/)
 - [Rufus](https://rufus.ie/en/)
 - [Fedora Media Writer source](https://github.com/FedoraQt/MediaWriter)
+- [Fedora Media Writer official releases](https://github.com/FedoraQt/MediaWriter/releases/latest)
 - [Ventoy source](https://github.com/ventoy/Ventoy)
 - [Ventoy Secure Boot guidance](https://www.ventoy.net/en/doc_secure.html)
 - [GNU Mtools](https://www.gnu.org/software/mtools/)
