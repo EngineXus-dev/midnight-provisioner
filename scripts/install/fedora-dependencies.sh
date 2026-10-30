@@ -12,7 +12,9 @@ fi
 cat <<'NOTICE'
 Midnight Provisioner Fedora dependencies:
   qemu-kvm, libvirt, virt-manager, virt-viewer, virt-install,
-  python3, python3-pip, podman, distrobox, virtiofsd
+  python3, python3-pip, podman, distrobox, virtiofsd, git,
+  qemu-img, libxml2, edk2-ovmf, cryptsetup, mokutil, firewalld,
+  policycoreutils, konsole, xdg-user-dirs, xdg-utils, desktop-file-utils
 
 This step installs RPM packages only. It will NOT repartition a disk,
 change the EFI bootloader, install a Linux ISO, create VMs or change firewall/network rules.
@@ -25,7 +27,7 @@ fi
 response=''
 read -r -p 'Type INSTALL to run sudo dnf install: ' response || true
 [[ $response == INSTALL ]] || { echo 'Cancelled; nothing changed.'; exit 0; }
-sudo dnf install qemu-kvm libvirt virt-manager virt-viewer virt-install python3 python3-pip podman distrobox virtiofsd
+sudo dnf install qemu-kvm libvirt virt-manager virt-viewer virt-install python3 python3-pip podman distrobox virtiofsd git qemu-img libxml2 edk2-ovmf cryptsetup mokutil firewalld policycoreutils konsole xdg-user-dirs xdg-utils desktop-file-utils
 cat <<'NEXT'
 Installed packages. Your libvirt service activation and permissions still need review.
 Run: virsh --connect qemu:///system list --all
